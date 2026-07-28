@@ -13,7 +13,8 @@ are defined in the [specifications](docs/specifications/README.md).
 Follow the [getting-started guide](docs/getting-started.md) to build or install
 the module, create a first Entry Root, reconcile its Start Entry, and verify the
 Launcher. The [setup script](tools/Initialize-QuickStart.ps1) writes a default
-machine configuration and a sample Entry Root of built-in Windows Launch Items.
+machine configuration, creates a sample Entry Root of built-in Windows Launch
+Items, and reconciles its Start Entry when run elevated.
 
 ## Content model
 

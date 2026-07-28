@@ -69,9 +69,10 @@ For managed deployment or a package from another location, follow the
 
 ## Run the setup script
 
-The setup script writes a default machine configuration and creates one sample
-Entry Root with Launch Items that exist on every Windows installation. Run it
-from the elevated session in the repository root:
+The setup script writes a default machine configuration, creates one sample
+Entry Root with Launch Items that exist on every Windows installation, and
+reconciles the Start Entry. Run it from the elevated session in the repository
+root:
 
 ```powershell
 .\tools\Initialize-QuickStart.ps1
@@ -80,10 +81,15 @@ from the elevated session in the repository root:
 It creates the machine configuration, a `Windows tools` Entry Root with File
 Explorer, Notepad, Command Prompt, Windows PowerShell, Task Manager, and
 Control Panel, and a `Web links` Menu Folder with two HTTP(S) Launch Items. It
-keeps existing files unless you pass `-Force`, skips a Launch Item whose target
-is missing on this machine, and never runs Reconciliation. Use
-`-ConfigurationPath`, `-ManagedRoot`, `-PersonalRoot`, `-EntryName`, and
-`-LauncherHost` to change the defaults.
+keeps existing files unless you pass `-Force` and skips a Launch Item whose
+target is missing on this machine. Use `-ConfigurationPath`, `-ManagedRoot`,
+`-PersonalRoot`, `-EntryName`, and `-LauncherHost` to change the defaults.
+
+The script then runs Reconciliation, so **Windows tools** appears in the Start
+menu. That step needs the module installed or built and an elevated
+interactive session. Without them the script keeps the content it created,
+reports `StartEntryAction` as `NotElevated` or `ModuleUnavailable`, and leaves
+Reconciliation to you. Pass `-SkipReconciliation` to create content only.
 
 Continue with [Inspect the effective configuration](#inspect-the-effective-configuration)
 and skip the manual Entry Root section.
@@ -159,6 +165,9 @@ You can also add nested directories, other `.lnk` files, and HTTP(S) `.url`
 files. A UTF-8 `description.txt` supplies the Menu Folder tooltip.
 
 ## Reconcile Start Entries
+
+Skip this section when the setup script already reported `StartEntryAction` as
+`Reconciled`.
 
 Remain in the elevated interactive PowerShell session. Reconciliation creates
 only module-owned Start Entries and verifies that standard users can write and

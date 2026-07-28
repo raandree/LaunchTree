@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a setup script that writes a default machine configuration and a sample
-  Entry Root of built-in Windows Launch Items for a faster first run
+- Add a setup script that writes a default machine configuration, creates a
+  sample Entry Root of built-in Windows Launch Items, and reconciles its Start
+  Entry for a faster first run
 - Add a getting-started guide for installation, first content, Reconciliation,
   health verification, Launcher use, and cleanup
 - Add structured health, redacted Event Log diagnostics, Support Bundle export,

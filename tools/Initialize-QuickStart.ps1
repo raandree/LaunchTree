@@ -4,12 +4,14 @@
         Root of Launch Items that exist on every Windows installation.
 
     .DESCRIPTION
-        Writes the schema version 1 machine configuration when none exists and
+        Writes the schema version 1 machine configuration when none exists,
         creates one Entry Root with Launch Items for built-in Windows programs
-        and two HTTP(S) links. Existing files are preserved unless -Force is
-        supplied, and Launch Items whose target is missing on this machine are
-        skipped. The script never runs Reconciliation; run Update-LaunchTree
-        from an elevated interactive session afterwards.
+        and two HTTP(S) links, and reconciles the Start Entry so the Entry Root
+        appears in the Windows Start menu. Existing files are preserved unless
+        -Force is supplied, and Launch Items whose target is missing on this
+        machine are skipped. Reconciliation requires an elevated interactive
+        session; without one the script reports the skipped step and keeps the
+        content it created.
 
     .PARAMETER ConfigurationPath
         Specifies the machine configuration JSON file to create.
@@ -26,13 +28,17 @@
     .PARAMETER LauncherHost
         Specifies the Launcher Host recorded in the machine configuration.
 
+    .PARAMETER SkipReconciliation
+        Creates the configuration and content without creating a Start Entry.
+
     .PARAMETER Force
         Replaces an existing machine configuration and existing sample files.
 
     .EXAMPLE
         .\Initialize-QuickStart.ps1
 
-        Creates the default configuration and the sample Entry Root.
+        Creates the default configuration, the sample Entry Root, and the Start
+        Entry when the session is elevated.
 
     .EXAMPLE
         .\Initialize-QuickStart.ps1 -EntryName 'Admin tools' -Force
@@ -65,6 +71,9 @@ param(
     [Parameter()]
     [ValidateSet('WindowsPowerShell', 'PowerShell7')]
     [string] $LauncherHost = 'WindowsPowerShell',
+
+    [Parameter()]
+    [switch] $SkipReconciliation,
 
     [Parameter()]
     [switch] $Force
@@ -227,10 +236,57 @@ if ($PSCmdlet.ShouldProcess($entryRoot, 'Create sample Entry Root')) {
     }
 }
 
-Write-Verbose (
-    'Run Update-LaunchTree from an elevated interactive session to create the ' +
-    'Start Entry.'
-)
+$startEntryAction = 'Skipped'
+$startEntryCount = 0
+if (-not $SkipReconciliation) {
+    $currentIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $isElevated = [Security.Principal.WindowsPrincipal]::new(
+        $currentIdentity
+    ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+    if (-not (Get-Module -Name LaunchTree)) {
+        $builtModuleRoot = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) `
+            -ChildPath 'output\module\LaunchTree'
+        $builtManifest = Get-ChildItem -Path $builtModuleRoot -Recurse `
+            -Filter 'LaunchTree.psd1' -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+        $installedModule = Get-Module -Name LaunchTree -ListAvailable |
+            Select-Object -First 1
+
+        if ($installedModule) {
+            Import-Module -Name $installedModule -Force
+        } elseif ($builtManifest) {
+            Import-Module -Name $builtManifest.FullName -Force
+        }
+    }
+
+    if (-not (Get-Module -Name LaunchTree)) {
+        $startEntryAction = 'ModuleUnavailable'
+        Write-Warning (
+            'Skipped Reconciliation because the LaunchTree module is neither ' +
+            'installed nor built. Import it and run Update-LaunchTree.'
+        )
+    } elseif (-not $isElevated) {
+        $startEntryAction = 'NotElevated'
+        Write-Warning (
+            'Skipped Reconciliation because the session is not elevated. Run ' +
+            'Update-LaunchTree from an elevated interactive session to create ' +
+            'the Start Entry.'
+        )
+    } elseif ($PSCmdlet.ShouldProcess($ConfigurationPath, 'Reconcile Start Entries')) {
+        try {
+            $update = Update-LaunchTree -ConfigurationPath $ConfigurationPath `
+                -Confirm:$false
+            $startEntryAction = if ($update.Succeeded) { 'Reconciled' } else { 'Failed' }
+            $startEntryCount = @($update.Added).Count + @($update.Updated).Count
+        } catch {
+            $reconciliationError = $_
+            $startEntryAction = 'Failed'
+            Write-Error -ErrorRecord $reconciliationError -ErrorAction Continue
+        }
+    }
+}
 
 [PSCustomObject] @{
     ConfigurationPath   = $ConfigurationPath
@@ -240,4 +296,6 @@ Write-Verbose (
     CreatedLaunchItems  = $createdItems.ToArray()
     KeptLaunchItems     = $keptItems.ToArray()
     SkippedLaunchItems  = $skippedItems.ToArray()
+    StartEntryAction    = $startEntryAction
+    StartEntryCount     = $startEntryCount
 }

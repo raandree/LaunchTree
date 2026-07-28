@@ -45,6 +45,11 @@ release remains gated by external environment evidence.
 - 2026-07-28: Documented `Show-LaunchTree` console use, direct import of the
   built module, and the recognized/EntryId/STA failures that were previously
   absent from every operator document.
+- 2026-07-28: Extended the setup script to run Reconciliation so the sample
+  Entry Root reaches the Windows Start menu; it imports an installed or built
+  module, reports `NotElevated`/`ModuleUnavailable` instead of failing, and
+  accepts `-SkipReconciliation`. The elevated success path is unverified
+  locally because the agent session is not elevated.
 
 ## Stable capabilities
 
