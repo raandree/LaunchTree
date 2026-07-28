@@ -7,5 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add read-only effective configuration with validated machine settings, user
+  preferences, defaults, and structured Health Findings
 - Add the initial Sampler module structure, signed specifications, accepted
   decisions, canonical glossary, and managed issue register
