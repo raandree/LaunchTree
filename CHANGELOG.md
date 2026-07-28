@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix the getting-started Entry Root sample so it resolves the effective
+  configuration itself, stops at the first error, and releases the shell COM
+  object even when shortcut creation fails
 - Fix Windows command-line escaping for trailing backslashes and plus signs
 - Return structured `Unhealthy` status and a visible Launcher error for future
   configuration schemas while refusing Reconciliation mutation

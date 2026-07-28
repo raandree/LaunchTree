@@ -33,6 +33,11 @@ creates only administrator-authored inputs, keeps existing files unless forced,
 and leaves Reconciliation to `Update-LaunchTree`, so the public command surface
 in `ADR-0007` stays unchanged.
 
+Every documented sample block must run standalone. A block resolves the values
+it uses instead of relying on a variable from an earlier block, and a
+multistatement block runs inside `& { $ErrorActionPreference = 'Stop'; ... }`
+so the first failure stops the block instead of cascading.
+
 ## Decisions
 
 ### Decision 1: Use the canonical Memory Bank base

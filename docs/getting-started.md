@@ -107,26 +107,41 @@ configuration path, edit it, and run this inspection again.
 Skip this section when the setup script already created the sample content.
 
 Every immediate directory under the Managed Root becomes one Start Entry.
-Nested directories become Menu Folders. Create a sample Entry Root and a valid
-Windows shortcut:
+Nested directories become Menu Folders. Run this block in the elevated session
+to create a sample Entry Root and a valid Windows shortcut. It reads the
+configuration itself, so it also works without the previous section:
 
 ```powershell
-$entryRoot = Join-Path $configuration.ManagedRoot 'Windows tools'
-New-Item -ItemType Directory -Path $entryRoot -Force | Out-Null
+& {
+    $ErrorActionPreference = 'Stop'
 
-'Built-in Windows tools.' |
-    Set-Content -LiteralPath (Join-Path $entryRoot 'description.txt') `
-        -Encoding UTF8
+    $configuration = Get-LaunchTreeConfiguration
+    $entryRoot = Join-Path $configuration.ManagedRoot 'Windows tools'
+    $notepadPath = Join-Path $env:SystemRoot 'System32\notepad.exe'
+    New-Item -ItemType Directory -Path $entryRoot -Force | Out-Null
 
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut((Join-Path $entryRoot 'Notepad.lnk'))
-$shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\notepad.exe'
-$shortcut.IconLocation = "$env:SystemRoot\System32\notepad.exe,0"
-$shortcut.Save()
+    'Built-in Windows tools.' |
+        Set-Content -LiteralPath (Join-Path $entryRoot 'description.txt') `
+            -Encoding UTF8
 
-[void] [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut)
-[void] [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    $shell = New-Object -ComObject WScript.Shell
+    try {
+        $shortcut = $shell.CreateShortcut((Join-Path $entryRoot 'Notepad.lnk'))
+        $shortcut.TargetPath = $notepadPath
+        $shortcut.IconLocation = "$notepadPath,0"
+        $shortcut.Save()
+        [void] [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shortcut)
+    } finally {
+        [void] [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell)
+    }
+
+    "Created $entryRoot"
+}
 ```
+
+The block stops at the first error instead of reporting follow-up failures. An
+access-denied error means the session is not elevated, and a missing
+`Get-LaunchTreeConfiguration` command means the module is not installed.
 
 You can also add nested directories, other `.lnk` files, and HTTP(S) `.url`
 files. A UTF-8 `description.txt` supplies the Menu Folder tooltip.

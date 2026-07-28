@@ -39,6 +39,9 @@ release remains gated by external environment evidence.
   setup script that writes a default machine configuration and a sample Entry
   Root of always-present Windows Launch Items; the generated configuration is
   valid with zero Health Findings.
+- 2026-07-28: Made the getting-started Entry Root sample self-contained and
+  fail-fast after it failed with a cascading null-variable error; the extracted
+  block was executed against a redirected `ProgramData` fixture.
 
 ## Stable capabilities
 
