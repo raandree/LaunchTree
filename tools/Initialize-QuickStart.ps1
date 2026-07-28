@@ -66,7 +66,7 @@ param(
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $EntryName = 'Windows tools',
+    [string] $EntryName = 'LaunchTree Demo',
 
     [Parameter()]
     [ValidateSet('WindowsPowerShell', 'PowerShell7')]

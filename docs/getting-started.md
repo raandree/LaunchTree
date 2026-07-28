@@ -78,14 +78,14 @@ root:
 .\tools\Initialize-QuickStart.ps1
 ```
 
-It creates the machine configuration, a `Windows tools` Entry Root with File
+It creates the machine configuration, a `LaunchTree Demo` Entry Root with File
 Explorer, Notepad, Command Prompt, Windows PowerShell, Task Manager, and
 Control Panel, and a `Web links` Menu Folder with two HTTP(S) Launch Items. It
 keeps existing files unless you pass `-Force` and skips a Launch Item whose
 target is missing on this machine. Use `-ConfigurationPath`, `-ManagedRoot`,
 `-PersonalRoot`, `-EntryName`, and `-LauncherHost` to change the defaults.
 
-The script then runs Reconciliation, so **Windows tools** appears in the Start
+The script then runs Reconciliation, so **LaunchTree Demo** appears in the Start
 menu. That step needs the module installed or built and an elevated
 interactive session. Without them the script keeps the content it created,
 reports `StartEntryAction` as `NotElevated` or `ModuleUnavailable`, and leaves
@@ -134,7 +134,7 @@ configuration itself, so it also works without the previous section:
     $ErrorActionPreference = 'Stop'
 
     $configuration = Get-LaunchTreeConfiguration
-    $entryRoot = Join-Path $configuration.ManagedRoot 'Windows tools'
+    $entryRoot = Join-Path $configuration.ManagedRoot 'LaunchTree Demo'
     $notepadPath = Join-Path $env:SystemRoot 'System32\notepad.exe'
     New-Item -ItemType Directory -Path $entryRoot -Force | Out-Null
 
@@ -200,15 +200,15 @@ status is `Degraded` or `Unhealthy`, use the finding codes with the
 
 ## Open the Launcher
 
-Return to a standard-user session, open Start, search for **Windows tools**, and
-select the new Start Entry. The Launcher should show Notepad with its native
+Return to a standard-user session, open Start, search for **LaunchTree Demo**,
+and select the new Start Entry. The Launcher should show Notepad with its native
 icon. Select Notepad to let Windows Shell open the shortcut.
 
 You can also open an Entry Root directly from PowerShell, which is useful while
 you are still adding content:
 
 ```powershell
-Show-LaunchTree -EntryName 'Windows tools'
+Show-LaunchTree -EntryName 'LaunchTree Demo'
 ```
 
 That call reads the Managed Root and needs no Start Entry and no
@@ -234,7 +234,7 @@ Remove-LaunchTree -Confirm:$false
 Removal deletes module-owned Start Entries, the ownership record, selected user
 cache, and diagnostic registration. It preserves machine configuration, the
 Managed Root, the Personal Root, Menu Folders, and Launch Items. Delete the
-sample `Windows tools` directory separately when you no longer need it.
+sample `LaunchTree Demo` directory separately when you no longer need it.
 
 ## See also
 

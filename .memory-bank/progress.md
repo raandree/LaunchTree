@@ -50,6 +50,8 @@ release remains gated by external environment evidence.
   module, reports `NotElevated`/`ModuleUnavailable` instead of failing, and
   accepts `-SkipReconciliation`. The elevated success path is unverified
   locally because the agent session is not elevated.
+- 2026-07-28: Renamed the sample Entry Root to `LaunchTree Demo` because
+  `Windows tools` collides with the built-in Windows Tools Start menu entry.
 
 ## Stable capabilities
 

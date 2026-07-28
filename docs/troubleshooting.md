@@ -20,7 +20,7 @@ Personal Root augments matching managed Entry Roots.
 `Show-LaunchTree` opens an Entry Root without a Start Entry:
 
 ```powershell
-Show-LaunchTree -EntryName 'Windows tools'
+Show-LaunchTree -EntryName 'LaunchTree Demo'
 ```
 
 - `The term 'Show-LaunchTree' is not recognized` means the module is neither
