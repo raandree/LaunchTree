@@ -1,0 +1,22 @@
+# Build output
+/output/
+
+# Resolved dependencies
+/RequiredModules/
+
+# Packages and test artifacts
+*.nupkg
+/coverage/
+/testResults/
+
+# Generated and local files
+**.bak
+*.local.*
+!**/README.md
+*.suo
+*.user
+*.coverage
+/.vs/
+*.psproj
+*.sln
+markdownissues.txt
