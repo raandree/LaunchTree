@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add transactional Start Entry Reconciliation with opaque Entry IDs,
+  ownership records, collision protection, rollback, and event-log provisioning
 - Add Shell-native `.lnk` and `.url` invocation with typed failure results
 - Add recursive Content Snapshot discovery with Managed and Personal Content
   Sources, depth boundaries, descriptions, and validated `.lnk`/`.url` items

@@ -201,6 +201,7 @@ Initial event IDs are:
 | `1502` | Warning | Interaction budget exceeded |
 | `1503` | Warning | Working-set budget exceeded |
 | `1601` | Error | Support Bundle export failed |
+| `1602` | Information | Event log write/read access probe |
 
 Every event must include event schema version, module version, operation,
 redacted source path when relevant, error category, and error code. Events must
