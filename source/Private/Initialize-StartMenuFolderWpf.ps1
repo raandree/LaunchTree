@@ -16,6 +16,7 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.IO.Pipes;
+__ACCESS_USING__
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,18 +43,15 @@ namespace StartMenuFolders
             }
         }
 
+    __LEGACY_SERVER_METHOD__
+
         private async Task RunAsync()
         {
             while (!cancellation.IsCancellationRequested)
             {
                 try
                 {
-                    using (NamedPipeServerStream server = new NamedPipeServerStream(
-                        pipeName,
-                        PipeDirection.In,
-                        1,
-                        PipeTransmissionMode.Byte,
-                        PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
+                    using (NamedPipeServerStream server = __SERVER_FACTORY__)
                     {
                         await server.WaitForConnectionAsync(cancellation.Token).ConfigureAwait(false);
                         using (StreamReader reader = new StreamReader(server))
@@ -113,6 +111,49 @@ namespace StartMenuFolders
     }
 }
 '@
+
+    $supportsCurrentUserOnly = [Enum]::GetNames([IO.Pipes.PipeOptions]) -contains (
+        'CurrentUserOnly'
+    )
+    if ($supportsCurrentUserOnly) {
+        $accessUsing = ''
+        $legacyServerMethod = ''
+        $serverFactory = @'
+new NamedPipeServerStream(
+                        pipeName,
+                        PipeDirection.In,
+                        1,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly)
+'@
+    } else {
+        $accessUsing = 'using System.Security.AccessControl;'
+        $serverFactory = 'CreateCurrentUserServer(pipeName)'
+        $legacyServerMethod = @'
+        private static NamedPipeServerStream CreateCurrentUserServer(string pipeName)
+        {
+            SecurityIdentifier currentUser = WindowsIdentity.GetCurrent().User;
+            PipeSecurity security = new PipeSecurity();
+            security.SetOwner(currentUser);
+            security.AddAccessRule(new PipeAccessRule(
+                currentUser,
+                PipeAccessRights.FullControl,
+                AccessControlType.Allow));
+            return new NamedPipeServerStream(
+                pipeName,
+                PipeDirection.In,
+                1,
+                PipeTransmissionMode.Byte,
+                PipeOptions.Asynchronous,
+                0,
+                0,
+                security);
+        }
+'@
+    }
+    $activationSource = $activationSource.Replace('__ACCESS_USING__', $accessUsing)
+    $activationSource = $activationSource.Replace('__LEGACY_SERVER_METHOD__', $legacyServerMethod)
+    $activationSource = $activationSource.Replace('__SERVER_FACTORY__', $serverFactory)
 
     if (-not ('StartMenuFolders.ActivationServer' -as [type])) {
         Add-Type -TypeDefinition $activationSource -Language CSharp

@@ -53,38 +53,22 @@ function Register-StartMenuFolderEventLog {
     }
 
     $descriptor = Get-StartMenuFolderEventLogSecurityDescriptor
+    if (-not (Test-StartMenuFolderInteractiveEventAccess -SecurityDescriptor $descriptor)) {
+        throw [Security.SecurityException]::new(
+            'The Event Log descriptor does not grant Interactive Users read/write without clear rights.'
+        )
+    }
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'CustomSD' -Value $descriptor -Type String
     $maximumBytes = [int64] $Configuration.Diagnostics.MaximumLogSizeMB * 1MB
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'MaxSize' -Value $maximumBytes -Type DWord
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'Retention' -Value 0 -Type DWord
 
-    $nonce = [guid]::NewGuid().ToString('N')
-    $message = "StartMenuFolders event log access probe: $nonce"
-    [Diagnostics.EventLog]::WriteEntry(
-        $sourceName,
-        $message,
-        [Diagnostics.EventLogEntryType]::Information,
-        1602
+    $launcherHostPath = Get-StartMenuFolderLauncherHostPath -LauncherHost (
+        $Configuration.LauncherHost
     )
-
-    $eventLog = [Diagnostics.EventLog]::new($logName, '.')
-    try {
-        $probeFound = $false
-        for ($index = $eventLog.Entries.Count - 1; $index -ge 0; $index--) {
-            $entry = $eventLog.Entries[$index]
-            if ($entry.Source -eq $sourceName -and
-                $entry.EventID -eq 1602 -and
-                $entry.Message -like "*$nonce*") {
-                $probeFound = $true
-                break
-            }
-        }
-        if (-not $probeFound) {
-            throw [System.InvalidOperationException]::new(
-                'The event log write/read probe could not be verified.'
-            )
-        }
-    } finally {
-        $eventLog.Dispose()
+    $probeParameters = @{
+        Configuration    = $Configuration
+        LauncherHostPath = $launcherHostPath
     }
+    $null = Invoke-StartMenuFolderStandardUserEventProbe @probeParameters
 }

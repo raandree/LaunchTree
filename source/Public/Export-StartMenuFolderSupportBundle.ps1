@@ -80,6 +80,19 @@ function Export-StartMenuFolderSupportBundle {
             Remove-Item -LiteralPath $outputPath -Force
         }
         Compress-Archive -Path (Join-Path $temporaryPath '*') -DestinationPath $outputPath -Force
+    } catch {
+        $bundleError = $_
+        $eventParameters = @{
+            Configuration = $configuration
+            EventId       = 1601
+            Level         = 'Error'
+            Operation     = 'SupportBundle'
+            Message       = $bundleError.Exception.Message
+            Path          = $outputPath
+            ErrorCode     = $bundleError.FullyQualifiedErrorId
+        }
+        $null = Write-StartMenuFolderEvent @eventParameters
+        throw
     } finally {
         Remove-Item -LiteralPath $temporaryPath -Recurse -Force -ErrorAction SilentlyContinue
     }

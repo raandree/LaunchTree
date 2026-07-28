@@ -57,12 +57,25 @@ function Show-StartMenuFolder {
             'Show-StartMenuFolder requires an STA PowerShell host.'
         )
     }
+    $startupStopwatch = [Diagnostics.Stopwatch]::StartNew()
 
     $configurationParameters = @{}
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
     $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    if (-not $configuration.IsValid) {
+        $schemaFinding = $configuration.HealthFindings |
+            Where-Object Code -eq 'ConfigurationSchemaUnsupported' |
+            Select-Object -First 1
+        $errorParameters = @{
+            Title       = 'Configuration is not supported'
+            Message     = $schemaFinding.Message
+            CapturePath = $CapturePath
+        }
+        Show-StartMenuFolderErrorWindow @errorParameters
+        return
+    }
     $activationServer = $null
     $sessionMutex = $null
     $ownsMutex = $false
@@ -136,6 +149,7 @@ function Show-StartMenuFolder {
             CapturePath       = $CapturePath
             ActivationServer  = $activationServer
             GeneratedStatePath = $GeneratedStatePath
+            StartupStopwatch  = $startupStopwatch
         }
         Show-StartMenuFolderWindow @windowParameters
     } finally {

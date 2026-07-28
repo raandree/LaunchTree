@@ -43,7 +43,8 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
 
         It 'Should pass the .url file itself to Windows Shell' {
             $urlPath = Join-Path -Path $TestDrive -ChildPath 'Portal.url'
-            $null = New-Item -Path $urlPath -ItemType File
+            @('[InternetShortcut]', 'URL=https://example.test/') |
+                Set-Content -LiteralPath $urlPath -Encoding ASCII
 
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestPath = $urlPath
@@ -61,6 +62,21 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
             }
             Should -Invoke @assertion
         }
+
+        It 'Should reject a URL changed to an unsupported scheme before invocation' {
+            $urlPath = Join-Path -Path $TestDrive -ChildPath 'Changed.url'
+            @('[InternetShortcut]', 'URL=file:///C:/Windows/notepad.exe') |
+                Set-Content -LiteralPath $urlPath -Encoding ASCII
+
+            {
+                InModuleScope -ModuleName $moduleName -Parameters @{
+                    TestPath = $urlPath
+                } {
+                    Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                }
+            } | Should -Throw -ExpectedMessage '*HTTP or HTTPS*'
+            Should -Invoke -ModuleName $moduleName -CommandName Start-Process -Times 0
+        }
     }
 
     Context 'When invocation cannot proceed' {
@@ -70,16 +86,38 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
             Mock -ModuleName $moduleName -CommandName Start-Process -MockWith {
                 throw [System.ComponentModel.Win32Exception]::new('Shell rejected the item.')
             }
+            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+                $true
+            }
+            $configuration = [PSCustomObject] @{
+                Diagnostics = [PSCustomObject] @{
+                    LogName = 'StartMenuFolders'
+                    SourceName = 'StartMenuFolders'
+                }
+            }
 
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
-                TestPath = $linkPath
+                TestPath          = $linkPath
+                TestConfiguration = $configuration
             } {
-                Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                $parameters = @{
+                    LiteralPath   = $TestPath
+                    Configuration = $TestConfiguration
+                }
+                Invoke-StartMenuFolderLaunchItem @parameters
             }
 
             $result.PSObject.TypeNames | Should -Contain 'StartMenuFolders.LaunchResult'
             $result.Succeeded | Should -BeFalse
             $result.Message | Should -Match 'Shell rejected'
+            $assertion = @{
+                ModuleName      = $moduleName
+                CommandName     = 'Write-StartMenuFolderEvent'
+                Times           = 1
+                Exactly         = $true
+                ParameterFilter = { $EventId -eq 1201 }
+            }
+            Should -Invoke @assertion
         }
 
         It 'Should reject unsupported direct executable files' {

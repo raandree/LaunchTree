@@ -15,7 +15,7 @@ RootModule = 'StartMenuFolders.psm1'
 ModuleVersion = '0.0.1'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @('Desktop', 'Core')
 
 # ID used to uniquely identify this module
 GUID = '776d7b0a-4b75-4c12-8d87-d8fe2b505e58'

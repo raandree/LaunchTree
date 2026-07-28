@@ -14,6 +14,6 @@ function ConvertTo-StartMenuFolderCommandLineArgument {
         )
     }
 
-    $escapedValue = [regex]::Replace($Value, '(\+)$', '$1$1')
+    $escapedValue = [regex]::Replace($Value, '(\\+)$', '$1$1')
     '"{0}"' -f $escapedValue
 }

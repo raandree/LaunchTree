@@ -4,7 +4,11 @@ function Invoke-StartMenuFolderLaunchItem {
     param(
         [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string] $LiteralPath
+        [string] $LiteralPath,
+
+        [Parameter()]
+        [AllowNull()]
+        [PSCustomObject] $Configuration
     )
 
     if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf)) {
@@ -20,6 +24,12 @@ function Invoke-StartMenuFolderLaunchItem {
             "The Launch Item extension '$extension' is unsupported."
         )
     }
+    if ($extension -eq '.url') {
+        $detail = Get-StartMenuFolderLaunchItemDetail -LiteralPath $LiteralPath
+        if (-not $detail.Succeeded) {
+            throw [System.InvalidOperationException]::new($detail.Message)
+        }
+    }
 
     try {
         $null = Start-Process -FilePath $LiteralPath -PassThru -ErrorAction Stop
@@ -31,6 +41,18 @@ function Invoke-StartMenuFolderLaunchItem {
         }
     } catch {
         $errorRecord = $_
+        if ($Configuration) {
+            $eventParameters = @{
+                Configuration = $Configuration
+                EventId       = 1201
+                Level         = 'Error'
+                Operation     = 'LaunchItem'
+                Message       = $errorRecord.Exception.Message
+                Path          = $LiteralPath
+                ErrorCode     = $errorRecord.FullyQualifiedErrorId
+            }
+            $null = Write-StartMenuFolderEvent @eventParameters
+        }
         [PSCustomObject] @{
             PSTypeName  = 'StartMenuFolders.LaunchResult'
             Succeeded   = $false

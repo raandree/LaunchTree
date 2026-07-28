@@ -27,4 +27,21 @@ Describe 'Show-StartMenuFolder' -Tag 'Unit' {
         { Show-StartMenuFolder -EntryName 'Example' } |
             Should -Throw -ExpectedMessage '*STA*'
     }
+
+    It 'Should render a visible error for an unsupported schema' {
+        $configurationPath = Join-Path $TestDrive 'future.json'
+        $capturePath = Join-Path $TestDrive 'future-error.png'
+        @{ SchemaVersion = 2 } |
+            ConvertTo-Json |
+            Set-Content -LiteralPath $configurationPath -Encoding UTF8
+
+        $parameters = @{
+            EntryName         = 'Example'
+            ConfigurationPath = $configurationPath
+            CapturePath       = $capturePath
+        }
+        { Show-StartMenuFolder @parameters } | Should -Not -Throw
+        $capturePath | Should -Exist
+        (Get-Item $capturePath).Length | Should -BeGreaterThan 1000
+    }
 }

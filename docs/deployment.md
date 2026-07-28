@@ -1,0 +1,110 @@
+# Deployment
+
+StartMenuFolders can be installed from PSGallery or copied as a built module.
+The target does not need network access at runtime.
+
+## Prerequisites
+
+- Windows 10, Windows 11, or a validated Windows Server desktop environment
+- Windows PowerShell 5.1 or native PowerShell 7
+- FullLanguage mode for the Launcher process
+- Administrator rights for event-log registration and machine-wide Start Entry
+  Reconciliation
+
+`-ExecutionPolicy Bypass` does not bypass Constrained Language Mode, AppLocker,
+or Windows Defender Application Control. Allow the built module and selected
+Launcher Host through the applicable policy.
+
+## Build artifact
+
+Run the Sampler build through the project detached launcher. The copyable module
+is produced under:
+
+```text
+output\module\StartMenuFolders\<version>
+```
+
+Copy the complete version directory. It has no runtime PSGallery dependency.
+The repository verifies this lifecycle with:
+
+```powershell
+pwsh -NoProfile -STA -File .\tools\Test-OfflineLifecycle.ps1
+```
+
+## File-copy installation
+
+1. Copy the built version directory to a module path, for example:
+
+   ```text
+   C:\Program Files\WindowsPowerShell\Modules\StartMenuFolders\<version>
+   ```
+
+2. Create the machine configuration from
+   [the example](examples/StartMenuFolders.json).
+3. Populate the Managed Root with one directory per Start Entry.
+4. Run elevated Reconciliation:
+
+   ```powershell
+   Import-Module StartMenuFolders
+   Update-StartMenuFolder -Confirm:$false
+   Test-StartMenuFolder
+   ```
+
+The default diagnostic probe requires an elevated interactive administrator
+token with a linked standard-user token. Deployment running as `SYSTEM` must
+pre-provision and externally validate the dedicated Event Log ACL, then call
+`Update-StartMenuFolder -SkipEventLogRegistration`. This exception remains a
+release-evidence item under `OI-009`; do not treat the skip switch as proof of
+standard-user Event Log access.
+
+## Group Policy deployment
+
+Use a computer startup script or software-distribution policy to copy the built
+module and machine configuration. Run `Update-StartMenuFolder` after content
+changes. Reconciliation is idempotent and transactionally restores prior
+Generated State after failure.
+
+Do not copy content into the Common Programs directory yourself. The module
+owns only Start Entries listed in its ownership record and refuses collisions
+with unowned shortcuts.
+
+## Content layout
+
+```text
+C:\ProgramData\StartMenuFolders\StartMenuFolders\
+├── Entertainment\
+│   ├── description.txt
+│   ├── Media tools\
+│   │   └── Media Player.lnk
+│   ├── Paint.lnk
+│   └── Xbox.url
+└── Work essentials\
+    ├── Calculator.lnk
+    └── Office\
+        └── Word.lnk
+```
+
+`description.txt` is UTF-8 plain text. Launch Items are `.lnk` files or `.url`
+files using HTTP or HTTPS.
+
+## Update
+
+Copy the new built version beside or over the deployed version, import it, and
+run Reconciliation. Entry IDs remain stable for unchanged normalized Entry Root
+paths. Generated State supports one previous major schema.
+
+## Removal
+
+Run elevated removal before deleting the module files:
+
+```powershell
+Remove-StartMenuFolder -Confirm:$false
+```
+
+Removal preserves machine configuration, the Managed Root, the Personal Root,
+Menu Folders, and Launch Items.
+
+## See also
+
+- [Configuration specification](specifications/configuration.md)
+- [Troubleshooting](troubleshooting.md)

@@ -34,8 +34,15 @@ source: repository evidence
 ## Validation
 
 - Design structure check: signed-off status and required headings present.
-- Specification checks: contiguous `FR`, `QR`, `CR`, `AS`, `ADR`, and `OI`
-  namespaces; local links and issue records validated.
-- VS Code Markdown diagnostics: no errors.
-- Planned implementation checks: focused Pester tests, PSScriptAnalyzer, full
-  Sampler build, and visual comparison at 100%, 150%, and 200% scaling.
+- `tools/Test-Documentation.ps1`: Memory Bank, specifications, links, issue
+  records, and signed design pass.
+- Full detached Sampler workflow: 131 tests pass under PowerShell 7.
+- Full detached Sampler workflow: 131 tests pass under Windows PowerShell 5.1
+  with one intentional host-dependent skip.
+- Recursive PSScriptAnalyzer: zero production-source findings.
+- `tools/New-LauncherScreenshot.ps1`: nonblank WPF frame, `1120x866`, 17 sampled
+  colors, and 49,022 bytes.
+- `tools/Test-OfflineLifecycle.ps1`: copied module version `0.2.0`, health
+  `Healthy`, WPF capture, successful removal, and zero runtime dependencies.
+- External visual-scale/theme, Windows Server, ARM64, AppLocker/WDAC, and live
+  elevated Event Log matrix evidence remains tracked in `docs/open-issues.md`.

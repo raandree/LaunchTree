@@ -52,6 +52,12 @@ function Update-StartMenuFolder {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
     $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    if (-not $configuration.IsValid) {
+        $schemaFinding = $configuration.HealthFindings |
+            Where-Object Code -eq 'ConfigurationSchemaUnsupported' |
+            Select-Object -First 1
+        throw [System.IO.InvalidDataException]::new($schemaFinding.Message)
+    }
 
     if (-not $PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $ConfigurationPath = $configuration.ConfigurationPath
@@ -199,6 +205,15 @@ function Update-StartMenuFolder {
 
     $changeCount = $added.Count + $updated.Count + $removed.Count
     if ($changeCount -eq 0) {
+        $eventParameters = @{
+            Configuration = $configuration
+            EventId       = 1302
+            Level         = 'Information'
+            Operation     = 'Reconciliation'
+            Message       = 'Reconciliation completed with no changes.'
+            Path          = $GeneratedStatePath
+        }
+        $null = Write-StartMenuFolderEvent @eventParameters
         return $result
     }
     if (-not $PSCmdlet.ShouldProcess($StartMenuPath, "Reconcile $changeCount Start Entries")) {
@@ -294,10 +309,29 @@ function Update-StartMenuFolder {
         } else {
             Remove-Item -LiteralPath $GeneratedStatePath -Force -ErrorAction SilentlyContinue
         }
+        $eventParameters = @{
+            Configuration = $configuration
+            EventId       = 1301
+            Level         = 'Error'
+            Operation     = 'Reconciliation'
+            Message       = $errorRecord.Exception.Message
+            Path          = $GeneratedStatePath
+            ErrorCode     = $errorRecord.FullyQualifiedErrorId
+        }
+        $null = Write-StartMenuFolderEvent @eventParameters
         throw $errorRecord
     } finally {
         Remove-Item -LiteralPath $transactionPath -Recurse -Force -ErrorAction SilentlyContinue
     }
 
+    $eventParameters = @{
+        Configuration = $configuration
+        EventId       = 1302
+        Level         = 'Information'
+        Operation     = 'Reconciliation'
+        Message       = "Reconciliation completed with $changeCount changes."
+        Path          = $GeneratedStatePath
+    }
+    $null = Write-StartMenuFolderEvent @eventParameters
     $result
 }

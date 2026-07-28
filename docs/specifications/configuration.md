@@ -192,6 +192,7 @@ Initial event IDs are:
 | `1103` | Warning | Menu Folder description unavailable |
 | `1104` | Warning | `.url` scheme rejected |
 | `1105` | Warning | Launcher Host path-length limit excluded content |
+| `1106` | Warning | Directory reparse point ignored |
 | `1201` | Error | Windows Shell invocation failed |
 | `1301` | Error | Reconciliation failed and rollback was attempted |
 | `1302` | Information | Reconciliation completed |
@@ -276,9 +277,9 @@ All supported PowerShell editions must write through
 Launcher writes and health reads remain standard-user operations.
 
 Reconciliation must validate the final descriptor with an access check for the
-Interactive Users SID before committing Start Entries. It then stages a one-
-time probe Start Entry that launches the packaged probe through the selected
-Launcher Host without elevation. The probe writes a nonce-bearing event, reads
-it back, and exits; Reconciliation waits for its bounded result marker before
-commit and removes the probe artifacts. A write or read failure must abort the
-transaction and return a Health Finding; it must never be silently discarded.
+Interactive Users SID before committing Start Entries. It then launches the
+packaged probe through the selected Launcher Host using the elevated account's
+linked standard-user token. The probe refuses an administrator token, writes a
+nonce-bearing event, reads it back, and exits within a bounded timeout. A
+missing linked token or write/read failure must abort the transaction; it must
+never be silently discarded.

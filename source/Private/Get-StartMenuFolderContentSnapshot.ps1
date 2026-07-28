@@ -104,12 +104,45 @@ function Get-StartMenuFolderContentSnapshot {
         }
     }
 
+    $mergedObjects = [System.Collections.Generic.List[object]]::new()
+    $folderByPath = [Collections.Generic.Dictionary[string, object]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($contentObject in $objects) {
+        if ($contentObject.Kind -ne 'MenuFolder') {
+            [void] $mergedObjects.Add($contentObject)
+            continue
+        }
+
+        $folderKey = '{0}|{1}' -f $contentObject.EntryName, $contentObject.RelativePath
+        if (-not $folderByPath.ContainsKey($folderKey)) {
+            $folderByPath[$folderKey] = $contentObject
+            [void] $mergedObjects.Add($contentObject)
+            continue
+        }
+
+        $existingFolder = $folderByPath[$folderKey]
+        $existingFolder.ContentSource = 'Managed+Personal'
+        if ([string]::IsNullOrWhiteSpace($existingFolder.Description) -and
+            -not [string]::IsNullOrWhiteSpace($contentObject.Description)) {
+            $existingFolder.Description = $contentObject.Description
+        }
+    }
+
+    foreach ($finding in $healthFindings) {
+        $eventParameters = @{
+            Configuration = $Configuration
+            HealthFinding = $finding
+        }
+        $null = Write-StartMenuFolderHealthFindingEvent @eventParameters
+    }
+
     $descending = $Configuration.SortOrder -eq 'NameDescending'
     [PSCustomObject] @{
         PSTypeName     = 'StartMenuFolders.ContentSnapshot'
         CreatedAtUtc   = [DateTime]::UtcNow
         EntryRoots     = [object[]] @($entryRoots | Sort-Object -Property Name -Descending:$descending)
-        Objects        = [object[]] @($objects | Sort-Object -Property Name -Descending:$descending)
+        Objects        = [object[]] @($mergedObjects | Sort-Object -Property Name -Descending:$descending)
         HealthFindings = [object[]] $healthFindings
     }
 }

@@ -75,6 +75,12 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
                     MaximumSizeMB  = 96
                     MaximumAgeDays = 14
                 }
+                Diagnostics     = @{
+                    LogName             = 'ContosoStartMenu'
+                    SourceName          = 'ContosoStartMenu'
+                    MaximumLogSizeMB    = 32
+                    TargetRetentionDays = 21
+                }
             } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $configurationPath -Encoding UTF8
             @{
                 SchemaVersion   = 1
@@ -104,6 +110,10 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
             $result.Window.Height | Should -Be 680
             $result.Cache.MaximumSizeMB | Should -Be 96
             $result.Cache.MaximumAgeDays | Should -Be 14
+            $result.Diagnostics.LogName | Should -Be 'ContosoStartMenu'
+            $result.Diagnostics.SourceName | Should -Be 'ContosoStartMenu'
+            $result.Diagnostics.MaximumLogSizeMB | Should -Be 32
+            $result.Diagnostics.TargetRetentionDays | Should -Be 21
             $result.HealthFindings | Should -BeNullOrEmpty
         }
     }
@@ -112,15 +122,26 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
         It 'Should use defaults and return a warning for malformed JSON' {
             $configurationPath = Join-Path -Path $TestDrive -ChildPath 'machine.json'
             '{ not-json' | Set-Content -LiteralPath $configurationPath -Encoding UTF8
+            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+                $true
+            }
 
             $result = Get-StartMenuFolderConfiguration -ConfigurationPath $configurationPath
 
             $result.VendorName | Should -Be 'StartMenuFolders'
             $result.HealthFindings | Should -HaveCount 1
             $result.HealthFindings[0].Code | Should -Be 'ConfigurationInvalidJson'
+            $assertion = @{
+                ModuleName      = $moduleName
+                CommandName     = 'Write-StartMenuFolderEvent'
+                Times           = 1
+                Exactly         = $true
+                ParameterFilter = { $EventId -eq 1001 }
+            }
+            Should -Invoke @assertion
         }
 
-        It 'Should reject an unsupported future schema without creating preferences' {
+        It 'Should return an invalid typed result for an unsupported future schema' {
             $configurationPath = Join-Path -Path $TestDrive -ChildPath 'machine.json'
             $preferencePath = Join-Path -Path $TestDrive -ChildPath 'preferences.json'
             @{ SchemaVersion = 2 } |
@@ -132,9 +153,43 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
                 PreferencePath    = $preferencePath
             }
 
-            { Get-StartMenuFolderConfiguration @parameters } |
-                Should -Throw -ExpectedMessage '*schema version*'
+            $result = Get-StartMenuFolderConfiguration @parameters
+
+            $result.IsValid | Should -BeFalse
+            $result.HealthFindings.Code | Should -Contain 'ConfigurationSchemaUnsupported'
+            $result.HealthFindings.Severity | Should -Contain 'Error'
             $preferencePath | Should -Not -Exist
+        }
+
+        It 'Should report invalid cache and diagnostic values while retaining defaults' {
+            $configurationPath = Join-Path -Path $TestDrive -ChildPath 'machine.json'
+            @{
+                SchemaVersion = 1
+                Cache = @{
+                    MaximumSizeMB  = 2
+                    MaximumAgeDays = 500
+                }
+                Diagnostics = @{
+                    LogName             = ''
+                    SourceName          = ''
+                    MaximumLogSizeMB    = 0
+                    TargetRetentionDays = 500
+                }
+            } | ConvertTo-Json -Depth 5 |
+                Set-Content -LiteralPath $configurationPath -Encoding UTF8
+
+            $result = Get-StartMenuFolderConfiguration -ConfigurationPath $configurationPath
+
+            $result.Cache.MaximumSizeMB | Should -Be 64
+            $result.Cache.MaximumAgeDays | Should -Be 30
+            $result.Diagnostics.LogName | Should -Be 'StartMenuFolders'
+            $result.Diagnostics.SourceName | Should -Be 'StartMenuFolders'
+            $result.HealthFindings.Code | Should -Contain 'CacheMaximumSizeInvalid'
+            $result.HealthFindings.Code | Should -Contain 'CacheMaximumAgeInvalid'
+            $result.HealthFindings.Code | Should -Contain 'DiagnosticsLogNameInvalid'
+            $result.HealthFindings.Code | Should -Contain 'DiagnosticsSourceNameInvalid'
+            $result.HealthFindings.Code | Should -Contain 'DiagnosticsMaximumLogSizeInvalid'
+            $result.HealthFindings.Code | Should -Contain 'DiagnosticsRetentionInvalid'
         }
     }
 }

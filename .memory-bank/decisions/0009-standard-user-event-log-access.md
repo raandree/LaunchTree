@@ -25,9 +25,12 @@ uniqueness and proves standard-user write/read access before committing Start
 Entries.
 
 The pre-commit check combines an access check for the Interactive Users SID
-with a one-time non-elevated probe process launched through the selected
-Launcher Host. The probe writes and reads a nonce-bearing event before
-Reconciliation commits Start Entries.
+with a non-elevated probe process launched through the selected Launcher Host
+using the elevated account's linked standard-user token. The probe refuses an
+administrator token and writes/reads a nonce-bearing event before
+Reconciliation commits Start Entries. A context without a linked token must
+pre-provision and externally validate diagnostics before using the explicit
+skip switch.
 
 Use `System.Diagnostics.EventLog.WriteEntry` across supported PowerShell
 editions. Read through a cross-edition .NET API or `Get-WinEvent`. Treat event

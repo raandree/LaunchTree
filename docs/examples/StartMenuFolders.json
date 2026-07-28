@@ -1,0 +1,20 @@
+{
+    "SchemaVersion": 1,
+    "VendorName": "StartMenuFolders",
+    "ManagedRoot": "C:\\ProgramData\\StartMenuFolders\\StartMenuFolders",
+    "PersonalRoot": "%APPDATA%\\StartMenuFolders\\StartMenuFolders",
+    "MaximumDepth": 5,
+    "LauncherHost": "WindowsPowerShell",
+    "DefaultSortOrder": "NameAscending",
+    "CloseAfterLaunch": true,
+    "Cache": {
+        "MaximumSizeMB": 64,
+        "MaximumAgeDays": 30
+    },
+    "Diagnostics": {
+        "LogName": "StartMenuFolders",
+        "SourceName": "StartMenuFolders",
+        "MaximumLogSizeMB": 25,
+        "TargetRetentionDays": 30
+    }
+}

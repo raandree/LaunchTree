@@ -115,15 +115,25 @@ Describe 'General module control' -Tags 'FunctionalQuality' {
 }
 
 BeforeDiscovery {
-    # Must use the imported module to build test cases.
-    $allModuleFunctions = & $mut { Get-Command -Module $args[0] -CommandType Function } $script:moduleName
+    # Use module scope for all functions and caller scope for public exports.
+    $allModuleFunctions = & $mut {
+        Get-Command -Module $args[0] -CommandType Function
+    } $script:moduleName
+    $publicModuleFunctions = Get-Command -Module $script:moduleName -CommandType Function
 
-    # Build test cases.
-    $testCases = @()
+    $allFunctionTestCases = @()
+    $publicFunctionTestCases = @()
 
     foreach ($function in $allModuleFunctions)
     {
-        $testCases += @{
+        $allFunctionTestCases += @{
+            Name = $function.Name
+        }
+    }
+
+    foreach ($function in $publicModuleFunctions)
+    {
+        $publicFunctionTestCases += @{
             Name = $function.Name
         }
     }
@@ -148,11 +158,11 @@ Describe 'Quality for module' -Tags 'TestQuality' {
         }
     }
 
-    It 'Should have a unit test for <Name>' -ForEach $testCases {
+    It 'Should have a unit test for <Name>' -ForEach $publicFunctionTestCases {
         Get-ChildItem -Path 'tests\' -Recurse -Include "$Name.Tests.ps1" | Should -Not -BeNullOrEmpty
     }
 
-    It 'Should pass Script Analyzer for <Name>' -ForEach $testCases -Skip:(-not $scriptAnalyzerRules) {
+    It 'Should pass Script Analyzer for <Name>' -ForEach $allFunctionTestCases -Skip:(-not $scriptAnalyzerRules) {
         $functionFile = Get-ChildItem -Path $sourcePath -Recurse -Include "$Name.ps1"
 
         $pssaResult = (Invoke-ScriptAnalyzer -Path $functionFile.FullName)
@@ -163,7 +173,7 @@ Describe 'Quality for module' -Tags 'TestQuality' {
 }
 
 Describe 'Help for module' -Tags 'helpQuality' {
-    It 'Should have .SYNOPSIS for <Name>' -ForEach $testCases {
+    It 'Should have .SYNOPSIS for <Name>' -ForEach $publicFunctionTestCases {
         $functionFile = Get-ChildItem -Path $sourcePath -Recurse -Include "$Name.ps1"
 
         $scriptFileRawContent = Get-Content -Raw -Path $functionFile.FullName
@@ -182,7 +192,7 @@ Describe 'Help for module' -Tags 'helpQuality' {
         $functionHelp.Synopsis | Should -Not -BeNullOrEmpty
     }
 
-    It 'Should have a .DESCRIPTION with length greater than 40 characters for <Name>' -ForEach $testCases {
+    It 'Should have a .DESCRIPTION with length greater than 40 characters for <Name>' -ForEach $publicFunctionTestCases {
         $functionFile = Get-ChildItem -Path $sourcePath -Recurse -Include "$Name.ps1"
 
         $scriptFileRawContent = Get-Content -Raw -Path $functionFile.FullName
@@ -201,7 +211,7 @@ Describe 'Help for module' -Tags 'helpQuality' {
         $functionHelp.Description.Length | Should -BeGreaterThan 40
     }
 
-    It 'Should have at least one (1) example for <Name>' -ForEach $testCases {
+    It 'Should have at least one (1) example for <Name>' -ForEach $publicFunctionTestCases {
         $functionFile = Get-ChildItem -Path $sourcePath -Recurse -Include "$Name.ps1"
 
         $scriptFileRawContent = Get-Content -Raw -Path $functionFile.FullName
@@ -223,7 +233,7 @@ Describe 'Help for module' -Tags 'helpQuality' {
 
     }
 
-    It 'Should have described all parameters for <Name>' -ForEach $testCases {
+    It 'Should have described all parameters for <Name>' -ForEach $publicFunctionTestCases {
         $functionFile = Get-ChildItem -Path $sourcePath -Recurse -Include "$Name.ps1"
 
         $scriptFileRawContent = Get-Content -Raw -Path $functionFile.FullName

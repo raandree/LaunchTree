@@ -1,4 +1,9 @@
 function Get-StartMenuFolderDefaultConfiguration {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+        'PSUseOutputTypeCorrectly',
+        '',
+        Justification = 'The ordered literal returns the declared OrderedDictionary type.'
+    )]
     [CmdletBinding()]
     [OutputType([System.Collections.Specialized.OrderedDictionary])]
     param(

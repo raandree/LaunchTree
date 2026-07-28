@@ -37,8 +37,13 @@ function Get-StartMenuFolderSourceContent {
             $children = @(Get-ChildItem -LiteralPath $CurrentPath -Force -ErrorAction Stop)
         } catch {
             $errorRecord = $_
+            $findingCode = if ($errorRecord.Exception -is [IO.PathTooLongException]) {
+                'HostPathLimitExceeded'
+            } else {
+                'ContentPathInaccessible'
+            }
             $findingParameters = @{
-                Code     = 'ContentPathInaccessible'
+                Code     = $findingCode
                 Severity = 'Warning'
                 Message  = $errorRecord.Exception.Message
                 Path     = $CurrentPath

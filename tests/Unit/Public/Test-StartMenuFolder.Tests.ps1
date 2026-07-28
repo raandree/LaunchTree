@@ -55,4 +55,23 @@ Describe 'Test-StartMenuFolder' -Tag 'Unit' {
         $result.Status | Should -Be 'Degraded'
         $result.HealthFindings.Code | Should -Contain 'GeneratedStateMissing'
     }
+
+    It 'Should report Unhealthy without reading future-schema fields' {
+        @{
+            SchemaVersion = 2
+            ManagedRoot   = $script:managedRoot
+        } | ConvertTo-Json | Set-Content $script:configurationPath -Encoding UTF8
+
+        $parameters = @{
+            ConfigurationPath = $script:configurationPath
+            GeneratedStatePath = $script:statePath
+            StartMenuPath       = $script:startMenuPath
+            SkipEventLog        = $true
+        }
+        $result = Test-StartMenuFolder @parameters
+
+        $result.Status | Should -Be 'Unhealthy'
+        $result.HealthFindings.Code | Should -Contain 'ConfigurationSchemaUnsupported'
+        $result.EntryRootCount | Should -Be 0
+    }
 }

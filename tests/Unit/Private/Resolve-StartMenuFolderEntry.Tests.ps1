@@ -80,4 +80,28 @@ Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
             }
         } | Should -Throw -ExpectedMessage '*Managed Root*'
     }
+
+    It 'Should reject an Entry Root path outside the bound Managed Root' {
+        $outsidePath = Join-Path $TestDrive 'Outside'
+        $null = New-Item -Path $outsidePath -ItemType Directory
+        $state = Get-Content -LiteralPath $script:generatedStatePath -Raw | ConvertFrom-Json
+        $state.StartEntries[0].EntryRootPath = $outsidePath
+        $state | ConvertTo-Json -Depth 5 |
+            Set-Content -LiteralPath $script:generatedStatePath -Encoding UTF8
+
+        {
+            InModuleScope -ModuleName $moduleName -Parameters @{
+                TestEntryId = $script:entryId
+                TestRoot    = $script:managedRoot
+                TestState   = $script:generatedStatePath
+            } {
+                $parameters = @{
+                    EntryId            = $TestEntryId
+                    ManagedRoot        = $TestRoot
+                    GeneratedStatePath = $TestState
+                }
+                Resolve-StartMenuFolderEntry @parameters
+            }
+        } | Should -Throw -ExpectedMessage '*outside*Managed Root*'
+    }
 }

@@ -28,10 +28,25 @@
 
         [Parameter()]
         [AllowNull()]
-        [string] $GeneratedStatePath
+        [string] $GeneratedStatePath,
+
+        [Parameter()]
+        [AllowNull()]
+        [Diagnostics.Stopwatch] $StartupStopwatch
     )
 
     Initialize-StartMenuFolderWpf
+    try {
+        $cacheTrimParameters = @{
+            CachePath      = $Configuration.Cache.Path
+            MaximumSizeMB  = $Configuration.Cache.MaximumSizeMB
+            MaximumAgeDays = $Configuration.Cache.MaximumAgeDays
+        }
+        Remove-StartMenuFolderExpiredIconCache @cacheTrimParameters
+    } catch {
+        $cacheTrimError = $_
+        Write-Verbose -Message $cacheTrimError.Exception.Message
+    }
 
     $isHighContrast = [System.Windows.SystemParameters]::HighContrast
     $appsUseLightTheme = 0
@@ -267,6 +282,7 @@
     $script:activeEntryName = $EntryName
 
     $renderItems = {
+        $interactionStopwatch = [Diagnostics.Stopwatch]::StartNew()
         $itemsPanel.Children.Clear()
         $script:visibleButtons.Clear()
         $script:iconJobs.Clear()
@@ -337,19 +353,59 @@
             [void] $itemsPanel.Children.Add($button)
             [void] $script:visibleButtons.Add($button)
 
-            if ($CapturePath) {
+            $cachePath = $null
+            try {
+                $cacheParameters = @{
+                    CachePath  = $script:activeConfiguration.Cache.Path
+                    SourcePath = $item.FullPath
+                    PixelSize  = 64
+                }
+                $cachePath = Get-StartMenuFolderIconCachePath @cacheParameters
+                $cachedIcon = Get-StartMenuFolderCachedIcon -LiteralPath $cachePath
+                if ($cachedIcon) {
+                    $image.Source = $cachedIcon
+                    $placeholder.Visibility = [System.Windows.Visibility]::Collapsed
+                }
+            } catch {
+                $cacheReadError = $_
+                $eventParameters = @{
+                    Configuration = $script:activeConfiguration
+                    EventId       = 1402
+                    Level         = 'Warning'
+                    Operation     = 'IconCache'
+                    Message       = $cacheReadError.Exception.Message
+                    Path          = $cachePath
+                }
+                $null = Write-StartMenuFolderEvent @eventParameters
+                Write-Verbose -Message $cacheReadError.Exception.Message
+            }
+
+            if (-not $image.Source -and $CapturePath) {
                 try {
                     $image.Source = [StartMenuFolders.NativeIcon]::Get($item.FullPath, 64)
                     $placeholder.Visibility = [System.Windows.Visibility]::Collapsed
+                    if ($cachePath) {
+                        Save-StartMenuFolderCachedIcon -Image $image.Source -LiteralPath $cachePath
+                    }
                 } catch {
                     $iconError = $_
+                    $eventParameters = @{
+                        Configuration = $script:activeConfiguration
+                        EventId       = 1401
+                        Level         = 'Warning'
+                        Operation     = 'IconExtraction'
+                        Message       = $iconError.Exception.Message
+                        Path          = $item.FullPath
+                    }
+                    $null = Write-StartMenuFolderEvent @eventParameters
                     Write-Verbose -Message $iconError.Exception.Message
                 }
-            } else {
+            } elseif (-not $image.Source) {
                 $job = [PSCustomObject] @{
                     Task        = [StartMenuFolders.NativeIcon]::GetAsync($item.FullPath, 64)
                     Image       = $image
                     Placeholder = $placeholder
+                    CachePath   = $cachePath
                 }
                 [void] $script:iconJobs.Add($job)
             }
@@ -367,7 +423,11 @@
                     $searchBox.Text = ''
                     & $renderItems
                 } else {
-                    $launchResult = Invoke-StartMenuFolderLaunchItem -LiteralPath $selectedItem.FullPath
+                    $launchParameters = @{
+                        LiteralPath   = $selectedItem.FullPath
+                        Configuration = $script:activeConfiguration
+                    }
+                    $launchResult = Invoke-StartMenuFolderLaunchItem @launchParameters
                     if ($launchResult.Succeeded) {
                         if ($script:activeConfiguration.CloseAfterLaunch) {
                             $window.Close()
@@ -395,6 +455,13 @@
         } else {
             '{0} items' -f $candidateItems.Count
         }
+        $interactionStopwatch.Stop()
+        $performanceParameters = @{
+            Configuration = $script:activeConfiguration
+            Metric        = 'Interaction'
+            Value         = $interactionStopwatch.Elapsed.TotalMilliseconds
+        }
+        $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
     }
 
     $iconTimer = [System.Windows.Threading.DispatcherTimer]::new()
@@ -407,6 +474,37 @@
             if ($job.Task.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion) {
                 $job.Image.Source = $job.Task.Result
                 $job.Placeholder.Visibility = [System.Windows.Visibility]::Collapsed
+                if ($job.CachePath) {
+                    try {
+                        $saveCacheParameters = @{
+                            Image       = $job.Task.Result
+                            LiteralPath = $job.CachePath
+                        }
+                        Save-StartMenuFolderCachedIcon @saveCacheParameters
+                    } catch {
+                        $cacheWriteError = $_
+                        $eventParameters = @{
+                            Configuration = $script:activeConfiguration
+                            EventId       = 1402
+                            Level         = 'Warning'
+                            Operation     = 'IconCache'
+                            Message       = $cacheWriteError.Exception.Message
+                            Path          = $job.CachePath
+                        }
+                        $null = Write-StartMenuFolderEvent @eventParameters
+                        Write-Verbose -Message $cacheWriteError.Exception.Message
+                    }
+                }
+            } elseif ($job.Task.IsFaulted) {
+                $eventParameters = @{
+                    Configuration = $script:activeConfiguration
+                    EventId       = 1401
+                    Level         = 'Warning'
+                    Operation     = 'IconExtraction'
+                    Message       = $job.Task.Exception.GetBaseException().Message
+                    Path          = $null
+                }
+                $null = Write-StartMenuFolderEvent @eventParameters
             }
             [void] $script:iconJobs.Remove($job)
         }
@@ -532,8 +630,30 @@
     })
 
     $window.Add_ContentRendered({
+        if ($StartupStopwatch -and $StartupStopwatch.IsRunning) {
+            $StartupStopwatch.Stop()
+            $performanceParameters = @{
+                Configuration = $script:activeConfiguration
+                Metric        = 'Startup'
+                Value         = $StartupStopwatch.Elapsed.TotalMilliseconds
+            }
+            $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
+        }
         $workArea = [System.Windows.SystemParameters]::WorkArea
-        $window.Left = $workArea.Left + (($workArea.Width - $window.ActualWidth) / 2)
+        $taskbarAlignment = 0
+        try {
+            $taskbarAlignment = [int] (Get-ItemPropertyValue -LiteralPath (
+                'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+            ) -Name 'TaskbarAl' -ErrorAction Stop)
+        } catch {
+            $taskbarError = $_
+            Write-Verbose -Message $taskbarError.Exception.Message
+        }
+        $window.Left = if ($taskbarAlignment -eq 1) {
+            $workArea.Left + (($workArea.Width - $window.ActualWidth) / 2)
+        } else {
+            $workArea.Left + 12
+        }
         $window.Top = $workArea.Bottom - $window.ActualHeight - 12
         if ($window.Top -lt $workArea.Top) {
             $window.Top = $workArea.Top
@@ -563,6 +683,33 @@
     $window.Add_Closed({
         $iconTimer.Stop()
         $activationTimer.Stop()
+        $workingSetMB = [Diagnostics.Process]::GetCurrentProcess().WorkingSet64 / 1MB
+        $performanceParameters = @{
+            Configuration = $script:activeConfiguration
+            Metric        = 'WorkingSetMB'
+            Value         = $workingSetMB
+        }
+        $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
+        if (-not $CapturePath) {
+            try {
+                $preferenceParameters = @{
+                    Configuration = $script:activeConfiguration
+                    SortOrder     = if ($sortBox.SelectedIndex -eq 1) {
+                        'NameDescending'
+                    } else {
+                        'NameAscending'
+                    }
+                    Width         = $window.ActualWidth
+                    Height        = $window.ActualHeight
+                    Left          = $window.Left
+                    Top           = $window.Top
+                }
+                Save-StartMenuFolderPreference @preferenceParameters
+            } catch {
+                $preferenceError = $_
+                Write-Verbose -Message $preferenceError.Exception.Message
+            }
+        }
     })
 
     [void] $window.ShowDialog()

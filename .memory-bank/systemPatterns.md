@@ -17,6 +17,11 @@ Opaque Entry IDs cross the Start Entry process boundary. Reconciliation is
 transactional, and a dedicated event log is explicitly writable by standard
 interactive users.
 
+Implementation adds a current-user named-pipe activation channel, bounded
+versioned icon cache, presentation-only preference file, structured Health
+Findings, redacted diagnostic events, and reproducible WPF/offline validation
+tools. Runtime artifacts have no external PowerShell module dependency.
+
 ## Decisions
 
 ### Decision 1: Use the canonical Memory Bank base

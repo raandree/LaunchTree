@@ -44,6 +44,8 @@ function Get-StartMenuFolderConfiguration {
     )
 
     $healthFindings = [System.Collections.Generic.List[object]]::new()
+    $configurationIsValid = $true
+    $skipPreferences = $false
     if (-not $PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $vendorProgramData = Join-Path -Path $env:ProgramData -ChildPath $VendorName
         $ConfigurationPath = Join-Path -Path $vendorProgramData -ChildPath 'StartMenuFolders.json'
@@ -69,9 +71,18 @@ function Get-StartMenuFolderConfiguration {
         $schemaVersion = $machineData.SchemaVersion
         if (($schemaVersion -is [int]) -or ($schemaVersion -is [long])) {
             if ([int] $schemaVersion -ne 1) {
-                throw [System.IO.InvalidDataException]::new(
-                    "Unsupported configuration schema version '$schemaVersion'."
+                $findingParameters = @{
+                    Code     = 'ConfigurationSchemaUnsupported'
+                    Severity = 'Error'
+                    Message  = "Unsupported configuration schema version '$schemaVersion'."
+                    Path     = $ConfigurationPath
+                }
+                [void] $healthFindings.Add(
+                    (New-StartMenuFolderHealthFinding @findingParameters)
                 )
+                $configurationIsValid = $false
+                $skipPreferences = $true
+                $machineData = $null
             }
         } else {
             $findingParameters = @{
@@ -202,6 +213,16 @@ function Get-StartMenuFolderConfiguration {
                 if ((($maximumSize -is [int]) -or ($maximumSize -is [long])) -and
                     $maximumSize -ge 16 -and $maximumSize -le 256) {
                     $configuration.Cache['MaximumSizeMB'] = [int] $maximumSize
+                } else {
+                    $findingParameters = @{
+                        Code     = 'CacheMaximumSizeInvalid'
+                        Severity = 'Warning'
+                        Message  = 'Cache.MaximumSizeMB must be an integer from 16 through 256.'
+                        Path     = $ConfigurationPath
+                    }
+                    [void] $healthFindings.Add(
+                        (New-StartMenuFolderHealthFinding @findingParameters)
+                    )
                 }
             }
             if ($machineData.Cache.PSObject.Properties['MaximumAgeDays']) {
@@ -209,13 +230,85 @@ function Get-StartMenuFolderConfiguration {
                 if ((($maximumAge -is [int]) -or ($maximumAge -is [long])) -and
                     $maximumAge -ge 1 -and $maximumAge -le 90) {
                     $configuration.Cache['MaximumAgeDays'] = [int] $maximumAge
+                } else {
+                    $findingParameters = @{
+                        Code     = 'CacheMaximumAgeInvalid'
+                        Severity = 'Warning'
+                        Message  = 'Cache.MaximumAgeDays must be an integer from 1 through 90.'
+                        Path     = $ConfigurationPath
+                    }
+                    [void] $healthFindings.Add(
+                        (New-StartMenuFolderHealthFinding @findingParameters)
+                    )
+                }
+            }
+        }
+
+        if ($machineData.PSObject.Properties['Diagnostics'] -and
+            $machineData.Diagnostics) {
+            foreach ($nameProperty in @{
+                LogName    = 'DiagnosticsLogNameInvalid'
+                SourceName = 'DiagnosticsSourceNameInvalid'
+            }.GetEnumerator()) {
+                if ($machineData.Diagnostics.PSObject.Properties[$nameProperty.Key]) {
+                    $candidateName = [string] $machineData.Diagnostics.($nameProperty.Key)
+                    if ([string]::IsNullOrWhiteSpace($candidateName)) {
+                        $findingParameters = @{
+                            Code     = $nameProperty.Value
+                            Severity = 'Warning'
+                            Message  = "Diagnostics.$($nameProperty.Key) must not be empty."
+                            Path     = $ConfigurationPath
+                        }
+                        [void] $healthFindings.Add(
+                            (New-StartMenuFolderHealthFinding @findingParameters)
+                        )
+                    } else {
+                        $configuration.Diagnostics[$nameProperty.Key] = $candidateName
+                    }
+                }
+            }
+
+            if ($machineData.Diagnostics.PSObject.Properties['MaximumLogSizeMB']) {
+                $maximumLogSize = $machineData.Diagnostics.MaximumLogSizeMB
+                if ((($maximumLogSize -is [int]) -or ($maximumLogSize -is [long])) -and
+                    $maximumLogSize -ge 1 -and $maximumLogSize -le 128) {
+                    $configuration.Diagnostics['MaximumLogSizeMB'] = [int] $maximumLogSize
+                } else {
+                    $findingParameters = @{
+                        Code     = 'DiagnosticsMaximumLogSizeInvalid'
+                        Severity = 'Warning'
+                        Message  = 'Diagnostics.MaximumLogSizeMB must be an integer from 1 through 128.'
+                        Path     = $ConfigurationPath
+                    }
+                    [void] $healthFindings.Add(
+                        (New-StartMenuFolderHealthFinding @findingParameters)
+                    )
+                }
+            }
+
+            if ($machineData.Diagnostics.PSObject.Properties['TargetRetentionDays']) {
+                $retentionDays = $machineData.Diagnostics.TargetRetentionDays
+                if ((($retentionDays -is [int]) -or ($retentionDays -is [long])) -and
+                    $retentionDays -ge 1 -and $retentionDays -le 90) {
+                    $configuration.Diagnostics['TargetRetentionDays'] = [int] $retentionDays
+                } else {
+                    $findingParameters = @{
+                        Code     = 'DiagnosticsRetentionInvalid'
+                        Severity = 'Warning'
+                        Message  = 'Diagnostics.TargetRetentionDays must be an integer from 1 through 90.'
+                        Path     = $ConfigurationPath
+                    }
+                    [void] $healthFindings.Add(
+                        (New-StartMenuFolderHealthFinding @findingParameters)
+                    )
                 }
             }
         }
     }
 
     $resolvedPreferencePath = $configuration.PreferencePath
-    if (Test-Path -LiteralPath $resolvedPreferencePath -PathType Leaf) {
+    if (-not $skipPreferences -and
+        (Test-Path -LiteralPath $resolvedPreferencePath -PathType Leaf)) {
         $preferenceResult = Import-StartMenuFolderJson -LiteralPath $resolvedPreferencePath
         if (-not $preferenceResult.Succeeded) {
             $findingParameters = @{
@@ -270,8 +363,9 @@ function Get-StartMenuFolderConfiguration {
         }
     }
 
-    [PSCustomObject] @{
+    $result = [PSCustomObject] @{
         PSTypeName        = 'StartMenuFolders.Configuration'
+        IsValid           = $configurationIsValid
         SchemaVersion     = $configuration.SchemaVersion
         VendorName        = $configuration.VendorName
         ManagedRoot       = $configuration.ManagedRoot
@@ -287,4 +381,19 @@ function Get-StartMenuFolderConfiguration {
         PreferencePath    = $configuration.PreferencePath
         HealthFindings    = [object[]] $healthFindings
     }
+
+    foreach ($finding in $healthFindings) {
+        $eventParameters = @{
+            Configuration = $result
+            EventId       = 1001
+            Level         = if ($finding.Severity -eq 'Error') { 'Error' } else { 'Warning' }
+            Operation     = 'Configuration'
+            Message       = [string] $finding.Message
+            Path          = [string] $finding.Path
+            ErrorCode     = [string] $finding.Code
+        }
+        $null = Write-StartMenuFolderEvent @eventParameters
+    }
+
+    $result
 }

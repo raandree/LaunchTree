@@ -67,6 +67,20 @@ function Test-StartMenuFolder {
         )
     }
 
+    if (-not $configuration.IsValid) {
+        return [PSCustomObject] @{
+            PSTypeName         = 'StartMenuFolders.HealthResult'
+            Status             = 'Unhealthy'
+            EntryRootCount     = 0
+            LaunchObjectCount  = 0
+            DiagnosticCount    = 0
+            ConfigurationPath  = $ConfigurationPath
+            GeneratedStatePath = $GeneratedStatePath
+            StartMenuPath      = $StartMenuPath
+            HealthFindings     = [object[]] $findings
+        }
+    }
+
     $snapshot = Get-StartMenuFolderContentSnapshot -Configuration $configuration
     foreach ($finding in @($snapshot.HealthFindings)) {
         [void] $findings.Add($finding)

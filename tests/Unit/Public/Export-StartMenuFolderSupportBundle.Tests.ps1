@@ -41,4 +41,43 @@ Describe 'Export-StartMenuFolderSupportBundle' -Tag 'Unit' {
             ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }
         ($content -join "`n") | Should -Not -Match 'token=|ArgumentList|TargetPath'
     }
+
+    It 'Should emit event 1601 when archive creation fails' {
+        $bundlePath = Join-Path $TestDrive 'Failed.zip'
+        Mock -ModuleName $moduleName -CommandName Get-StartMenuFolderConfiguration -MockWith {
+            [PSCustomObject] @{
+                VendorName = 'StartMenuFolders'
+                ManagedRoot = 'C:\Managed'
+                PersonalRoot = 'C:\Personal'
+                ConfigurationPath = 'C:\Config\StartMenuFolders.json'
+                PreferencePath = 'C:\Users\Person\preferences.json'
+                Cache = [PSCustomObject] @{ Path = 'C:\Cache' }
+                Diagnostics = [PSCustomObject] @{
+                    LogName = 'StartMenuFolders'
+                    SourceName = 'StartMenuFolders'
+                }
+            }
+        }
+        Mock -ModuleName $moduleName -CommandName Test-StartMenuFolder -MockWith {
+            [PSCustomObject] @{ Status = 'Healthy'; HealthFindings = @() }
+        }
+        Mock -ModuleName $moduleName -CommandName Get-StartMenuFolderDiagnostic
+        Mock -ModuleName $moduleName -CommandName Compress-Archive -MockWith {
+            throw [IO.IOException]::new('Injected archive failure.')
+        }
+        Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+            $true
+        }
+
+        { Export-StartMenuFolderSupportBundle -Path $bundlePath -Confirm:$false } |
+            Should -Throw -ExpectedMessage '*Injected archive failure*'
+        $assertion = @{
+            ModuleName      = $moduleName
+            CommandName     = 'Write-StartMenuFolderEvent'
+            Times           = 1
+            Exactly         = $true
+            ParameterFilter = { $EventId -eq 1601 }
+        }
+        Should -Invoke @assertion
+    }
 }

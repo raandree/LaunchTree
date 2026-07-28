@@ -22,8 +22,10 @@ $managedRoot = Join-Path $fixtureRoot 'Managed'
 $personalRoot = Join-Path $fixtureRoot 'Personal'
 $configurationPath = Join-Path $fixtureRoot 'StartMenuFolders.json'
 $outputPath = [IO.Path]::GetFullPath($Path)
+$originalLocalAppData = $env:LOCALAPPDATA
 
 try {
+    $env:LOCALAPPDATA = Join-Path $fixtureRoot 'LocalAppData'
     $entertainment = New-Item -Path (Join-Path $managedRoot 'Entertainment') -ItemType Directory -Force
     $media = New-Item -Path (Join-Path $entertainment.FullName 'Media tools') -ItemType Directory
     $null = New-Item -Path (Join-Path $managedRoot 'Work essentials') -ItemType Directory
@@ -124,6 +126,7 @@ try {
         $bitmap.Dispose()
     }
 } finally {
+    $env:LOCALAPPDATA = $originalLocalAppData
     Remove-Module -Name StartMenuFolders -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }

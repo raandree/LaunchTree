@@ -29,9 +29,10 @@ update the summary table.
 | `OI-004` | Define event source and event IDs | Medium | Resolved | Developer and release owner | Observability contract |
 | `OI-005` | Define cache size and eviction | Medium | Resolved | Developer and release owner | Performance and rollback |
 | `OI-006` | Capture visual baselines at three DPI settings | High | Open | Developer and release owner | Visual acceptance |
-| `OI-007` | Validate clean GPO and file-copy deployment | High | Open | Developer and release owner | Offline deployment |
+| `OI-007` | Validate clean GPO and file-copy deployment | High | Resolved | Developer and release owner | Offline deployment |
 | `OI-008` | Exercise FullLanguage application-control guidance | High | Open | Developer and release owner | Enterprise policy compatibility |
-| `OI-009` | Validate standard-user event-log access | High | Open | Developer and release owner | Operational diagnostics |
+| `OI-009` | Validate standard-user event-log access | High | In progress | Developer and release owner | Operational diagnostics |
+| `OI-010` | Implement Generated State migration before schema version 2 | Medium | Open | Developer and release owner | Upgrade and downgrade compatibility |
 
 ## Issue records
 
@@ -117,16 +118,18 @@ update the summary table.
 
 ### OI-007: Validate clean GPO and file-copy deployment
 
-- State: Open
+- State: Resolved
 - Priority: High
 - Owner: Developer and release owner
 - Release gate: Offline deployment
 - Source: `QR-019`
-- Next action: Build the module, copy only the release artifact to a clean host,
-  and run the documented GPO-style lifecycle without PSGallery access.
-- Closure evidence: Passing install, Reconciliation, health, Launcher, and
-  removal transcript from a clean target.
+- Resolution: `tools/Test-OfflineLifecycle.ps1` copies only the built module to
+  a disposable module path and runs Reconciliation, health, WPF capture, and
+  removal without PSGallery or runtime dependencies.
+- Closure evidence: Version `0.2.0`; one Start Entry added; health `Healthy`;
+  32,985-byte Launcher capture; removal succeeded; runtime dependencies `0`.
 - History: 2026-07-28 - Created as a release gate.
+- History: 2026-07-28 - Resolved with the isolated file-copy lifecycle tool.
 
 ### OI-008: Exercise FullLanguage application-control guidance
 
@@ -143,7 +146,7 @@ update the summary table.
 
 ### OI-009: Validate standard-user event-log access
 
-- State: Open
+- State: In progress
 - Priority: High
 - Owner: Developer and release owner
 - Release gate: Operational diagnostics
@@ -154,3 +157,22 @@ update the summary table.
 - Closure evidence: Recorded `CustomSD`, source ownership, probe event ID, and
   successful standard-user read/write transcript for every matrix row.
 - History: 2026-07-28 - Created from independent reader finding B1.
+- History: 2026-07-28 - Implemented Interactive Users SDDL validation and a
+  linked standard-user token nonce write/read probe; external elevated matrix
+  execution remains required for closure.
+
+### OI-010: Implement Generated State migration before schema version 2
+
+- State: Open
+- Priority: Medium
+- Owner: Developer and release owner
+- Release gate: Upgrade and downgrade compatibility
+- Source: `FR-025`, `QR-017`, independent final review nit
+- Next action: Before introducing Generated State schema version 2, add a
+  version-1 migration path, supported downgrade evidence, and visible Launcher
+  handling for an unsupported Generated State schema.
+- Closure evidence: Red-green migration and downgrade tests plus an isolated
+  file-copy upgrade transcript that preserves source content and owned Start
+  Entries.
+- History: 2026-07-28 - Created before the initial schema has a predecessor to
+  migrate.

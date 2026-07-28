@@ -9,8 +9,8 @@ source: current task evidence
 
 ## Current focus
 
-Scaffold the Sampler module and implement the accepted specifications test-
-first, beginning with configuration and Content Snapshot discovery.
+Complete external release validation for the implemented StartMenuFolders
+module while preserving the approved behavior and security boundaries.
 
 ## Evidence
 
@@ -18,17 +18,20 @@ first, beginning with configuration and Content Snapshot discovery.
 - Requirements interview covered purpose, users, inputs/outputs, failures,
   boundaries, security, performance, operations, rollback, observability,
   non-goals, and open questions.
-- `docs/design-concept.md` is signed off.
-- `docs/specifications/` defines 33 functional, 22 quality, and 12
-    configuration requirements plus 17 acceptance scenarios.
-- Ten accepted ADRs record architecture and security decisions.
-- `docs/open-issues.md` manages nine release issues; six High-priority
-    validation gates remain Open or Blocked and do not block implementation.
-- Independent security review closed every Blocker and Major and returned
-    `READY FOR IMPLEMENTATION`.
-- The interrupted Sampler command generated no project files.
+- The signed Design Concept and accepted specifications control the module.
+- Seven exported commands implement configuration, health, Reconciliation,
+    Launcher display, diagnostics, Support Bundle export, and removal.
+- Full Sampler workflows pass under PowerShell 7 and Windows PowerShell 5.1
+    with 131 tests, zero failures, and one intentional host-dependent skip.
+- The isolated file-copy lifecycle is `Healthy`, exercises the Launcher, and
+    removes Generated State with zero runtime dependencies.
+- Independent security and quality re-review approved the implementation with
+    no remaining Blocker or Major.
+- `docs/open-issues.md` tracks ten issues. External Windows Server, ARM64,
+    visual-matrix, application-control, and elevated Event Log evidence remain
+    release gates; schema-2 migration is future work.
 
 ## Next step
 
-Generate the canonical noninteractive Sampler scaffold, then write the first
-failing configuration tests.
+Run the outstanding external matrix and policy validations before declaring a
+production-ready release.

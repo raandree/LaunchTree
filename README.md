@@ -7,6 +7,8 @@ Launcher.
 The module is under active development. Its signed behavior and release gates
 are defined in the [specifications](docs/specifications/README.md).
 
+![Dark-theme Launcher showing recursive folders and high-resolution icons](docs/images/wpf/launcher-default.png)
+
 ## Content model
 
 The default Managed Root is:
@@ -43,3 +45,9 @@ Memory Bank, specification identifiers, references, links, and sign-off state.
 - [Configuration specification](docs/specifications/configuration.md)
 - [Quality requirements](docs/specifications/quality-requirements.md)
 - [Open issues](docs/open-issues.md)
+
+## Operations
+
+- [Deployment](docs/deployment.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Machine configuration example](docs/examples/StartMenuFolders.json)
