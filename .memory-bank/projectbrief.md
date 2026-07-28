@@ -32,3 +32,6 @@ shortcuts that open a PowerShell/WPF launcher.
 3. Valid `.lnk` and HTTP(S) `.url` items launch through Windows Shell.
 4. Required descriptions, DPI-aware icons, navigation, search, theme, input,
    failure, performance, and rollback behavior passes the signed-off design.
+5. Every production behavior traces to an accepted `FR-###`, `QR-###`, or
+  `CR-###` requirement and named acceptance evidence.
+6. No Open or Blocked High-priority issue remains at production release.

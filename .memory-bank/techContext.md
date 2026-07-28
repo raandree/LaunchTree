@@ -24,12 +24,18 @@ source: repository evidence
 - Generated launcher commands require `-ExecutionPolicy Bypass`; application
   control policy still governs FullLanguage access.
 - Managed source content and administrator JSON remain read-only to the module.
-- The design is draft and implementation is blocked pending user sign-off.
+- The Design Concept is signed off and the specification package is accepted.
+- Start Entries activate opaque Entry IDs through a validated Launcher Host.
+- The dedicated event log grants Interactive Users read/write, not clear, and
+  requires a non-elevated read/write probe before Start Entry commit.
+- PowerShell 7 supports policy-enabled long paths; Windows PowerShell 5.1
+  reports and excludes only content beyond its effective host limit.
 
 ## Validation
 
-- Design structure check: required headings ordered, draft status present, and
-  no template markers.
+- Design structure check: signed-off status and required headings present.
+- Specification checks: contiguous `FR`, `QR`, `CR`, `AS`, `ADR`, and `OI`
+  namespaces; local links and issue records validated.
 - VS Code Markdown diagnostics: no errors.
 - Planned implementation checks: focused Pester tests, PSScriptAnalyzer, full
   Sampler build, and visual comparison at 100%, 150%, and 200% scaling.

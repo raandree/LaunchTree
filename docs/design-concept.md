@@ -1,6 +1,6 @@
 # Design Concept: StartMenuFolders
 
-> Status: DRAFT — awaiting user sign-off
+> Status: SIGNED OFF
 > Interview conducted: 2026-07-28
 > Override log: empty
 
@@ -8,7 +8,7 @@
 
 StartMenuFolders extends the practical depth of the Windows Start experience
 without attempting to inject custom content into the Windows 11 Category view.
-Each immediate child directory of a managed content root is represented by an
+Each immediate child directory of the Managed Root is represented by an
 ordinary machine-wide Start shortcut with a high-resolution folder icon. The
 shortcut opens a PowerShell/WPF launcher rooted at that directory.
 
@@ -118,15 +118,15 @@ Deployment is responsible for permissions on managed files. The module trusts
 that deployment prevents unintended standard-user modification; it does not
 verify signatures or hashes for managed content.
 
-### Personal overlay
+### Personal Root
 
-The default roaming overlay is:
+The default Personal Root is:
 
 ```text
 %APPDATA%\<VendorName>\StartMenuFolders
 ```
 
-The overlay augments corresponding managed entry directories. Version 1 does
+The Personal Root augments corresponding managed entry directories. Version 1 does
 not create machine-wide Start entries for personal-only top-level directories.
 Within a matching entry, managed and personal directory trees merge by
 relative path. Same-name items remain visible and carry a Managed or Personal
@@ -234,7 +234,7 @@ launches are not audited.
 
 - The launcher runs as the signed-in standard user and does not elevate itself.
 - Managed content and configuration trust the ACLs established by deployment.
-- Personal overlay content is user-controlled and needs no target allowlist.
+- Personal Root content is user-controlled and needs no target allowlist.
 - `.lnk` files may target local, UNC, mapped-drive, or remote resources and are
   delegated to normal Windows Shell security behavior.
 - `.url` files are limited to HTTP and HTTPS.
@@ -310,26 +310,38 @@ summary.
 
 ## Open questions
 
-The following items do not change the product boundary but must be resolved
-before claiming the corresponding compatibility or release gate:
+The following interview questions are managed in the
+[open-issues register](open-issues.md). Resolved items remain listed for design
+traceability:
 
-1. Which Windows Server releases and Desktop Experience/session-host variants
+1. `OI-001` (Blocked): Which Windows Server releases and Desktop Experience/session-host variants
    are in the supported test matrix?
-2. Which physical or hosted ARM64 environment will run the Windows 11 ARM64 and
+2. `OI-002` (Blocked): Which physical or hosted ARM64 environment will run the Windows 11 ARM64 and
    PowerShell 7 ARM64 acceptance tests?
-3. What exact names, paths, and JSON schema versions will be assigned to the
-   machine configuration and per-user presentation-preference files?
-4. What event source name and event-ID ranges will form the stable monitoring
-   contract?
-5. What cache size limit and eviction policy will satisfy the 200 MB process
-   budget on the 1,000-item fixture?
+3. `OI-003` (Resolved): Configuration paths and schemas are defined by
+  `ADR-0006` and the configuration specification.
+4. `OI-004` (Resolved): Event names and ID ranges are defined by `ADR-0006` and
+  `CR-010`.
+5. `OI-005` (Resolved): Cache size and eviction are defined by `ADR-0006` and
+  `CR-009`.
 
-These are implementation-detail TBDs. Sign-off accepts the behavior and
-constraints in this document while requiring the TBDs to be closed and tested
-before release.
+`OI-006` through `OI-009` add visual, offline-deployment, application-control,
+and standard-user event-log evidence. The signed behavior remains accepted while every
+High-priority release blocker must close before a production-ready release.
+
+### Post-sign-off technical clarifications
+
+- `ADR-0008` defines injection-safe Start Entry activation through opaque Entry
+  IDs and a session-local Launcher.
+- `ADR-0009` defines explicit standard-user access to the dedicated diagnostic
+  event log.
+- `ADR-0010` clarifies that PowerShell 7 provides long-path support when
+  Windows policy enables it; Windows PowerShell 5.1 reports and excludes only
+  over-limit content because its host cannot be made long-path aware by a
+  module.
 
 ## Sign-off
 
-- [ ] User has read this document end to end.
-- [ ] User accepts every section or has flagged required changes.
-- [ ] User has typed `SIGNED OFF` (or equivalent) in chat.
+- [x] User has read this document end to end.
+- [x] User accepts every section or has flagged required changes.
+- [x] User has typed `SIGNED OFF` (or equivalent) in chat.

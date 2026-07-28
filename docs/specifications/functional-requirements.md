@@ -1,0 +1,261 @@
+# Functional requirements
+
+> Status: Accepted
+> Version: 1
+> Source: [Signed Design Concept](../design-concept.md)
+
+This specification defines behavior visible to users, deployment automation,
+and support operators. `Must` denotes a release requirement. `Should` denotes
+a preferred behavior that may be waived only through an accepted decision.
+
+## Content discovery
+
+### FR-001 Resolve roots
+
+The module must derive the Managed Root and Personal Root from the machine
+configuration. Missing optional path fields must use the defaults in `CR-002`.
+Environment variables in the Personal Root must be expanded in the signed-in
+user context.
+
+### FR-002 Discover Entry Roots
+
+Every immediate, non-reparse-point child directory of the Managed Root must be
+an Entry Root. Loose files in the Managed Root must not become content.
+
+### FR-003 Create Start Entries from managed content
+
+Reconciliation must create exactly one machine-wide Start Entry for every Entry
+Root. A directory that exists only under the Personal Root must not create a
+machine-wide Start Entry.
+
+### FR-004 Merge Content Sources
+
+Within an Entry Root, the Content Snapshot must union matching relative paths
+from the Managed Root and Personal Root. Case-insensitive name collisions must
+remain visible as separate objects and expose their Content Source.
+
+### FR-005 Traverse Menu Folders safely
+
+Every directory at or below an Entry Root must be a Menu Folder. Traversal must
+ignore directory reparse points, stop at the configured maximum depth, and emit
+a Health Finding for excluded deeper content. On Windows PowerShell 5.1,
+content beyond the host's effective path-length limit must be excluded with a
+Health Finding rather than disappearing silently.
+
+### FR-006 Read Menu Folder descriptions
+
+When a Menu Folder contains `description.txt`, the Launcher must read it as
+UTF-8, trim surrounding whitespace, preserve internal line breaks, and expose
+the result as a wrapped, size-capped tooltip. A read or decode failure must not
+block the Menu Folder.
+
+### FR-007 Read Launch Items
+
+Version 1 must accept `.lnk` files and `.url` files whose scheme is `http` or
+`https`. The visible name must be the filename without its extension. A `.lnk`
+tooltip must use its embedded Description field when present. A `.url` has no
+Launch Item tooltip in version 1 and must never expose its target URL on hover.
+
+### FR-008 Isolate invalid content
+
+An unreadable or invalid Launch Item must be excluded without hiding healthy
+siblings. The module must emit a redacted warning event and a Health Finding.
+
+### FR-009 Use a Content Snapshot
+
+Each Launcher activation must read one Content Snapshot. Source changes during
+an activation must not mutate that snapshot. A later activation must read the
+new state.
+
+## Launcher behavior
+
+### FR-010 Maintain one Launcher per user
+
+At most one Launcher process and window may be active per interactive logon
+session. A later activation in the same session must focus the existing window
+and switch it to the requested Entry Root. Concurrent sessions, including two
+sessions for one account, must have independent Launcher processes.
+
+### FR-011 Navigate in one window
+
+Activating a Menu Folder must replace the visible content in the same window.
+Back and breadcrumb controls must restore parent context. Empty Menu Folders
+must open an explicit empty state.
+
+### FR-012 Search all Entry Roots
+
+Type-to-search must search all configured Entry Roots. Results must include
+enough relative path and Content Source context to distinguish equal names.
+
+### FR-013 Sort by localized name
+
+The Launcher must support locale-aware, case-insensitive `NameAscending` and
+`NameDescending` ordering. Menu Folders and Launch Items must sort together.
+
+### FR-014 Follow Windows presentation settings
+
+The Launcher must follow the user's light, dark, and high-contrast settings. It
+must open near the Start button, stay inside the active work area, fit content
+within screen bounds, permit resizing, and scroll overflow.
+
+### FR-015 Support keyboard and touch
+
+The Launcher must support touch and keyboard operation. Arrow keys move focus;
+Enter activates; Escape closes; Backspace navigates to the parent; and every
+keyboard-focused interactive element has a visible focus indicator.
+
+### FR-016 Suppress right-click inside the Launcher
+
+Right-click or touch press-and-hold inside Launcher content must not activate an
+object or open a context menu. This requirement does not apply to the Windows-
+owned context menu of a native Start Entry.
+
+### FR-017 Load high-resolution icons without layout shifts
+
+The Launcher must request icons appropriate to current DPI. It may display a
+fixed-size placeholder while loading asynchronously. Replacing a placeholder
+must not change layout. Extraction failure must use the Windows Shell fallback
+icon.
+
+## Invocation
+
+### FR-018 Invoke through Windows Shell
+
+Activating a Launch Item must ask Windows Shell to open the shortcut file
+itself. The module must not reconstruct target paths, arguments, working
+directories, show states, environment expansion, or elevation behavior.
+
+### FR-019 Handle invocation outcomes
+
+After a successful invocation, the Launcher must close when `CloseAfterLaunch`
+is true and remain open otherwise. A failed invocation must show a nonmodal
+inline error, retain navigation state, and emit a redacted error event.
+
+## Configuration and preferences
+
+### FR-020 Degrade safely on configuration failure
+
+Missing or partly invalid machine configuration must use valid defaults and
+emit warnings. An inaccessible Managed Root must produce a visible error state.
+The module must never rewrite administrator-authored configuration.
+
+### FR-021 Persist only allowed user preferences
+
+The Launcher may persist sort order, close-after-launch behavior, window size,
+and window position in the user preference file. It must not persist source
+content or target details.
+
+## Reconciliation and lifecycle
+
+### FR-022 Reconcile Generated State transactionally
+
+Reconciliation must stage all Start Entry and ownership-record changes before
+commit. A failure at any point must restore the complete prior Generated State.
+
+### FR-023 Protect unowned Start content
+
+Reconciliation must not overwrite or remove an existing Start shortcut that is
+not listed in the ownership record. A collision must fail the transaction and
+produce an actionable Health Finding.
+
+### FR-024 Remove only Generated State
+
+Removal must delete module-owned Start Entries, ownership records, event
+registration, and caches selected by scope. It must preserve the Managed Root,
+Personal Root, Launch Items, Menu Folders, and administrator-authored
+configuration.
+
+### FR-025 Support one previous major Generated State schema
+
+The current module must read and transactionally migrate Generated State from
+one previous major schema. A supported downgrade must restore compatible state.
+Incompatible cache namespaces must be ignored rather than parsed.
+
+## Health and support
+
+### FR-026 Emit stable events
+
+The module must emit configuration, content, invocation, Reconciliation, cache,
+performance, and support failures using the stable contract in `CR-010`.
+Successful Launch Item use must not be audited.
+
+### FR-027 Return structured health
+
+`Test-StartMenuFolder` must return a top-level `Healthy`, `Degraded`, or
+`Unhealthy` state and structured Health Findings for configuration, Generated
+State drift, content, compatibility, cache, and recent events.
+
+### FR-028 Export a redacted Support Bundle
+
+`Export-StartMenuFolderSupportBundle` must create a Support Bundle containing
+the configuration summary, Generated State inventory, cache metadata, and
+relevant events. It must omit Launch Item arguments and URL query strings.
+
+### FR-029 Report performance budget breaches
+
+The Launcher must emit warning events only when startup, interaction, or memory
+budgets are exceeded. It must not emit performance events for every healthy
+activation.
+
+### FR-030 Read effective configuration
+
+`Get-StartMenuFolderConfiguration` must return the effective machine
+configuration, resolved paths, user preferences, fallback warnings, and source
+of each value without creating or rewriting any file.
+
+### FR-031 Read diagnostics
+
+`Get-StartMenuFolderDiagnostic` must return structured, redacted event and
+Health Finding objects. It must support time, event ID, level, and operation
+filters without returning successful Launch Item activity.
+
+### FR-032 Activate Start Entries safely
+
+Each Start Entry must pass an opaque Entry ID to the fixed Launcher bootstrap
+defined by `CR-011`. Reconciliation must never interpolate an Entry Root name
+or source path into PowerShell code. The bootstrap must resolve the Entry ID
+through the ownership record before opening a Content Snapshot.
+
+### FR-033 Register usable diagnostics
+
+Elevated Reconciliation must register and validate the dedicated event log,
+event source, size policy, and access descriptor defined by `CR-012`. It must
+fail before changing Start Entries if the event source is owned by another log
+or a standard interactive user cannot read and write a probe event.
+
+## Public command surface
+
+| Command | Purpose | Required behavior |
+| --- | --- | --- |
+| `Get-StartMenuFolderConfiguration` | Read effective machine settings and user preferences | Implements `FR-030` |
+| `Test-StartMenuFolder` | Evaluate installation health | Implements `FR-027` and supports automation-friendly output |
+| `Update-StartMenuFolder` | Reconcile Generated State | Supports `ShouldProcess`; implements `FR-022` and `FR-023` |
+| `Show-StartMenuFolder` | Open or activate the Launcher | Requires an Entry Root name and implements `FR-009` through `FR-019` |
+| `Get-StartMenuFolderDiagnostic` | Read structured recent events and Health Findings | Implements `FR-031` and applies `QR-012` |
+| `Export-StartMenuFolderSupportBundle` | Export support evidence | Implements `FR-028` and supports `ShouldProcess` |
+| `Remove-StartMenuFolder` | Remove Generated State | Supports `ShouldProcess`; implements `FR-024` |
+
+No version 1 public command creates, edits, renames, moves, or deletes source
+content.
+
+## Acceptance scenarios
+
+| ID | Scenario | Expected result |
+| --- | --- | --- |
+| AS-001 | Managed Root contains `OneLevel` and `TwoLevel`; Reconciliation runs | Two Start Entries exist and open their corresponding Entry Roots |
+| AS-002 | `TwoLevel` contains a Menu Folder containing another Menu Folder | The user navigates both levels in one window and returns with Back |
+| AS-003 | A valid `.lnk` contains arguments and a working directory | Windows Shell invokes the `.lnk` without reconstructed parameters |
+| AS-004 | A valid HTTPS `.url` and an invalid non-HTTP(S) `.url` coexist | The HTTPS Launch Item appears; the invalid file is excluded and reported |
+| AS-005 | Managed and Personal content have equal visible names | Both objects appear with distinct Content Sources |
+| AS-006 | `description.txt` contains UTF-8 multiline text | Hover shows wrapped multiline text without changing layout |
+| AS-007 | A Launch Item fails in Windows Shell | The Launcher remains open with an inline error and unchanged navigation state |
+| AS-008 | Reconciliation encounters an unowned Start shortcut collision | The transaction fails and restores the previous Generated State |
+| AS-009 | Right-click occurs on every Launcher object type | No activation or context menu occurs |
+| AS-010 | The same user activates another Start Entry while open | The existing Launcher focuses and switches Entry Root |
+| AS-011 | A reparse point and content beyond maximum depth exist below an Entry Root | Neither boundary is traversed and each exclusion produces a Health Finding |
+| AS-012 | A Support Bundle includes evidence for an argument-bearing `.lnk` and query-bearing `.url` | The archive contains neither arguments nor URL query strings |
+| AS-013 | A standard user launches a failing item after elevated Reconciliation | Event `1201` is written to and read from the dedicated log without elevation |
+| AS-014 | Entry Root names contain spaces, quotes-like shell metacharacters, Unicode, and PowerShell syntax text | Start Entries pass only opaque Entry IDs and open the correct Entry Roots without code evaluation |
+| AS-015 | Configuration uses an unsupported future schema version | Reconciliation refuses mutation and the Launcher shows an incompatible-configuration error |
+| AS-016 | Configuration and diagnostic commands run before any user preference file exists | Both commands return structured, redacted objects and create no files |
+| AS-017 | Touch press-and-hold occurs on each Launcher object type | No activation or context menu occurs |
