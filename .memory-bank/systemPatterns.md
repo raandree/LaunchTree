@@ -28,6 +28,11 @@ tools. Runtime artifacts have no external PowerShell module dependency.
 task-oriented and links to deployment and specifications for advanced or
 normative details instead of duplicating those contracts.
 
+`tools/Initialize-QuickStart.ps1` is the scripted fast path for that guide. It
+creates only administrator-authored inputs, keeps existing files unless forced,
+and leaves Reconciliation to `Update-LaunchTree`, so the public command surface
+in `ADR-0007` stays unchanged.
+
 ## Decisions
 
 ### Decision 1: Use the canonical Memory Bank base

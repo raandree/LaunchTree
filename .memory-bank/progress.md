@@ -35,6 +35,10 @@ release remains gated by external environment evidence.
 - 2026-07-28: Renamed the product from `StartMenuFolders` to `LaunchTree`
   across the module, commands, paths, Event Log identity, type names, tests,
   specifications, and Memory Bank while the module is still unreleased.
+- 2026-07-28: Added `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware
+  setup script that writes a default machine configuration and a sample Entry
+  Root of always-present Windows Launch Items; the generated configuration is
+  valid with zero Health Findings.
 
 ## Stable capabilities
 

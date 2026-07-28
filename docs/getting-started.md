@@ -55,6 +55,27 @@ Import-Module (Join-Path $modulePath 'LaunchTree.psd1') -Force
 For managed deployment or a package from another location, follow the
 [deployment guide](deployment.md) instead of the copy example above.
 
+## Run the setup script
+
+The setup script writes a default machine configuration and creates one sample
+Entry Root with Launch Items that exist on every Windows installation. Run it
+from the elevated session in the repository root:
+
+```powershell
+.\tools\Initialize-QuickStart.ps1
+```
+
+It creates the machine configuration, a `Windows tools` Entry Root with File
+Explorer, Notepad, Command Prompt, Windows PowerShell, Task Manager, and
+Control Panel, and a `Web links` Menu Folder with two HTTP(S) Launch Items. It
+keeps existing files unless you pass `-Force`, skips a Launch Item whose target
+is missing on this machine, and never runs Reconciliation. Use
+`-ConfigurationPath`, `-ManagedRoot`, `-PersonalRoot`, `-EntryName`, and
+`-LauncherHost` to change the defaults.
+
+Continue with [Inspect the effective configuration](#inspect-the-effective-configuration)
+and skip the manual Entry Root section.
+
 ## Inspect the effective configuration
 
 The machine configuration is optional. Without one, the module uses these
@@ -81,7 +102,9 @@ $configuration.HealthFindings |
 [machine configuration example](examples/LaunchTree.json) to the machine
 configuration path, edit it, and run this inspection again.
 
-## Create the first Entry Root
+## Create the first Entry Root manually
+
+Skip this section when the setup script already created the sample content.
 
 Every immediate directory under the Managed Root becomes one Start Entry.
 Nested directories become Menu Folders. Create a sample Entry Root and a valid
