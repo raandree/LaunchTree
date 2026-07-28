@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add the session-local WPF Launcher with recursive navigation, global search,
+  localized sorting, keyboard/touch controls, high-resolution Shell icons,
+  system themes, hover descriptions, and right-click suppression
 - Add transactional Start Entry Reconciliation with opaque Entry IDs,
   ownership records, collision protection, rollback, and event-log provisioning
 - Add Shell-native `.lnk` and `.url` invocation with typed failure results

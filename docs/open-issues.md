@@ -112,6 +112,8 @@ update the summary table.
 - Closure evidence: Reviewed screenshots with no clipping, overlap, blank
   content, off-screen placement, or low-resolution icons.
 - History: 2026-07-28 - Created as a release gate.
+- History: 2026-07-28 - Added a validated dark-theme capture at the current
+  display scale; 100%, 150%, 200%, light, and high-contrast matrix remains open.
 
 ### OI-007: Validate clean GPO and file-copy deployment
 
