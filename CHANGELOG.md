@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add structured health, redacted Event Log diagnostics, Support Bundle export,
+  and ownership-only Generated State removal
 - Add the session-local WPF Launcher with recursive navigation, global search,
   localized sorting, keyboard/touch controls, high-resolution Shell icons,
   system themes, hover descriptions, and right-click suppression
