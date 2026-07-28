@@ -30,6 +30,8 @@ release remains gated by external environment evidence.
 - 2026-07-28: Full Sampler workflows passed in both supported PowerShell
   editions with 131 tests; isolated file-copy deployment passed with zero
   runtime dependencies; independent final re-review returned `APPROVE`.
+- 2026-07-28: Added and validated the canonical operator getting-started path
+  from module installation through first Launcher use and cleanup.
 
 ## Stable capabilities
 

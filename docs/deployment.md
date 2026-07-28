@@ -106,5 +106,6 @@ Menu Folders, and Launch Items.
 
 ## See also
 
+- [Getting started](getting-started.md)
 - [Configuration specification](specifications/configuration.md)
 - [Troubleshooting](troubleshooting.md)

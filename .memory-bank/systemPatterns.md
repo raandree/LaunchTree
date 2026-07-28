@@ -22,6 +22,12 @@ versioned icon cache, presentation-only preference file, structured Health
 Findings, redacted diagnostic events, and reproducible WPF/offline validation
 tools. Runtime artifacts have no external PowerShell module dependency.
 
+## Documentation
+
+`docs/getting-started.md` is the canonical first-run operator path. It remains
+task-oriented and links to deployment and specifications for advanced or
+normative details instead of duplicating those contracts.
+
 ## Decisions
 
 ### Decision 1: Use the canonical Memory Bank base

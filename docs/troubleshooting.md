@@ -72,5 +72,6 @@ and may contain a Windows user name.
 
 ## See also
 
+- [Getting started](getting-started.md)
 - [Deployment](deployment.md)
 - [Open issues](open-issues.md)

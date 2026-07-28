@@ -9,6 +9,12 @@ are defined in the [specifications](docs/specifications/README.md).
 
 ![Dark-theme Launcher showing recursive folders and high-resolution icons](docs/images/wpf/launcher-default.png)
 
+## Getting started
+
+Follow the [getting-started guide](docs/getting-started.md) to build or install
+the module, create a first Entry Root, reconcile its Start Entry, and verify the
+Launcher.
+
 ## Content model
 
 The default Managed Root is:
@@ -48,6 +54,7 @@ Memory Bank, specification identifiers, references, links, and sign-off state.
 
 ## Operations
 
+- [Getting started](docs/getting-started.md)
 - [Deployment](docs/deployment.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [Machine configuration example](docs/examples/StartMenuFolders.json)

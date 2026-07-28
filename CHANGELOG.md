@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a getting-started guide for installation, first content, Reconciliation,
+  health verification, Launcher use, and cleanup
 - Add structured health, redacted Event Log diagnostics, Support Bundle export,
   and ownership-only Generated State removal
 - Add operational Event Log emission for configuration, content, launch,
