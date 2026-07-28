@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the exported type names from `StartMenuFolders` to `LaunchTree`
 - Scope dedicated-test and help QA gates to exported commands while retaining
   PSScriptAnalyzer coverage for private helpers
+- Document how to open the Launcher with `Show-LaunchTree`, how to import the
+  built module without installing it, and how to resolve the related failures
 - Document PSGallery, GPO, and file-copy deployment plus operational
   troubleshooting and example machine configuration
 

@@ -42,6 +42,9 @@ release remains gated by external environment evidence.
 - 2026-07-28: Made the getting-started Entry Root sample self-contained and
   fail-fast after it failed with a cascading null-variable error; the extracted
   block was executed against a redirected `ProgramData` fixture.
+- 2026-07-28: Documented `Show-LaunchTree` console use, direct import of the
+  built module, and the recognized/EntryId/STA failures that were previously
+  absent from every operator document.
 
 ## Stable capabilities
 

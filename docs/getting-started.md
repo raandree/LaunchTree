@@ -31,6 +31,18 @@ The versioned module is written below:
 output\module\LaunchTree\<version>
 ```
 
+To try the commands before installing anything, import the built manifest
+directly in the current session:
+
+```powershell
+$builtModule = Get-ChildItem .\output\module\LaunchTree -Directory |
+    Sort-Object LastWriteTimeUtc -Descending |
+    Select-Object -First 1
+Import-Module (Join-Path $builtModule.FullName 'LaunchTree.psd1') -Force
+```
+
+A Start Entry still requires the installation and Reconciliation steps below.
+
 Open an elevated PowerShell session in the repository root and copy the latest
 built version to the all-users module path:
 
@@ -182,6 +194,20 @@ status is `Degraded` or `Unhealthy`, use the finding codes with the
 Return to a standard-user session, open Start, search for **Windows tools**, and
 select the new Start Entry. The Launcher should show Notepad with its native
 icon. Select Notepad to let Windows Shell open the shortcut.
+
+You can also open an Entry Root directly from PowerShell, which is useful while
+you are still adding content:
+
+```powershell
+Show-LaunchTree -EntryName 'Windows tools'
+```
+
+That call reads the Managed Root and needs no Start Entry and no
+Reconciliation. It requires an STA host: both consoles are STA by default,
+while a session started with `-MTA`, a background job, and a remote session are
+not. Add `-ConfigurationPath` when the machine configuration is not at the
+default path. The `-EntryId` parameter set is the one Start Entries use, and it
+resolves an opaque Entry ID from Generated State.
 
 Nested content and changes inside an existing Entry Root are read each time the
 Launcher opens. Run Reconciliation again only after changing machine

@@ -15,6 +15,25 @@ Use `Test-LaunchTree` first. Its `Status` is `Healthy`, `Degraded`, or
 Personal-only directories do not create machine-wide Start Entries. The
 Personal Root augments matching managed Entry Roots.
 
+## Launcher does not open from PowerShell
+
+`Show-LaunchTree` opens an Entry Root without a Start Entry:
+
+```powershell
+Show-LaunchTree -EntryName 'Windows tools'
+```
+
+- `The term 'Show-LaunchTree' is not recognized` means the module is neither
+  installed below a `$env:PSModulePath` directory nor imported. Import the
+  installed or built `LaunchTree.psd1` manifest first.
+- A prompt for `EntryId` means the default parameter set was selected. Use
+  `-EntryName` until Reconciliation has written Generated State.
+- `Show-LaunchTree requires an STA PowerShell host` means the session is MTA.
+  Both consoles are STA by default, while a session started with `-MTA`, a
+  background job, and a remote session are not.
+- Add `-ConfigurationPath` when the machine configuration is not at
+  `%ProgramData%\LaunchTree\LaunchTree.json`.
+
 ## Launch Item failures
 
 The Launcher asks Windows Shell to open the `.lnk` or HTTP(S) `.url` file
