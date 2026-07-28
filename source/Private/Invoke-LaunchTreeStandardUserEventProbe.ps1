@@ -1,4 +1,4 @@
-function Invoke-StartMenuFolderStandardUserEventProbe {
+function Invoke-LaunchTreeStandardUserEventProbe {
     [CmdletBinding()]
     [OutputType([bool])]
     param(
@@ -11,9 +11,9 @@ function Invoke-StartMenuFolderStandardUserEventProbe {
         [string] $LauncherHostPath
     )
 
-    Initialize-StartMenuFolderUnelevatedProcess
+    Initialize-LaunchTreeUnelevatedProcess
     $moduleBase = $ExecutionContext.SessionState.Module.ModuleBase
-    $probePath = Join-Path $moduleBase 'Scripts\Test-StartMenuFolderEventLogAccess.ps1'
+    $probePath = Join-Path $moduleBase 'Scripts\Test-LaunchTreeEventLogAccess.ps1'
     if (-not (Test-Path -LiteralPath $probePath -PathType Leaf)) {
         throw [IO.FileNotFoundException]::new('The standard-user probe script is missing.', $probePath)
     }
@@ -26,15 +26,15 @@ function Invoke-StartMenuFolderStandardUserEventProbe {
         '-ExecutionPolicy'
         'Bypass'
         '-File'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $probePath)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $probePath)
         '-LogName'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $Configuration.Diagnostics.LogName)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $Configuration.Diagnostics.LogName)
         '-SourceName'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $Configuration.Diagnostics.SourceName)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $Configuration.Diagnostics.SourceName)
         '-Nonce'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $nonce)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $nonce)
     )
-    $exitCode = [StartMenuFolders.UnelevatedProcess]::Run(
+    $exitCode = [LaunchTree.UnelevatedProcess]::Run(
         $LauncherHostPath,
         ($argumentParts -join ' '),
         $moduleBase,

@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'StartMenuFolder icon cache' -Tag 'Unit' {
+Describe 'LaunchTree icon cache' -Tag 'Unit' {
     It 'Should save and reload a frozen PNG icon from a stable cache key' {
         $sourcePath = Join-Path $TestDrive 'Item.lnk'
         $cacheRoot = Join-Path $TestDrive 'Cache'
@@ -17,13 +17,13 @@ Describe 'StartMenuFolder icon cache' -Tag 'Unit' {
             TestSource = $sourcePath
             TestCache  = $cacheRoot
         } {
-            Initialize-StartMenuFolderWpf
+            Initialize-LaunchTreeWpf
             $cacheParameters = @{
                 CachePath  = $TestCache
                 SourcePath = $TestSource
                 PixelSize  = 64
             }
-            $cachePath = Get-StartMenuFolderIconCachePath @cacheParameters
+            $cachePath = Get-LaunchTreeIconCachePath @cacheParameters
             $bitmap = [System.Windows.Media.Imaging.WriteableBitmap]::new(
                 2,
                 2,
@@ -32,8 +32,8 @@ Describe 'StartMenuFolder icon cache' -Tag 'Unit' {
                 [System.Windows.Media.PixelFormats]::Bgra32,
                 $null
             )
-            Save-StartMenuFolderCachedIcon -Image $bitmap -LiteralPath $cachePath
-            $loaded = Get-StartMenuFolderCachedIcon -LiteralPath $cachePath
+            Save-LaunchTreeCachedIcon -Image $bitmap -LiteralPath $cachePath
+            $loaded = Get-LaunchTreeCachedIcon -LiteralPath $cachePath
 
             [PSCustomObject] @{
                 Path      = $cachePath
@@ -69,7 +69,7 @@ Describe 'StartMenuFolder icon cache' -Tag 'Unit' {
                 MaximumSizeMB  = 1
                 MaximumAgeDays = 30
             }
-            Remove-StartMenuFolderExpiredIconCache @trimParameters
+            Remove-LaunchTreeExpiredIconCache @trimParameters
         }
 
         $oldPath | Should -Not -Exist

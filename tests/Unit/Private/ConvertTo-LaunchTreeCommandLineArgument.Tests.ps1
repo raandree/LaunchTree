@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,31 +7,31 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'ConvertTo-StartMenuFolderCommandLineArgument' -Tag 'Unit' {
+Describe 'ConvertTo-LaunchTreeCommandLineArgument' -Tag 'Unit' {
     It 'Should wrap an ordinary value in quotes without changing it' {
         InModuleScope -ModuleName $moduleName {
-            ConvertTo-StartMenuFolderCommandLineArgument -Value 'C:\Program Files\App.ps1' |
+            ConvertTo-LaunchTreeCommandLineArgument -Value 'C:\Program Files\App.ps1' |
                 Should -Be '"C:\Program Files\App.ps1"'
         }
     }
 
     It 'Should double trailing backslashes before the closing quote' {
         InModuleScope -ModuleName $moduleName {
-            ConvertTo-StartMenuFolderCommandLineArgument -Value 'C:\App\' |
+            ConvertTo-LaunchTreeCommandLineArgument -Value 'C:\App\' |
                 Should -Be '"C:\App\\"'
         }
     }
 
     It 'Should not alter trailing plus signs' {
         InModuleScope -ModuleName $moduleName {
-            ConvertTo-StartMenuFolderCommandLineArgument -Value 'name+' |
+            ConvertTo-LaunchTreeCommandLineArgument -Value 'name+' |
                 Should -Be '"name+"'
         }
     }
 
     It 'Should support an empty argument' {
         InModuleScope -ModuleName $moduleName {
-            ConvertTo-StartMenuFolderCommandLineArgument -Value '' |
+            ConvertTo-LaunchTreeCommandLineArgument -Value '' |
                 Should -Be '""'
         }
     }
@@ -39,7 +39,7 @@ Describe 'ConvertTo-StartMenuFolderCommandLineArgument' -Tag 'Unit' {
     It 'Should reject embedded double quotes' {
         {
             InModuleScope -ModuleName $moduleName {
-                ConvertTo-StartMenuFolderCommandLineArgument -Value 'bad"value'
+                ConvertTo-LaunchTreeCommandLineArgument -Value 'bad"value'
             }
         } | Should -Throw -ExpectedMessage '*double quote*'
     }

@@ -1,5 +1,5 @@
 TOPIC
-    about_StartMenuFolders
+    about_LaunchTree
 
 SHORT DESCRIPTION
     Displays recursive Windows Start menu content in a configurable WPF launcher.

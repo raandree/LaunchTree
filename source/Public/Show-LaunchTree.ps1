@@ -1,7 +1,7 @@
-function Show-StartMenuFolder {
+function Show-LaunchTree {
     <#
         .SYNOPSIS
-            Opens a recursive StartMenuFolders WPF Launcher.
+            Opens a recursive LaunchTree WPF Launcher.
 
         .DESCRIPTION
             Resolves an opaque Entry ID or Entry Root name, creates one merged
@@ -25,7 +25,7 @@ function Show-StartMenuFolder {
             Renders the Launcher to a PNG and self-closes for visual validation.
 
         .EXAMPLE
-            Show-StartMenuFolder -EntryName 'Entertainment'
+            Show-LaunchTree -EntryName 'Entertainment'
 
             Opens the Entertainment Entry Root.
     #>
@@ -54,7 +54,7 @@ function Show-StartMenuFolder {
     if ([Threading.Thread]::CurrentThread.GetApartmentState() -ne
         [Threading.ApartmentState]::STA) {
         throw [System.Threading.ThreadStateException]::new(
-            'Show-StartMenuFolder requires an STA PowerShell host.'
+            'Show-LaunchTree requires an STA PowerShell host.'
         )
     }
     $startupStopwatch = [Diagnostics.Stopwatch]::StartNew()
@@ -63,7 +63,7 @@ function Show-StartMenuFolder {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
     if (-not $configuration.IsValid) {
         $schemaFinding = $configuration.HealthFindings |
             Where-Object Code -eq 'ConfigurationSchemaUnsupported' |
@@ -73,7 +73,7 @@ function Show-StartMenuFolder {
             Message     = $schemaFinding.Message
             CapturePath = $CapturePath
         }
-        Show-StartMenuFolderErrorWindow @errorParameters
+        Show-LaunchTreeErrorWindow @errorParameters
         return
     }
     $activationServer = $null
@@ -83,12 +83,12 @@ function Show-StartMenuFolder {
         if (-not $PSBoundParameters.ContainsKey('GeneratedStatePath')) {
             $stateDirectory = Split-Path -Path $configuration.ConfigurationPath -Parent
             $GeneratedStatePath = Join-Path -Path $stateDirectory -ChildPath (
-                'StartMenuFolders.generated.json'
+                'LaunchTree.generated.json'
             )
         }
         if (-not $CapturePath) {
-            Initialize-StartMenuFolderWpf
-            $sessionIdentity = Get-StartMenuFolderSessionIdentity
+            Initialize-LaunchTreeWpf
+            $sessionIdentity = Get-LaunchTreeSessionIdentity
             $createdNew = $false
             $sessionMutex = [Threading.Mutex]::new(
                 $true,
@@ -103,7 +103,7 @@ function Show-StartMenuFolder {
                         ConfigurationPath  = $configuration.ConfigurationPath
                         GeneratedStatePath = $GeneratedStatePath
                     } | ConvertTo-Json -Compress
-                    [StartMenuFolders.ActivationChannel]::Send(
+                    [LaunchTree.ActivationChannel]::Send(
                         $sessionIdentity.PipeName,
                         $activationMessage,
                         5000
@@ -113,7 +113,7 @@ function Show-StartMenuFolder {
                     $sessionMutex.Dispose()
                 }
             }
-            $activationServer = [StartMenuFolders.ActivationServer]::new(
+            $activationServer = [LaunchTree.ActivationServer]::new(
                 $sessionIdentity.PipeName
             )
             $activationServer.Start()
@@ -121,7 +121,7 @@ function Show-StartMenuFolder {
     }
 
     try {
-        $snapshot = Get-StartMenuFolderContentSnapshot -Configuration $configuration
+        $snapshot = Get-LaunchTreeContentSnapshot -Configuration $configuration
         if (@($snapshot.HealthFindings | Where-Object Severity -eq 'Error').Count -gt 0) {
             throw [System.InvalidOperationException]::new(
                 'The Launcher cannot open because the Managed Root is unhealthy.'
@@ -134,7 +134,7 @@ function Show-StartMenuFolder {
             ManagedRoot        = $configuration.ManagedRoot
             GeneratedStatePath = $GeneratedStatePath
         }
-        $entryReference = Resolve-StartMenuFolderEntry @resolveParameters
+        $entryReference = Resolve-LaunchTreeEntry @resolveParameters
         $EntryName = $entryReference.Name
         } elseif ($snapshot.EntryRoots.Name -notcontains $EntryName) {
             throw [System.Collections.Generic.KeyNotFoundException]::new(
@@ -151,7 +151,7 @@ function Show-StartMenuFolder {
             GeneratedStatePath = $GeneratedStatePath
             StartupStopwatch  = $startupStopwatch
         }
-        Show-StartMenuFolderWindow @windowParameters
+        Show-LaunchTreeWindow @windowParameters
     } finally {
         if ($activationServer) {
             $activationServer.Dispose()

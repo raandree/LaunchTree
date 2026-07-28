@@ -1,4 +1,4 @@
-# StartMenuFolders specifications
+# LaunchTree specifications
 
 This directory translates the signed Design Concept into stable, testable
 contracts for implementation and release review.

@@ -1,4 +1,4 @@
-function Show-StartMenuFolderErrorWindow {
+function Show-LaunchTreeErrorWindow {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -14,7 +14,7 @@ function Show-StartMenuFolderErrorWindow {
         [string] $CapturePath
     )
 
-    Initialize-StartMenuFolderWpf
+    Initialize-LaunchTreeWpf
     $window = [System.Windows.Window]::new()
     $window.Title = $Title
     $window.Width = 560
@@ -72,7 +72,7 @@ function Show-StartMenuFolderErrorWindow {
         $timer.Add_Tick({
             $timer.Stop()
             $window.UpdateLayout()
-            Save-StartMenuFolderVisual -Visual $border -LiteralPath $CapturePath
+            Save-LaunchTreeVisual -Visual $border -LiteralPath $CapturePath
             $window.Close()
         })
         $window.Add_ContentRendered({ $timer.Start() })

@@ -1,6 +1,6 @@
 # Getting started
 
-This guide takes an administrator from a StartMenuFolders package or source
+This guide takes an administrator from a LaunchTree package or source
 checkout to one working Start Entry. It uses the default paths and creates a
 sample Notepad Launch Item that you can remove afterward.
 
@@ -12,7 +12,7 @@ sample Notepad Launch Item that you can remove afterward.
   installation and Reconciliation
 - A standard-user session for testing the Launcher
 
-StartMenuFolders does not need network access at runtime. Application control
+LaunchTree does not need network access at runtime. Application control
 policy must allow the installed module and the selected Launcher Host.
 
 ## Build or obtain the module
@@ -28,28 +28,28 @@ pwsh -NoProfile -File .\build.ps1 -ResolveDependency -Tasks build
 The versioned module is written below:
 
 ```text
-output\module\StartMenuFolders\<version>
+output\module\LaunchTree\<version>
 ```
 
 Open an elevated PowerShell session in the repository root and copy the latest
 built version to the all-users module path:
 
 ```powershell
-$builtModule = Get-ChildItem .\output\module\StartMenuFolders -Directory |
+$builtModule = Get-ChildItem .\output\module\LaunchTree -Directory |
     Sort-Object LastWriteTimeUtc -Descending |
     Select-Object -First 1
 
 if (-not $builtModule) {
-    throw 'Build StartMenuFolders before installing it.'
+    throw 'Build LaunchTree before installing it.'
 }
 
 $modulePath = Join-Path $env:ProgramFiles (
-    'WindowsPowerShell\Modules\StartMenuFolders\{0}' -f $builtModule.Name
+    'WindowsPowerShell\Modules\LaunchTree\{0}' -f $builtModule.Name
 )
 New-Item -ItemType Directory -Path $modulePath -Force | Out-Null
 Copy-Item -Path (Join-Path $builtModule.FullName '*') `
     -Destination $modulePath -Recurse -Force
-Import-Module (Join-Path $modulePath 'StartMenuFolders.psd1') -Force
+Import-Module (Join-Path $modulePath 'LaunchTree.psd1') -Force
 ```
 
 For managed deployment or a package from another location, follow the
@@ -61,15 +61,15 @@ The machine configuration is optional. Without one, the module uses these
 default locations:
 
 ```text
-Machine configuration: C:\ProgramData\StartMenuFolders\StartMenuFolders.json
-Managed Root:          C:\ProgramData\StartMenuFolders\StartMenuFolders
-Personal Root:         %APPDATA%\StartMenuFolders\StartMenuFolders
+Machine configuration: C:\ProgramData\LaunchTree\LaunchTree.json
+Managed Root:          C:\ProgramData\LaunchTree\LaunchTree
+Personal Root:         %APPDATA%\LaunchTree\LaunchTree
 ```
 
 Inspect the settings before creating content:
 
 ```powershell
-$configuration = Get-StartMenuFolderConfiguration
+$configuration = Get-LaunchTreeConfiguration
 $configuration |
     Select-Object IsValid, ConfigurationPath, ManagedRoot, PersonalRoot,
         LauncherHost
@@ -78,7 +78,7 @@ $configuration.HealthFindings |
 ```
 
 `IsValid` must be `True`. To change the defaults, copy the
-[machine configuration example](examples/StartMenuFolders.json) to the machine
+[machine configuration example](examples/LaunchTree.json) to the machine
 configuration path, edit it, and run this inspection again.
 
 ## Create the first Entry Root
@@ -115,7 +115,7 @@ only module-owned Start Entries and verifies that standard users can write and
 read the dedicated diagnostic Event Log:
 
 ```powershell
-$result = Update-StartMenuFolder -Confirm:$false
+$result = Update-LaunchTree -Confirm:$false
 $result | Format-List Succeeded, Added, Updated, Removed
 ```
 
@@ -128,7 +128,7 @@ probe. See the [deployment guide](deployment.md) for managed deployment rules.
 Run the health check after Reconciliation:
 
 ```powershell
-$health = Test-StartMenuFolder
+$health = Test-LaunchTree
 $health |
     Format-List Status, EntryRootCount, LaunchObjectCount, DiagnosticCount
 $health.HealthFindings |
@@ -155,7 +155,7 @@ Run removal from an elevated interactive PowerShell session before deleting the
 module files:
 
 ```powershell
-Remove-StartMenuFolder -Confirm:$false
+Remove-LaunchTree -Confirm:$false
 ```
 
 Removal deletes module-owned Start Entries, the ownership record, selected user

@@ -1,4 +1,4 @@
-function Remove-StartMenuFolderExpiredIconCache {
+function Remove-LaunchTreeExpiredIconCache {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',

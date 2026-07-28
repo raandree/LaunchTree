@@ -19,13 +19,13 @@ support evidence, and Generated State removal without becoming a content editor.
 
 Export exactly these version 1 commands:
 
-- `Get-StartMenuFolderConfiguration`
-- `Test-StartMenuFolder`
-- `Update-StartMenuFolder`
-- `Show-StartMenuFolder`
-- `Get-StartMenuFolderDiagnostic`
-- `Export-StartMenuFolderSupportBundle`
-- `Remove-StartMenuFolder`
+- `Get-LaunchTreeConfiguration`
+- `Test-LaunchTree`
+- `Update-LaunchTree`
+- `Show-LaunchTree`
+- `Get-LaunchTreeDiagnostic`
+- `Export-LaunchTreeSupportBundle`
+- `Remove-LaunchTree`
 
 State-changing commands support `ShouldProcess`. No exported command modifies
 source content.

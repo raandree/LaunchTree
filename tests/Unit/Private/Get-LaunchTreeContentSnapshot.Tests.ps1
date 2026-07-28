@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Get-StartMenuFolderContentSnapshot' -Tag 'Unit' {
+Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
     BeforeEach {
         $caseRoot = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString('N'))
         $managedRoot = Join-Path -Path $caseRoot -ChildPath 'Managed'
@@ -65,10 +65,10 @@ Describe 'Get-StartMenuFolderContentSnapshot' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestConfiguration = $script:testConfiguration
             } {
-                Get-StartMenuFolderContentSnapshot -Configuration $TestConfiguration
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
             }
 
-            $result.PSObject.TypeNames | Should -Contain 'StartMenuFolders.ContentSnapshot'
+            $result.PSObject.TypeNames | Should -Contain 'LaunchTree.ContentSnapshot'
             $result.EntryRoots | Should -HaveCount 2
             $result.EntryRoots.Name | Should -Be @('EntryA', 'EntryB')
             ($result.EntryRoots | Where-Object Name -eq 'EntryA').Description |
@@ -114,7 +114,7 @@ Describe 'Get-StartMenuFolderContentSnapshot' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestConfiguration = $script:testConfiguration
             } {
-                Get-StartMenuFolderContentSnapshot -Configuration $TestConfiguration
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
             }
 
             $result.Objects.Name | Should -Contain 'LevelTwo'
@@ -141,7 +141,7 @@ Describe 'Get-StartMenuFolderContentSnapshot' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestConfiguration = $script:testConfiguration
             } {
-                Get-StartMenuFolderContentSnapshot -Configuration $TestConfiguration
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
             }
 
             $result.Objects.Name | Should -Not -Contain 'Outside'
@@ -157,7 +157,7 @@ Describe 'Get-StartMenuFolderContentSnapshot' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestConfiguration = $script:testConfiguration
             } {
-                Get-StartMenuFolderContentSnapshot -Configuration $TestConfiguration
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
             }
 
             $result.Objects.Name | Should -Contain 'Large description'

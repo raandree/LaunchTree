@@ -1,4 +1,4 @@
-function Get-StartMenuFolderDescription {
+function Get-LaunchTreeDescription {
     [CmdletBinding()]
     [OutputType([string])]
     param(

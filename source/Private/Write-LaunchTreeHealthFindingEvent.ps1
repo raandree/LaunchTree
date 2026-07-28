@@ -1,4 +1,4 @@
-function Write-StartMenuFolderHealthFindingEvent {
+function Write-LaunchTreeHealthFindingEvent {
     [CmdletBinding()]
     [OutputType([bool])]
     param(
@@ -34,5 +34,5 @@ function Write-StartMenuFolderHealthFindingEvent {
         Path          = [string] $HealthFinding.Path
         ErrorCode     = [string] $HealthFinding.Code
     }
-    Write-StartMenuFolderEvent @eventParameters
+    Write-LaunchTreeEvent @eventParameters
 }

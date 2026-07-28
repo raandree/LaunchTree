@@ -1,8 +1,7 @@
-# StartMenuFolders
+# LaunchTree
 
-StartMenuFolders is a Windows PowerShell module that creates native Start
-shortcuts for managed Entry Roots and opens their recursive content in a WPF
-Launcher.
+LaunchTree is a Windows PowerShell module that creates native Start shortcuts
+for managed Entry Roots and opens their recursive content in a WPF Launcher.
 
 The module is under active development. Its signed behavior and release gates
 are defined in the [specifications](docs/specifications/README.md).
@@ -20,7 +19,7 @@ Launcher.
 The default Managed Root is:
 
 ```text
-C:\ProgramData\StartMenuFolders\StartMenuFolders
+C:\ProgramData\LaunchTree\LaunchTree
 ```
 
 Every immediate directory becomes a Start Entry. Nested directories become
@@ -29,13 +28,13 @@ Optional UTF-8 `description.txt` files provide Menu Folder tooltips.
 
 ## Commands
 
-- `Get-StartMenuFolderConfiguration`
-- `Test-StartMenuFolder`
-- `Update-StartMenuFolder`
-- `Show-StartMenuFolder`
-- `Get-StartMenuFolderDiagnostic`
-- `Export-StartMenuFolderSupportBundle`
-- `Remove-StartMenuFolder`
+- `Get-LaunchTreeConfiguration`
+- `Test-LaunchTree`
+- `Update-LaunchTree`
+- `Show-LaunchTree`
+- `Get-LaunchTreeDiagnostic`
+- `Export-LaunchTreeSupportBundle`
+- `Remove-LaunchTree`
 
 ## Development
 
@@ -57,4 +56,4 @@ Memory Bank, specification identifiers, references, links, and sign-off state.
 - [Getting started](docs/getting-started.md)
 - [Deployment](docs/deployment.md)
 - [Troubleshooting](docs/troubleshooting.md)
-- [Machine configuration example](docs/examples/StartMenuFolders.json)
+- [Machine configuration example](docs/examples/LaunchTree.json)

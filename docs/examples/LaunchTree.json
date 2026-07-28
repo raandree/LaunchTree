@@ -1,8 +1,8 @@
 {
     "SchemaVersion": 1,
-    "VendorName": "StartMenuFolders",
-    "ManagedRoot": "C:\\ProgramData\\StartMenuFolders\\StartMenuFolders",
-    "PersonalRoot": "%APPDATA%\\StartMenuFolders\\StartMenuFolders",
+    "VendorName": "LaunchTree",
+    "ManagedRoot": "C:\\ProgramData\\LaunchTree\\LaunchTree",
+    "PersonalRoot": "%APPDATA%\\LaunchTree\\LaunchTree",
     "MaximumDepth": 5,
     "LauncherHost": "WindowsPowerShell",
     "DefaultSortOrder": "NameAscending",
@@ -12,8 +12,8 @@
         "MaximumAgeDays": 30
     },
     "Diagnostics": {
-        "LogName": "StartMenuFolders",
-        "SourceName": "StartMenuFolders",
+        "LogName": "LaunchTree",
+        "SourceName": "LaunchTree",
         "MaximumLogSizeMB": 25,
         "TargetRetentionDays": 30
     }

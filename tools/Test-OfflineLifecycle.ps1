@@ -12,19 +12,19 @@ if ([Threading.Thread]::CurrentThread.GetApartmentState() -ne
     throw 'Test-OfflineLifecycle.ps1 requires an STA PowerShell host.'
 }
 
-$builtModuleRoot = Join-Path $RepositoryRoot 'output\module\StartMenuFolders'
+$builtModuleRoot = Join-Path $RepositoryRoot 'output\module\LaunchTree'
 $builtManifest = Get-ChildItem -LiteralPath $builtModuleRoot -Recurse -Filter (
-    'StartMenuFolders.psd1'
+    'LaunchTree.psd1'
 ) | Sort-Object FullName -Descending | Select-Object -First 1
 if (-not $builtManifest) {
     throw 'Build the module before running the offline lifecycle validator.'
 }
 
 $fixture = Join-Path $env:TEMP (
-    'StartMenuFolders-offline-{0}' -f [guid]::NewGuid().ToString('N')
+    'LaunchTree-offline-{0}' -f [guid]::NewGuid().ToString('N')
 )
 $moduleDestination = Join-Path $fixture (
-    'Modules\StartMenuFolders\{0}' -f $builtManifest.Directory.Name
+    'Modules\LaunchTree\{0}' -f $builtManifest.Directory.Name
 )
 $originalLocalAppData = $env:LOCALAPPDATA
 
@@ -39,7 +39,7 @@ try {
     Copy-Item @copyParameters
     $env:LOCALAPPDATA = Join-Path $fixture 'LocalAppData'
 
-    $copiedManifest = Join-Path $moduleDestination 'StartMenuFolders.psd1'
+    $copiedManifest = Join-Path $moduleDestination 'LaunchTree.psd1'
     Import-Module $copiedManifest -Force -ErrorAction Stop
 
     $managedRoot = Join-Path $fixture 'Managed'
@@ -60,8 +60,8 @@ try {
     @('[InternetShortcut]', 'URL=https://www.spotify.com/') |
         Set-Content (Join-Path $nested.FullName 'Spotify.url') -Encoding ASCII
 
-    $configurationPath = Join-Path $fixture 'StartMenuFolders.json'
-    $statePath = Join-Path $fixture 'StartMenuFolders.generated.json'
+    $configurationPath = Join-Path $fixture 'LaunchTree.json'
+    $statePath = Join-Path $fixture 'LaunchTree.generated.json'
     $programsPath = Join-Path $fixture 'Programs'
     $capturePath = Join-Path $fixture 'Launcher.png'
     @{
@@ -80,7 +80,7 @@ try {
         SkipEventLogRegistration = $true
         Confirm                   = $false
     }
-    $update = Update-StartMenuFolder @updateParameters
+    $update = Update-LaunchTree @updateParameters
 
     $healthParameters = @{
         ConfigurationPath = $configurationPath
@@ -88,7 +88,7 @@ try {
         StartMenuPath       = $programsPath
         SkipEventLog        = $true
     }
-    $health = Test-StartMenuFolder @healthParameters
+    $health = Test-LaunchTree @healthParameters
     if ($health.Status -ne 'Healthy') {
         throw "Offline health is '$($health.Status)'."
     }
@@ -98,13 +98,13 @@ try {
         ConfigurationPath = $configurationPath
         CapturePath       = $capturePath
     }
-    Show-StartMenuFolder @showParameters
+    Show-LaunchTree @showParameters
     if (-not (Test-Path $capturePath -PathType Leaf)) {
         throw 'Offline Launcher capture was not created.'
     }
 
     $cachePath = (
-        Get-StartMenuFolderConfiguration -ConfigurationPath $configurationPath
+        Get-LaunchTreeConfiguration -ConfigurationPath $configurationPath
     ).Cache.Path
     $removeParameters = @{
         ConfigurationPath = $configurationPath
@@ -113,7 +113,7 @@ try {
         SkipEventLog        = $true
         Confirm             = $false
     }
-    $remove = Remove-StartMenuFolder @removeParameters
+    $remove = Remove-LaunchTree @removeParameters
 
     if (Test-Path $statePath) {
         throw 'Generated State remains after removal.'
@@ -139,6 +139,6 @@ try {
     }
 } finally {
     $env:LOCALAPPDATA = $originalLocalAppData
-    Remove-Module StartMenuFolders -Force -ErrorAction SilentlyContinue
+    Remove-Module LaunchTree -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $fixture -Recurse -Force -ErrorAction SilentlyContinue
 }

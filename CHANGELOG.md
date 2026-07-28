@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Rename the module, all seven commands, ProgramData and roaming paths, machine
+  configuration and Generated State file names, the Event Log name and source,
+  and the exported type names from `StartMenuFolders` to `LaunchTree`
 - Scope dedicated-test and help QA gates to exported commands while retaining
   PSScriptAnalyzer coverage for private helpers
 - Document PSGallery, GPO, and file-copy deployment plus operational

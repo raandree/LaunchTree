@@ -1,4 +1,4 @@
-function ConvertTo-StartMenuFolderCommandLineArgument {
+function ConvertTo-LaunchTreeCommandLineArgument {
     [CmdletBinding()]
     [OutputType([string])]
     param(

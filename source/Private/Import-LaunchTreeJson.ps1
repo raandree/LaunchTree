@@ -1,4 +1,4 @@
-function Import-StartMenuFolderJson {
+function Import-LaunchTreeJson {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(

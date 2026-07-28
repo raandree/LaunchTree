@@ -1,4 +1,4 @@
-function Write-StartMenuFolderPerformanceEvent {
+function Write-LaunchTreePerformanceEvent {
     [CmdletBinding()]
     [OutputType([bool])]
     param(
@@ -43,5 +43,5 @@ function Write-StartMenuFolderPerformanceEvent {
         )
         ErrorCode     = "${Metric}BudgetExceeded"
     }
-    Write-StartMenuFolderEvent @eventParameters
+    Write-LaunchTreeEvent @eventParameters
 }

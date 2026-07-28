@@ -1,4 +1,4 @@
-function Register-StartMenuFolderEventLog {
+function Register-LaunchTreeEventLog {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
@@ -16,7 +16,7 @@ function Register-StartMenuFolderEventLog {
             'Windows Event Log registration is supported only on Windows.'
         )
     }
-    if (-not (Test-StartMenuFolderAdministrator)) {
+    if (-not (Test-LaunchTreeAdministrator)) {
         throw [System.UnauthorizedAccessException]::new(
             'Reconciliation must run as an administrator to register diagnostics.'
         )
@@ -52,8 +52,8 @@ function Register-StartMenuFolderEventLog {
         )
     }
 
-    $descriptor = Get-StartMenuFolderEventLogSecurityDescriptor
-    if (-not (Test-StartMenuFolderInteractiveEventAccess -SecurityDescriptor $descriptor)) {
+    $descriptor = Get-LaunchTreeEventLogSecurityDescriptor
+    if (-not (Test-LaunchTreeInteractiveEventAccess -SecurityDescriptor $descriptor)) {
         throw [Security.SecurityException]::new(
             'The Event Log descriptor does not grant Interactive Users read/write without clear rights.'
         )
@@ -63,12 +63,12 @@ function Register-StartMenuFolderEventLog {
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'MaxSize' -Value $maximumBytes -Type DWord
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'Retention' -Value 0 -Type DWord
 
-    $launcherHostPath = Get-StartMenuFolderLauncherHostPath -LauncherHost (
+    $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost (
         $Configuration.LauncherHost
     )
     $probeParameters = @{
         Configuration    = $Configuration
         LauncherHostPath = $launcherHostPath
     }
-    $null = Invoke-StartMenuFolderStandardUserEventProbe @probeParameters
+    $null = Invoke-LaunchTreeStandardUserEventProbe @probeParameters
 }

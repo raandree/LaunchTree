@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,9 +7,9 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Show-StartMenuFolder' -Tag 'Unit' {
+Describe 'Show-LaunchTree' -Tag 'Unit' {
     It 'Should expose separate Entry ID and Entry Root name parameter sets' {
-        $command = Get-Command -Name Show-StartMenuFolder -Module $moduleName
+        $command = Get-Command -Name Show-LaunchTree -Module $moduleName
         $parameterSets = $command.ParameterSets | Select-Object -ExpandProperty Name
 
         $parameterSets | Should -Contain 'ByEntryId'
@@ -24,7 +24,7 @@ Describe 'Show-StartMenuFolder' -Tag 'Unit' {
         [Threading.Thread]::CurrentThread.GetApartmentState() -eq
             [Threading.ApartmentState]::STA
     ) {
-        { Show-StartMenuFolder -EntryName 'Example' } |
+        { Show-LaunchTree -EntryName 'Example' } |
             Should -Throw -ExpectedMessage '*STA*'
     }
 
@@ -40,7 +40,7 @@ Describe 'Show-StartMenuFolder' -Tag 'Unit' {
             ConfigurationPath = $configurationPath
             CapturePath       = $capturePath
         }
-        { Show-StartMenuFolder @parameters } | Should -Not -Throw
+        { Show-LaunchTree @parameters } | Should -Not -Throw
         $capturePath | Should -Exist
         (Get-Item $capturePath).Length | Should -BeGreaterThan 1000
     }

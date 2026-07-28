@@ -1,4 +1,4 @@
-function Resolve-StartMenuFolderEntry {
+function Resolve-LaunchTreeEntry {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -14,7 +14,7 @@ function Resolve-StartMenuFolderEntry {
         [string] $GeneratedStatePath
     )
 
-    $state = Import-StartMenuFolderGeneratedState -LiteralPath $GeneratedStatePath
+    $state = Import-LaunchTreeGeneratedState -LiteralPath $GeneratedStatePath
     if (-not $state) {
         throw [System.IO.FileNotFoundException]::new(
             'Generated State is required to resolve an Entry ID.',
@@ -53,7 +53,7 @@ function Resolve-StartMenuFolderEntry {
     }
 
     [PSCustomObject] @{
-        PSTypeName    = 'StartMenuFolders.EntryReference'
+        PSTypeName    = 'LaunchTree.EntryReference'
         EntryId       = $EntryId
         Name          = [string] $matchingEntry.Name
         EntryRootPath = $entryRootPath

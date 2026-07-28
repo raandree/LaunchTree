@@ -9,11 +9,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$modulePath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'StartMenuFolders.psd1'
+$modulePath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) -ChildPath 'LaunchTree.psd1'
 Import-Module -Name $modulePath -Force -ErrorAction Stop
 
 $parameters = @{
     EntryId           = $EntryId
     ConfigurationPath = $ConfigurationPath
 }
-Show-StartMenuFolder @parameters
+Show-LaunchTree @parameters

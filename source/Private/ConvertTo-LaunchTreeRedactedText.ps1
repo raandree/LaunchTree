@@ -1,4 +1,4 @@
-function ConvertTo-StartMenuFolderRedactedText {
+function ConvertTo-LaunchTreeRedactedText {
     [CmdletBinding()]
     [OutputType([string])]
     param(

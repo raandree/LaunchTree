@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
+Describe 'Invoke-LaunchTreeLaunchItem' -Tag 'Unit' {
     Context 'When Windows Shell accepts the Launch Item' {
         BeforeEach {
             Mock -ModuleName $moduleName -CommandName Start-Process -MockWith {
@@ -22,7 +22,7 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestPath = $linkPath
             } {
-                Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                Invoke-LaunchTreeLaunchItem -LiteralPath $TestPath
             }
 
             $result.Succeeded | Should -BeTrue
@@ -49,7 +49,7 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
             $result = InModuleScope -ModuleName $moduleName -Parameters @{
                 TestPath = $urlPath
             } {
-                Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                Invoke-LaunchTreeLaunchItem -LiteralPath $TestPath
             }
 
             $result.Succeeded | Should -BeTrue
@@ -72,7 +72,7 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
                 InModuleScope -ModuleName $moduleName -Parameters @{
                     TestPath = $urlPath
                 } {
-                    Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                    Invoke-LaunchTreeLaunchItem -LiteralPath $TestPath
                 }
             } | Should -Throw -ExpectedMessage '*HTTP or HTTPS*'
             Should -Invoke -ModuleName $moduleName -CommandName Start-Process -Times 0
@@ -86,13 +86,13 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
             Mock -ModuleName $moduleName -CommandName Start-Process -MockWith {
                 throw [System.ComponentModel.Win32Exception]::new('Shell rejected the item.')
             }
-            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+            Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
                 $true
             }
             $configuration = [PSCustomObject] @{
                 Diagnostics = [PSCustomObject] @{
-                    LogName = 'StartMenuFolders'
-                    SourceName = 'StartMenuFolders'
+                    LogName = 'LaunchTree'
+                    SourceName = 'LaunchTree'
                 }
             }
 
@@ -104,15 +104,15 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
                     LiteralPath   = $TestPath
                     Configuration = $TestConfiguration
                 }
-                Invoke-StartMenuFolderLaunchItem @parameters
+                Invoke-LaunchTreeLaunchItem @parameters
             }
 
-            $result.PSObject.TypeNames | Should -Contain 'StartMenuFolders.LaunchResult'
+            $result.PSObject.TypeNames | Should -Contain 'LaunchTree.LaunchResult'
             $result.Succeeded | Should -BeFalse
             $result.Message | Should -Match 'Shell rejected'
             $assertion = @{
                 ModuleName      = $moduleName
-                CommandName     = 'Write-StartMenuFolderEvent'
+                CommandName     = 'Write-LaunchTreeEvent'
                 Times           = 1
                 Exactly         = $true
                 ParameterFilter = { $EventId -eq 1201 }
@@ -128,7 +128,7 @@ Describe 'Invoke-StartMenuFolderLaunchItem' -Tag 'Unit' {
                 InModuleScope -ModuleName $moduleName -Parameters @{
                     TestPath = $executablePath
                 } {
-                    Invoke-StartMenuFolderLaunchItem -LiteralPath $TestPath
+                    Invoke-LaunchTreeLaunchItem -LiteralPath $TestPath
                 }
             } | Should -Throw -ExpectedMessage '*unsupported*'
         }

@@ -1,4 +1,4 @@
-function New-StartMenuFolderStartEntry {
+function New-LaunchTreeStartEntry {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
@@ -44,11 +44,11 @@ function New-StartMenuFolderStartEntry {
         'Bypass'
         '-STA'
         '-File'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $BootstrapPath)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $BootstrapPath)
         '-EntryId'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $EntryId.ToString())
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $EntryId.ToString())
         '-ConfigurationPath'
-        (ConvertTo-StartMenuFolderCommandLineArgument -Value $ConfigurationPath)
+        (ConvertTo-LaunchTreeCommandLineArgument -Value $ConfigurationPath)
     )
 
     $shell = $null

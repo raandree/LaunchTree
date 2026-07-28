@@ -1,4 +1,4 @@
-function Test-StartMenuFolderAdministrator {
+function Test-LaunchTreeAdministrator {
     [CmdletBinding()]
     [OutputType([bool])]
     param()

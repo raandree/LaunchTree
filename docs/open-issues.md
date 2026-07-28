@@ -82,7 +82,7 @@ update the summary table.
 - Owner: Developer and release owner
 - Release gate: Observability contract
 - Source: Design Concept open question 4
-- Resolution: `ADR-0006` and `CR-010` reserve the `StartMenuFolders` log,
+- Resolution: `ADR-0006` and `CR-010` reserve the `LaunchTree` log,
   source, ranges, and initial event IDs.
 - Closure evidence: Accepted
   [configuration specification](specifications/configuration.md#cr-010-event-ranges).

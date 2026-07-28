@@ -1,4 +1,4 @@
-function Invoke-StartMenuFolderLaunchItem {
+function Invoke-LaunchTreeLaunchItem {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -25,7 +25,7 @@ function Invoke-StartMenuFolderLaunchItem {
         )
     }
     if ($extension -eq '.url') {
-        $detail = Get-StartMenuFolderLaunchItemDetail -LiteralPath $LiteralPath
+        $detail = Get-LaunchTreeLaunchItemDetail -LiteralPath $LiteralPath
         if (-not $detail.Succeeded) {
             throw [System.InvalidOperationException]::new($detail.Message)
         }
@@ -34,7 +34,7 @@ function Invoke-StartMenuFolderLaunchItem {
     try {
         $null = Start-Process -FilePath $LiteralPath -PassThru -ErrorAction Stop
         [PSCustomObject] @{
-            PSTypeName  = 'StartMenuFolders.LaunchResult'
+            PSTypeName  = 'LaunchTree.LaunchResult'
             Succeeded   = $true
             LiteralPath = $LiteralPath
             Message     = $null
@@ -51,10 +51,10 @@ function Invoke-StartMenuFolderLaunchItem {
                 Path          = $LiteralPath
                 ErrorCode     = $errorRecord.FullyQualifiedErrorId
             }
-            $null = Write-StartMenuFolderEvent @eventParameters
+            $null = Write-LaunchTreeEvent @eventParameters
         }
         [PSCustomObject] @{
-            PSTypeName  = 'StartMenuFolders.LaunchResult'
+            PSTypeName  = 'LaunchTree.LaunchResult'
             Succeeded   = $false
             LiteralPath = $LiteralPath
             Message     = $errorRecord.Exception.Message

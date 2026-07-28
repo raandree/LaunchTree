@@ -1,7 +1,7 @@
-function Get-StartMenuFolderDiagnostic {
+function Get-LaunchTreeDiagnostic {
     <#
         .SYNOPSIS
-            Reads structured StartMenuFolders diagnostic events.
+            Reads structured LaunchTree diagnostic events.
 
         .DESCRIPTION
             Reads the dedicated Windows Event Log and returns redacted,
@@ -21,7 +21,7 @@ function Get-StartMenuFolderDiagnostic {
             Filters results to one or more event level display names.
 
         .EXAMPLE
-            Get-StartMenuFolderDiagnostic -Since (Get-Date).AddDays(-1)
+            Get-LaunchTreeDiagnostic -Since (Get-Date).AddDays(-1)
 
             Returns redacted diagnostic events from the last day.
     #>
@@ -30,7 +30,7 @@ function Get-StartMenuFolderDiagnostic {
     param(
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $LogName = 'StartMenuFolders',
+        [string] $LogName = 'LaunchTree',
 
         [Parameter()]
         [datetime] $Since = [DateTime]::Now.AddDays(-30),
@@ -67,11 +67,11 @@ function Get-StartMenuFolderDiagnostic {
         }
 
         [PSCustomObject] @{
-            PSTypeName   = 'StartMenuFolders.DiagnosticEvent'
+            PSTypeName   = 'LaunchTree.DiagnosticEvent'
             EventId      = [int] $eventRecord.Id
             Level        = $levelName
             TimeCreated  = $eventRecord.TimeCreated
-            Message      = ConvertTo-StartMenuFolderRedactedText -InputObject (
+            Message      = ConvertTo-LaunchTreeRedactedText -InputObject (
                 [string] $eventRecord.Message
             )
             ProviderName = [string] $eventRecord.ProviderName

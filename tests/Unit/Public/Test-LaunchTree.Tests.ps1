@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,12 +7,12 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Test-StartMenuFolder' -Tag 'Unit' {
+Describe 'Test-LaunchTree' -Tag 'Unit' {
     BeforeEach {
         $script:caseRoot = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString('N'))
         $script:managedRoot = Join-Path $script:caseRoot 'Managed'
-        $script:configurationPath = Join-Path $script:caseRoot 'StartMenuFolders.json'
-        $script:statePath = Join-Path $script:caseRoot 'StartMenuFolders.generated.json'
+        $script:configurationPath = Join-Path $script:caseRoot 'LaunchTree.json'
+        $script:statePath = Join-Path $script:caseRoot 'LaunchTree.generated.json'
         $script:startMenuPath = Join-Path $script:caseRoot 'Programs'
         $null = New-Item -Path $script:caseRoot -ItemType Directory -Force
     }
@@ -30,7 +30,7 @@ Describe 'Test-StartMenuFolder' -Tag 'Unit' {
             StartMenuPath       = $script:startMenuPath
             SkipEventLog        = $true
         }
-        $result = Test-StartMenuFolder @parameters
+        $result = Test-LaunchTree @parameters
 
         $result.Status | Should -Be 'Unhealthy'
         $result.HealthFindings.Code | Should -Contain 'ManagedRootInaccessible'
@@ -50,7 +50,7 @@ Describe 'Test-StartMenuFolder' -Tag 'Unit' {
             StartMenuPath       = $script:startMenuPath
             SkipEventLog        = $true
         }
-        $result = Test-StartMenuFolder @parameters
+        $result = Test-LaunchTree @parameters
 
         $result.Status | Should -Be 'Degraded'
         $result.HealthFindings.Code | Should -Contain 'GeneratedStateMissing'
@@ -68,7 +68,7 @@ Describe 'Test-StartMenuFolder' -Tag 'Unit' {
             StartMenuPath       = $script:startMenuPath
             SkipEventLog        = $true
         }
-        $result = Test-StartMenuFolder @parameters
+        $result = Test-LaunchTree @parameters
 
         $result.Status | Should -Be 'Unhealthy'
         $result.HealthFindings.Code | Should -Contain 'ConfigurationSchemaUnsupported'

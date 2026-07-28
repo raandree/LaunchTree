@@ -1,4 +1,4 @@
-function New-StartMenuFolderHealthFinding {
+function New-LaunchTreeHealthFinding {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
@@ -25,7 +25,7 @@ function New-StartMenuFolderHealthFinding {
     )
 
     [PSCustomObject] @{
-        PSTypeName = 'StartMenuFolders.HealthFinding'
+        PSTypeName = 'LaunchTree.HealthFinding'
         Code       = $Code
         Severity   = $Severity
         Message    = $Message

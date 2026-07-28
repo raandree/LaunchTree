@@ -12,6 +12,7 @@ messages, and support material.
 
 | Term | Means | Don't say |
 | --- | --- | --- |
+| LaunchTree | The product, the PowerShell module, and the command noun prefix. | StartMenuFolders, Start Menu Folders, the LaunchTree app |
 | Managed Root | The machine-wide directory whose immediate child directories are Entry Roots. | managed content root, machine root, source root |
 | Personal Root | The roaming per-user directory whose matching paths augment the Managed Root. | personal overlay, user root |
 | Entry Root | An immediate child directory of the Managed Root represented by one Start Entry. | first-level folder, top-level folder |

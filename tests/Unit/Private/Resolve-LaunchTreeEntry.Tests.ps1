@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
+Describe 'Resolve-LaunchTreeEntry' -Tag 'Unit' {
     BeforeEach {
         $script:entryId = [guid]::NewGuid()
         $script:managedRoot = Join-Path -Path $TestDrive -ChildPath 'Managed'
@@ -40,7 +40,7 @@ Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
                 ManagedRoot        = $TestRoot
                 GeneratedStatePath = $TestState
             }
-            Resolve-StartMenuFolderEntry @parameters
+            Resolve-LaunchTreeEntry @parameters
         }
 
         $result.Name | Should -Be 'Developer Tools'
@@ -59,7 +59,7 @@ Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
                     ManagedRoot        = $TestRoot
                     GeneratedStatePath = $TestState
                 }
-                Resolve-StartMenuFolderEntry @parameters
+                Resolve-LaunchTreeEntry @parameters
             }
         } | Should -Throw -ExpectedMessage '*Entry ID*'
     }
@@ -76,7 +76,7 @@ Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
                     ManagedRoot        = $TestRoot
                     GeneratedStatePath = $TestState
                 }
-                Resolve-StartMenuFolderEntry @parameters
+                Resolve-LaunchTreeEntry @parameters
             }
         } | Should -Throw -ExpectedMessage '*Managed Root*'
     }
@@ -100,7 +100,7 @@ Describe 'Resolve-StartMenuFolderEntry' -Tag 'Unit' {
                     ManagedRoot        = $TestRoot
                     GeneratedStatePath = $TestState
                 }
-                Resolve-StartMenuFolderEntry @parameters
+                Resolve-LaunchTreeEntry @parameters
             }
         } | Should -Throw -ExpectedMessage '*outside*Managed Root*'
     }

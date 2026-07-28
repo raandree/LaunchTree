@@ -1,4 +1,4 @@
-function Update-StartMenuFolder {
+function Update-LaunchTree {
     <#
         .SYNOPSIS
             Reconciles module-owned Start Entries with current Entry Roots.
@@ -24,7 +24,7 @@ function Update-StartMenuFolder {
             provisioned and validated the required event log contract.
 
         .EXAMPLE
-            Update-StartMenuFolder -Confirm:$false
+            Update-LaunchTree -Confirm:$false
 
             Reconciles Start Entries from the default Managed Root.
     #>
@@ -51,7 +51,7 @@ function Update-StartMenuFolder {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
     if (-not $configuration.IsValid) {
         $schemaFinding = $configuration.HealthFindings |
             Where-Object Code -eq 'ConfigurationSchemaUnsupported' |
@@ -70,11 +70,11 @@ function Update-StartMenuFolder {
     if (-not $PSBoundParameters.ContainsKey('GeneratedStatePath')) {
         $stateDirectory = Split-Path -Path $ConfigurationPath -Parent
         $GeneratedStatePath = Join-Path -Path $stateDirectory -ChildPath (
-            'StartMenuFolders.generated.json'
+            'LaunchTree.generated.json'
         )
     }
 
-    $snapshot = Get-StartMenuFolderContentSnapshot -Configuration $configuration
+    $snapshot = Get-LaunchTreeContentSnapshot -Configuration $configuration
     if (@($snapshot.HealthFindings | Where-Object Severity -eq 'Error').Count -gt 0) {
         throw [System.InvalidOperationException]::new(
             'Reconciliation cannot continue while the Content Snapshot is unhealthy.'
@@ -83,7 +83,7 @@ function Update-StartMenuFolder {
 
     $moduleBase = $ExecutionContext.SessionState.Module.ModuleBase
     $bootstrapPath = Join-Path -Path $moduleBase -ChildPath (
-        'Scripts\Start-StartMenuFolderLauncher.ps1'
+        'Scripts\Start-LaunchTreeLauncher.ps1'
     )
     if (-not (Test-Path -LiteralPath $bootstrapPath -PathType Leaf)) {
         throw [System.IO.FileNotFoundException]::new(
@@ -92,14 +92,14 @@ function Update-StartMenuFolder {
         )
     }
 
-    $launcherHostPath = Get-StartMenuFolderLauncherHostPath -LauncherHost (
+    $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost (
         $configuration.LauncherHost
     )
     if (-not $SkipEventLogRegistration) {
-        Register-StartMenuFolderEventLog -Configuration $configuration
+        Register-LaunchTreeEventLog -Configuration $configuration
     }
 
-    $previousState = Import-StartMenuFolderGeneratedState -LiteralPath $GeneratedStatePath
+    $previousState = Import-LaunchTreeGeneratedState -LiteralPath $GeneratedStatePath
     $previousEntries = if ($previousState -and
         $previousState.PSObject.Properties['StartEntries']) {
         @($previousState.StartEntries | Where-Object { $null -ne $_ })
@@ -150,7 +150,7 @@ function Update-StartMenuFolder {
             ConfigurationPath = [IO.Path]::GetFullPath($ConfigurationPath)
             Description       = [string] $entryRoot.Description
         }
-        $definitionHash = Get-StartMenuFolderDefinitionHash -Definition $definition
+        $definitionHash = Get-LaunchTreeDefinitionHash -Definition $definition
 
         [void] $desiredEntries.Add([PSCustomObject] @{
             EntryId        = $entryId.ToString()
@@ -196,7 +196,7 @@ function Update-StartMenuFolder {
     }
 
     $result = [PSCustomObject] @{
-        PSTypeName = 'StartMenuFolders.ReconciliationResult'
+        PSTypeName = 'LaunchTree.ReconciliationResult'
         Succeeded  = $true
         Added      = [string[]] $added
         Updated    = [string[]] $updated
@@ -213,7 +213,7 @@ function Update-StartMenuFolder {
             Message       = 'Reconciliation completed with no changes.'
             Path          = $GeneratedStatePath
         }
-        $null = Write-StartMenuFolderEvent @eventParameters
+        $null = Write-LaunchTreeEvent @eventParameters
         return $result
     }
     if (-not $PSCmdlet.ShouldProcess($StartMenuPath, "Reconcile $changeCount Start Entries")) {
@@ -224,7 +224,7 @@ function Update-StartMenuFolder {
     $null = New-Item -Path $stateDirectory -ItemType Directory -Force
     $null = New-Item -Path $StartMenuPath -ItemType Directory -Force
     $transactionPath = Join-Path -Path $stateDirectory -ChildPath (
-        '.startmenufolders-{0}' -f [guid]::NewGuid().ToString('N')
+        '.launchtree-{0}' -f [guid]::NewGuid().ToString('N')
     )
     $stagingPath = Join-Path -Path $transactionPath -ChildPath 'staging'
     $backupPath = Join-Path -Path $transactionPath -ChildPath 'backup'
@@ -248,7 +248,7 @@ function Update-StartMenuFolder {
                 WorkingDirectory  = $moduleBase
                 Description       = $entry.Description
             }
-            New-StartMenuFolderStartEntry @shortcutParameters
+            New-LaunchTreeStartEntry @shortcutParameters
             $entry | Add-Member -NotePropertyName StagedShortcut -NotePropertyValue $stagedShortcut
         }
 
@@ -318,7 +318,7 @@ function Update-StartMenuFolder {
             Path          = $GeneratedStatePath
             ErrorCode     = $errorRecord.FullyQualifiedErrorId
         }
-        $null = Write-StartMenuFolderEvent @eventParameters
+        $null = Write-LaunchTreeEvent @eventParameters
         throw $errorRecord
     } finally {
         Remove-Item -LiteralPath $transactionPath -Recurse -Force -ErrorAction SilentlyContinue
@@ -332,6 +332,6 @@ function Update-StartMenuFolder {
         Message       = "Reconciliation completed with $changeCount changes."
         Path          = $GeneratedStatePath
     }
-    $null = Write-StartMenuFolderEvent @eventParameters
+    $null = Write-LaunchTreeEvent @eventParameters
     $result
 }

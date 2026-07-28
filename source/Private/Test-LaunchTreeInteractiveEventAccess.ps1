@@ -1,4 +1,4 @@
-function Test-StartMenuFolderInteractiveEventAccess {
+function Test-LaunchTreeInteractiveEventAccess {
     [CmdletBinding()]
     [OutputType([bool])]
     param(

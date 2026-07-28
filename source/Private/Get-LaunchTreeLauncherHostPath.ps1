@@ -1,4 +1,4 @@
-function Get-StartMenuFolderLauncherHostPath {
+function Get-LaunchTreeLauncherHostPath {
     [CmdletBinding()]
     [OutputType([string])]
     param(

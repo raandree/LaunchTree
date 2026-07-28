@@ -1,7 +1,7 @@
-function Test-StartMenuFolder {
+function Test-LaunchTree {
     <#
         .SYNOPSIS
-            Evaluates StartMenuFolders installation health.
+            Evaluates LaunchTree installation health.
 
         .DESCRIPTION
             Validates effective configuration, source content, Generated State,
@@ -21,7 +21,7 @@ function Test-StartMenuFolder {
             Skips Event Log checks for offline or pre-provisioning validation.
 
         .EXAMPLE
-            Test-StartMenuFolder
+            Test-LaunchTree
 
             Returns a structured installation health summary.
     #>
@@ -48,7 +48,7 @@ function Test-StartMenuFolder {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
     $findings = [System.Collections.Generic.List[object]]::new()
     foreach ($finding in @($configuration.HealthFindings)) {
         [void] $findings.Add($finding)
@@ -59,7 +59,7 @@ function Test-StartMenuFolder {
     }
     if (-not $PSBoundParameters.ContainsKey('GeneratedStatePath')) {
         $stateDirectory = Split-Path -Path $ConfigurationPath -Parent
-        $GeneratedStatePath = Join-Path $stateDirectory 'StartMenuFolders.generated.json'
+        $GeneratedStatePath = Join-Path $stateDirectory 'LaunchTree.generated.json'
     }
     if (-not $PSBoundParameters.ContainsKey('StartMenuPath')) {
         $StartMenuPath = [Environment]::GetFolderPath(
@@ -69,7 +69,7 @@ function Test-StartMenuFolder {
 
     if (-not $configuration.IsValid) {
         return [PSCustomObject] @{
-            PSTypeName         = 'StartMenuFolders.HealthResult'
+            PSTypeName         = 'LaunchTree.HealthResult'
             Status             = 'Unhealthy'
             EntryRootCount     = 0
             LaunchObjectCount  = 0
@@ -81,14 +81,14 @@ function Test-StartMenuFolder {
         }
     }
 
-    $snapshot = Get-StartMenuFolderContentSnapshot -Configuration $configuration
+    $snapshot = Get-LaunchTreeContentSnapshot -Configuration $configuration
     foreach ($finding in @($snapshot.HealthFindings)) {
         [void] $findings.Add($finding)
     }
 
     $generatedState = $null
     try {
-        $generatedState = Import-StartMenuFolderGeneratedState -LiteralPath $GeneratedStatePath
+        $generatedState = Import-LaunchTreeGeneratedState -LiteralPath $GeneratedStatePath
     } catch {
         $stateError = $_
         $findingParameters = @{
@@ -97,7 +97,7 @@ function Test-StartMenuFolder {
             Message  = $stateError.Exception.Message
             Path     = $GeneratedStatePath
         }
-        [void] $findings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+        [void] $findings.Add((New-LaunchTreeHealthFinding @findingParameters))
     }
 
     if (-not $generatedState -and $snapshot.EntryRoots.Count -gt 0) {
@@ -107,7 +107,7 @@ function Test-StartMenuFolder {
             Message  = 'Entry Roots have not been reconciled into Generated State.'
             Path     = $GeneratedStatePath
         }
-        [void] $findings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+        [void] $findings.Add((New-LaunchTreeHealthFinding @findingParameters))
     } elseif ($generatedState) {
         foreach ($entry in @($generatedState.StartEntries)) {
             if (-not (Test-Path -LiteralPath $entry.ShortcutPath -PathType Leaf)) {
@@ -117,14 +117,14 @@ function Test-StartMenuFolder {
                     Message  = "Owned Start Entry '$($entry.Name)' is missing."
                     Path     = [string] $entry.ShortcutPath
                 }
-                [void] $findings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $findings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
     }
 
     $diagnosticCount = 0
     if (-not $SkipEventLog) {
-        $diagnostics = @(Get-StartMenuFolderDiagnostic -LogName $configuration.Diagnostics.LogName)
+        $diagnostics = @(Get-LaunchTreeDiagnostic -LogName $configuration.Diagnostics.LogName)
         $diagnosticCount = $diagnostics.Count
     }
 
@@ -137,7 +137,7 @@ function Test-StartMenuFolder {
     }
 
     [PSCustomObject] @{
-        PSTypeName         = 'StartMenuFolders.HealthResult'
+        PSTypeName         = 'LaunchTree.HealthResult'
         Status             = $status
         EntryRootCount     = $snapshot.EntryRoots.Count
         LaunchObjectCount  = $snapshot.Objects.Count

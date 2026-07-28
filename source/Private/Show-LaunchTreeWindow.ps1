@@ -1,4 +1,4 @@
-﻿function Show-StartMenuFolderWindow {
+﻿function Show-LaunchTreeWindow {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSReviewUnusedParameter',
         '',
@@ -35,14 +35,14 @@
         [Diagnostics.Stopwatch] $StartupStopwatch
     )
 
-    Initialize-StartMenuFolderWpf
+    Initialize-LaunchTreeWpf
     try {
         $cacheTrimParameters = @{
             CachePath      = $Configuration.Cache.Path
             MaximumSizeMB  = $Configuration.Cache.MaximumSizeMB
             MaximumAgeDays = $Configuration.Cache.MaximumAgeDays
         }
-        Remove-StartMenuFolderExpiredIconCache @cacheTrimParameters
+        Remove-LaunchTreeExpiredIconCache @cacheTrimParameters
     } catch {
         $cacheTrimError = $_
         Write-Verbose -Message $cacheTrimError.Exception.Message
@@ -214,7 +214,7 @@
     $searchBox.Foreground = $foregroundBrush
     $searchBox.CaretBrush = $accentBrush
     $searchBox.VerticalContentAlignment = [System.Windows.VerticalAlignment]::Center
-    $searchBox.ToolTip = 'Search all Start menu folders'
+    $searchBox.ToolTip = 'Search all Entry Roots'
     [System.Windows.Controls.Grid]::SetColumn($searchBox, 1)
     [void] $searchGrid.Children.Add($searchBox)
     $searchBorder.Child = $searchGrid
@@ -360,8 +360,8 @@
                     SourcePath = $item.FullPath
                     PixelSize  = 64
                 }
-                $cachePath = Get-StartMenuFolderIconCachePath @cacheParameters
-                $cachedIcon = Get-StartMenuFolderCachedIcon -LiteralPath $cachePath
+                $cachePath = Get-LaunchTreeIconCachePath @cacheParameters
+                $cachedIcon = Get-LaunchTreeCachedIcon -LiteralPath $cachePath
                 if ($cachedIcon) {
                     $image.Source = $cachedIcon
                     $placeholder.Visibility = [System.Windows.Visibility]::Collapsed
@@ -376,16 +376,16 @@
                     Message       = $cacheReadError.Exception.Message
                     Path          = $cachePath
                 }
-                $null = Write-StartMenuFolderEvent @eventParameters
+                $null = Write-LaunchTreeEvent @eventParameters
                 Write-Verbose -Message $cacheReadError.Exception.Message
             }
 
             if (-not $image.Source -and $CapturePath) {
                 try {
-                    $image.Source = [StartMenuFolders.NativeIcon]::Get($item.FullPath, 64)
+                    $image.Source = [LaunchTree.NativeIcon]::Get($item.FullPath, 64)
                     $placeholder.Visibility = [System.Windows.Visibility]::Collapsed
                     if ($cachePath) {
-                        Save-StartMenuFolderCachedIcon -Image $image.Source -LiteralPath $cachePath
+                        Save-LaunchTreeCachedIcon -Image $image.Source -LiteralPath $cachePath
                     }
                 } catch {
                     $iconError = $_
@@ -397,12 +397,12 @@
                         Message       = $iconError.Exception.Message
                         Path          = $item.FullPath
                     }
-                    $null = Write-StartMenuFolderEvent @eventParameters
+                    $null = Write-LaunchTreeEvent @eventParameters
                     Write-Verbose -Message $iconError.Exception.Message
                 }
             } elseif (-not $image.Source) {
                 $job = [PSCustomObject] @{
-                    Task        = [StartMenuFolders.NativeIcon]::GetAsync($item.FullPath, 64)
+                    Task        = [LaunchTree.NativeIcon]::GetAsync($item.FullPath, 64)
                     Image       = $image
                     Placeholder = $placeholder
                     CachePath   = $cachePath
@@ -427,7 +427,7 @@
                         LiteralPath   = $selectedItem.FullPath
                         Configuration = $script:activeConfiguration
                     }
-                    $launchResult = Invoke-StartMenuFolderLaunchItem @launchParameters
+                    $launchResult = Invoke-LaunchTreeLaunchItem @launchParameters
                     if ($launchResult.Succeeded) {
                         if ($script:activeConfiguration.CloseAfterLaunch) {
                             $window.Close()
@@ -461,7 +461,7 @@
             Metric        = 'Interaction'
             Value         = $interactionStopwatch.Elapsed.TotalMilliseconds
         }
-        $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
+        $null = Write-LaunchTreePerformanceEvent @performanceParameters
     }
 
     $iconTimer = [System.Windows.Threading.DispatcherTimer]::new()
@@ -480,7 +480,7 @@
                             Image       = $job.Task.Result
                             LiteralPath = $job.CachePath
                         }
-                        Save-StartMenuFolderCachedIcon @saveCacheParameters
+                        Save-LaunchTreeCachedIcon @saveCacheParameters
                     } catch {
                         $cacheWriteError = $_
                         $eventParameters = @{
@@ -491,7 +491,7 @@
                             Message       = $cacheWriteError.Exception.Message
                             Path          = $job.CachePath
                         }
-                        $null = Write-StartMenuFolderEvent @eventParameters
+                        $null = Write-LaunchTreeEvent @eventParameters
                         Write-Verbose -Message $cacheWriteError.Exception.Message
                     }
                 }
@@ -504,7 +504,7 @@
                     Message       = $job.Task.Exception.GetBaseException().Message
                     Path          = $null
                 }
-                $null = Write-StartMenuFolderEvent @eventParameters
+                $null = Write-LaunchTreeEvent @eventParameters
             }
             [void] $script:iconJobs.Remove($job)
         }
@@ -528,14 +528,14 @@
                 $configurationParameters = @{
                     ConfigurationPath = [string] $activation.ConfigurationPath
                 }
-                $nextConfiguration = Get-StartMenuFolderConfiguration @configurationParameters
+                $nextConfiguration = Get-LaunchTreeConfiguration @configurationParameters
                 $resolveParameters = @{
                     EntryId            = [guid] $activation.EntryId
                     ManagedRoot        = $nextConfiguration.ManagedRoot
                     GeneratedStatePath = [string] $activation.GeneratedStatePath
                 }
-                $nextEntry = Resolve-StartMenuFolderEntry @resolveParameters
-                $nextSnapshot = Get-StartMenuFolderContentSnapshot -Configuration $nextConfiguration
+                $nextEntry = Resolve-LaunchTreeEntry @resolveParameters
+                $nextSnapshot = Get-LaunchTreeContentSnapshot -Configuration $nextConfiguration
                 if (@($nextSnapshot.HealthFindings | Where-Object Severity -eq 'Error').Count -gt 0) {
                     throw [System.InvalidOperationException]::new(
                         'The requested Entry Root is unhealthy.'
@@ -637,7 +637,7 @@
                 Metric        = 'Startup'
                 Value         = $StartupStopwatch.Elapsed.TotalMilliseconds
             }
-            $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
+            $null = Write-LaunchTreePerformanceEvent @performanceParameters
         }
         $workArea = [System.Windows.SystemParameters]::WorkArea
         $taskbarAlignment = 0
@@ -674,7 +674,7 @@
         $captureTimer.Add_Tick({
             $captureTimer.Stop()
             $window.UpdateLayout()
-            Save-StartMenuFolderVisual -Visual $rootBorder -LiteralPath $CapturePath
+            Save-LaunchTreeVisual -Visual $rootBorder -LiteralPath $CapturePath
             $window.Close()
         })
         $window.Add_ContentRendered({ $captureTimer.Start() })
@@ -689,7 +689,7 @@
             Metric        = 'WorkingSetMB'
             Value         = $workingSetMB
         }
-        $null = Write-StartMenuFolderPerformanceEvent @performanceParameters
+        $null = Write-LaunchTreePerformanceEvent @performanceParameters
         if (-not $CapturePath) {
             try {
                 $preferenceParameters = @{
@@ -704,7 +704,7 @@
                     Left          = $window.Left
                     Top           = $window.Top
                 }
-                Save-StartMenuFolderPreference @preferenceParameters
+                Save-LaunchTreePreference @preferenceParameters
             } catch {
                 $preferenceError = $_
                 Write-Verbose -Message $preferenceError.Exception.Message

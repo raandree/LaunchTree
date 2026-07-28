@@ -1,4 +1,4 @@
-function Get-StartMenuFolderContentSnapshot {
+function Get-LaunchTreeContentSnapshot {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -18,7 +18,7 @@ function Get-StartMenuFolderContentSnapshot {
             Message  = 'The Managed Root does not exist or is inaccessible.'
             Path     = $Configuration.ManagedRoot
         }
-        [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+        [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
     } else {
         try {
             $managedEntries = @(
@@ -36,14 +36,14 @@ function Get-StartMenuFolderContentSnapshot {
                 Message  = $errorRecord.Exception.Message
                 Path     = $Configuration.ManagedRoot
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
         }
 
         foreach ($managedEntry in $managedEntries) {
             $descriptionPath = Join-Path -Path $managedEntry.FullName -ChildPath 'description.txt'
             $description = $null
             try {
-                $description = Get-StartMenuFolderDescription -LiteralPath $descriptionPath
+                $description = Get-LaunchTreeDescription -LiteralPath $descriptionPath
             } catch {
                 $errorRecord = $_
                 $findingParameters = @{
@@ -52,12 +52,12 @@ function Get-StartMenuFolderContentSnapshot {
                     Message  = $errorRecord.Exception.Message
                     Path     = $descriptionPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
 
             $personalEntryPath = Join-Path -Path $Configuration.PersonalRoot -ChildPath $managedEntry.Name
             [void] $entryRoots.Add([PSCustomObject] @{
-                PSTypeName   = 'StartMenuFolders.EntryRoot'
+                PSTypeName   = 'LaunchTree.EntryRoot'
                 Name         = $managedEntry.Name
                 Description  = $description
                 ManagedPath  = $managedEntry.FullName
@@ -75,7 +75,7 @@ function Get-StartMenuFolderContentSnapshot {
                 ContentSource = 'Managed'
                 MaximumDepth  = $Configuration.MaximumDepth
             }
-            $managedFragment = Get-StartMenuFolderSourceContent @managedFragmentParameters
+            $managedFragment = Get-LaunchTreeSourceContent @managedFragmentParameters
             foreach ($object in @($managedFragment.Objects)) {
                 [void] $objects.Add($object)
             }
@@ -92,7 +92,7 @@ function Get-StartMenuFolderContentSnapshot {
                         ContentSource = 'Personal'
                         MaximumDepth  = $Configuration.MaximumDepth
                     }
-                    $personalFragment = Get-StartMenuFolderSourceContent @personalFragmentParameters
+                    $personalFragment = Get-LaunchTreeSourceContent @personalFragmentParameters
                     foreach ($object in @($personalFragment.Objects)) {
                         [void] $objects.Add($object)
                     }
@@ -134,12 +134,12 @@ function Get-StartMenuFolderContentSnapshot {
             Configuration = $Configuration
             HealthFinding = $finding
         }
-        $null = Write-StartMenuFolderHealthFindingEvent @eventParameters
+        $null = Write-LaunchTreeHealthFindingEvent @eventParameters
     }
 
     $descending = $Configuration.SortOrder -eq 'NameDescending'
     [PSCustomObject] @{
-        PSTypeName     = 'StartMenuFolders.ContentSnapshot'
+        PSTypeName     = 'LaunchTree.ContentSnapshot'
         CreatedAtUtc   = [DateTime]::UtcNow
         EntryRoots     = [object[]] @($entryRoots | Sort-Object -Property Name -Descending:$descending)
         Objects        = [object[]] @($mergedObjects | Sort-Object -Property Name -Descending:$descending)

@@ -1,4 +1,4 @@
-function Invoke-StartMenuFolderEventLogWrite {
+function Invoke-LaunchTreeEventLogWrite {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',

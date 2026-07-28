@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,9 +7,9 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Save-StartMenuFolderPreference' -Tag 'Unit' {
+Describe 'Save-LaunchTreePreference' -Tag 'Unit' {
     It 'Should persist only allowed presentation state as schema version 1' {
-        $preferencePath = Join-Path $TestDrive 'Preferences\StartMenuFolders.preferences.json'
+        $preferencePath = Join-Path $TestDrive 'Preferences\LaunchTree.preferences.json'
         $configuration = [PSCustomObject] @{
             PreferencePath    = $preferencePath
             CloseAfterLaunch  = $false
@@ -26,7 +26,7 @@ Describe 'Save-StartMenuFolderPreference' -Tag 'Unit' {
                 Left          = 25
                 Top           = 35
             }
-            Save-StartMenuFolderPreference @parameters
+            Save-LaunchTreePreference @parameters
         }
 
         $preference = Get-Content -LiteralPath $preferencePath -Raw | ConvertFrom-Json

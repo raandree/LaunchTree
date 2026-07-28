@@ -1,4 +1,4 @@
-function Initialize-StartMenuFolderWpf {
+function Initialize-LaunchTreeWpf {
     [CmdletBinding()]
     param()
 
@@ -6,8 +6,8 @@ function Initialize-StartMenuFolderWpf {
     Add-Type -AssemblyName PresentationFramework
     Add-Type -AssemblyName WindowsBase
 
-    if (('StartMenuFolders.ActivationServer' -as [type]) -and
-        ('StartMenuFolders.NativeIcon' -as [type])) {
+    if (('LaunchTree.ActivationServer' -as [type]) -and
+        ('LaunchTree.NativeIcon' -as [type])) {
         return
     }
 
@@ -21,7 +21,7 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StartMenuFolders
+namespace LaunchTree
 {
     public sealed class ActivationServer : IDisposable
     {
@@ -155,7 +155,7 @@ new NamedPipeServerStream(
     $activationSource = $activationSource.Replace('__LEGACY_SERVER_METHOD__', $legacyServerMethod)
     $activationSource = $activationSource.Replace('__SERVER_FACTORY__', $serverFactory)
 
-    if (-not ('StartMenuFolders.ActivationServer' -as [type])) {
+    if (-not ('LaunchTree.ActivationServer' -as [type])) {
         Add-Type -TypeDefinition $activationSource -Language CSharp
     }
 
@@ -167,7 +167,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
 
-namespace StartMenuFolders
+namespace LaunchTree
 {
 
     [StructLayout(LayoutKind.Sequential)]
@@ -238,7 +238,7 @@ namespace StartMenuFolders
 }
 '@
 
-    if (-not ('StartMenuFolders.NativeIcon' -as [type])) {
+    if (-not ('LaunchTree.NativeIcon' -as [type])) {
         $references = @(
             [System.Windows.Media.Imaging.BitmapSource].Assembly.Location
             [System.Windows.Window].Assembly.Location

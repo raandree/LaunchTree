@@ -1,8 +1,8 @@
-function Initialize-StartMenuFolderUnelevatedProcess {
+function Initialize-LaunchTreeUnelevatedProcess {
     [CmdletBinding()]
     param()
 
-    if ('StartMenuFolders.UnelevatedProcess' -as [type]) {
+    if ('LaunchTree.UnelevatedProcess' -as [type]) {
         return
     }
 
@@ -13,7 +13,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace StartMenuFolders
+namespace LaunchTree
 {
     public static class UnelevatedProcess
     {

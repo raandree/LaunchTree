@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,13 +7,13 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Write-StartMenuFolderPerformanceEvent' -Tag 'Unit' {
+Describe 'Write-LaunchTreePerformanceEvent' -Tag 'Unit' {
     BeforeEach {
-        Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+        Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
             $true
         }
         $script:configuration = [PSCustomObject] @{
-            Diagnostics = [PSCustomObject] @{ SourceName = 'StartMenuFolders' }
+            Diagnostics = [PSCustomObject] @{ SourceName = 'LaunchTree' }
         }
     }
 
@@ -26,15 +26,15 @@ Describe 'Write-StartMenuFolderPerformanceEvent' -Tag 'Unit' {
                 Metric        = 'Startup'
             }
             @(
-                Write-StartMenuFolderPerformanceEvent @startupParameters -Value 499
-                Write-StartMenuFolderPerformanceEvent @startupParameters -Value 501
+                Write-LaunchTreePerformanceEvent @startupParameters -Value 499
+                Write-LaunchTreePerformanceEvent @startupParameters -Value 501
             )
         }
 
         $results | Should -Be @($false, $true)
         $assertion = @{
             ModuleName      = $moduleName
-            CommandName     = 'Write-StartMenuFolderEvent'
+            CommandName     = 'Write-LaunchTreeEvent'
             Times           = 1
             Exactly         = $true
             ParameterFilter = { $EventId -eq 1501 }
@@ -51,18 +51,18 @@ Describe 'Write-StartMenuFolderPerformanceEvent' -Tag 'Unit' {
                 Metric        = 'Interaction'
                 Value         = 101
             }
-            Write-StartMenuFolderPerformanceEvent @interactionParameters
+            Write-LaunchTreePerformanceEvent @interactionParameters
             $workingSetParameters = @{
                 Configuration = $TestConfiguration
                 Metric        = 'WorkingSetMB'
                 Value         = 201
             }
-            Write-StartMenuFolderPerformanceEvent @workingSetParameters
+            Write-LaunchTreePerformanceEvent @workingSetParameters
         }
 
         $interactionAssertion = @{
             ModuleName      = $moduleName
-            CommandName     = 'Write-StartMenuFolderEvent'
+            CommandName     = 'Write-LaunchTreeEvent'
             Times           = 1
             Exactly         = $true
             ParameterFilter = { $EventId -eq 1502 }
@@ -70,7 +70,7 @@ Describe 'Write-StartMenuFolderPerformanceEvent' -Tag 'Unit' {
         Should -Invoke @interactionAssertion
         $workingSetAssertion = @{
             ModuleName      = $moduleName
-            CommandName     = 'Write-StartMenuFolderEvent'
+            CommandName     = 'Write-LaunchTreeEvent'
             Times           = 1
             Exactly         = $true
             ParameterFilter = { $EventId -eq 1503 }

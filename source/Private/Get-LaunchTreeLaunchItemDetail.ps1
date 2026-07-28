@@ -1,4 +1,4 @@
-function Get-StartMenuFolderLaunchItemDetail {
+function Get-LaunchTreeLaunchItemDetail {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(

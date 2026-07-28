@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Get-StartMenuFolderDiagnostic' -Tag 'Unit' {
+Describe 'Get-LaunchTreeDiagnostic' -Tag 'Unit' {
     It 'Should return structured events with URL query strings redacted' {
         Mock -ModuleName $moduleName -CommandName Get-WinEvent -MockWith {
             [PSCustomObject] @{
@@ -16,15 +16,15 @@ Describe 'Get-StartMenuFolderDiagnostic' -Tag 'Unit' {
                 LevelDisplayName = 'Error'
                 TimeCreated = [DateTime]::UtcNow
                 Message     = 'Failed https://example.test/path?token=secret&user=one'
-                ProviderName = 'StartMenuFolders'
-                LogName     = 'StartMenuFolders'
+                ProviderName = 'LaunchTree'
+                LogName     = 'LaunchTree'
             }
         }
 
-        $result = Get-StartMenuFolderDiagnostic -LogName 'StartMenuFolders'
+        $result = Get-LaunchTreeDiagnostic -LogName 'LaunchTree'
 
         $result | Should -HaveCount 1
-        $result[0].PSObject.TypeNames | Should -Contain 'StartMenuFolders.DiagnosticEvent'
+        $result[0].PSObject.TypeNames | Should -Contain 'LaunchTree.DiagnosticEvent'
         $result[0].EventId | Should -Be 1201
         $result[0].Message | Should -Not -Match 'token=secret'
         $result[0].Message | Should -Match '\?\[redacted\]'

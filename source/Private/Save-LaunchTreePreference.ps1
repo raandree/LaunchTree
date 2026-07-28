@@ -1,4 +1,4 @@
-function Save-StartMenuFolderPreference {
+function Save-LaunchTreePreference {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',

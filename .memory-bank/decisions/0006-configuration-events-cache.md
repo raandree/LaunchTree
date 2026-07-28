@@ -20,10 +20,10 @@ before public commands and tests can be written.
 Adopt the version 1 contracts in the
 [configuration specification](../../docs/specifications/configuration.md):
 
-- default `VendorName` is `StartMenuFolders`
+- default `VendorName` is `LaunchTree`
 - machine configuration and user preferences use schema version 1
 - Generated State uses an independently versioned ownership record
-- the dedicated log and source are named `StartMenuFolders`
+- the dedicated log and source are named `LaunchTree`
 - event IDs use category ranges `1000-1699`
 - event registration and runtime access follow `ADR-0009`
 - the cache uses a `v1` namespace, 64 MB least-recently-used cap, and 30-day

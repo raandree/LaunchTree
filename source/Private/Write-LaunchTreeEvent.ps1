@@ -1,4 +1,4 @@
-function Write-StartMenuFolderEvent {
+function Write-LaunchTreeEvent {
     [CmdletBinding()]
     [OutputType([bool])]
     param(
@@ -37,9 +37,9 @@ function Write-StartMenuFolderEvent {
             EventSchemaVersion = 1
             ModuleVersion      = $module.Version.ToString()
             Operation          = $Operation
-            Message            = ConvertTo-StartMenuFolderRedactedText -InputObject $Message
+            Message            = ConvertTo-LaunchTreeRedactedText -InputObject $Message
             Path               = if ($Path) {
-                ConvertTo-StartMenuFolderRedactedText -InputObject $Path
+                ConvertTo-LaunchTreeRedactedText -InputObject $Path
             } else {
                 $null
             }
@@ -56,7 +56,7 @@ function Write-StartMenuFolderEvent {
             EntryType  = $entryType
             EventId    = $EventId
         }
-        Invoke-StartMenuFolderEventLogWrite @writeParameters
+        Invoke-LaunchTreeEventLogWrite @writeParameters
         $true
     } catch {
         $eventError = $_

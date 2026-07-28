@@ -1,7 +1,7 @@
-function Get-StartMenuFolderConfiguration {
+function Get-LaunchTreeConfiguration {
     <#
         .SYNOPSIS
-            Reads the effective StartMenuFolders configuration.
+            Reads the effective LaunchTree configuration.
 
         .DESCRIPTION
             Combines validated machine configuration with allowed user
@@ -18,12 +18,12 @@ function Get-StartMenuFolderConfiguration {
             Specifies an alternate user preference JSON file to read.
 
         .EXAMPLE
-            Get-StartMenuFolderConfiguration
+            Get-LaunchTreeConfiguration
 
             Returns effective settings from the default machine and user paths.
 
         .EXAMPLE
-            Get-StartMenuFolderConfiguration -ConfigurationPath C:\Config\StartMenuFolders.json
+            Get-LaunchTreeConfiguration -ConfigurationPath C:\Config\LaunchTree.json
 
             Reads machine settings from an explicitly supplied file.
     #>
@@ -32,7 +32,7 @@ function Get-StartMenuFolderConfiguration {
     param(
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $VendorName = 'StartMenuFolders',
+        [string] $VendorName = 'LaunchTree',
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -48,12 +48,12 @@ function Get-StartMenuFolderConfiguration {
     $skipPreferences = $false
     if (-not $PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $vendorProgramData = Join-Path -Path $env:ProgramData -ChildPath $VendorName
-        $ConfigurationPath = Join-Path -Path $vendorProgramData -ChildPath 'StartMenuFolders.json'
+        $ConfigurationPath = Join-Path -Path $vendorProgramData -ChildPath 'LaunchTree.json'
     }
 
     $machineData = $null
     if (Test-Path -LiteralPath $ConfigurationPath -PathType Leaf) {
-        $machineResult = Import-StartMenuFolderJson -LiteralPath $ConfigurationPath
+        $machineResult = Import-LaunchTreeJson -LiteralPath $ConfigurationPath
         if ($machineResult.Succeeded) {
             $machineData = $machineResult.Value
         } else {
@@ -63,7 +63,7 @@ function Get-StartMenuFolderConfiguration {
                 Message  = $machineResult.Message
                 Path     = $ConfigurationPath
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
         }
     }
 
@@ -78,7 +78,7 @@ function Get-StartMenuFolderConfiguration {
                     Path     = $ConfigurationPath
                 }
                 [void] $healthFindings.Add(
-                    (New-StartMenuFolderHealthFinding @findingParameters)
+                    (New-LaunchTreeHealthFinding @findingParameters)
                 )
                 $configurationIsValid = $false
                 $skipPreferences = $true
@@ -91,7 +91,7 @@ function Get-StartMenuFolderConfiguration {
                 Message  = 'SchemaVersion must be an integer. Defaults were used.'
                 Path     = $ConfigurationPath
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             $machineData = $null
         }
     }
@@ -114,7 +114,7 @@ function Get-StartMenuFolderConfiguration {
                 Message  = 'VendorName is not a valid directory-name segment.'
                 Path     = $ConfigurationPath
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
         } else {
             $effectiveVendorName = $candidateVendorName
         }
@@ -125,7 +125,7 @@ function Get-StartMenuFolderConfiguration {
         ConfigurationPath = $ConfigurationPath
         PreferencePath    = $PreferencePath
     }
-    $configuration = Get-StartMenuFolderDefaultConfiguration @defaultParameters
+    $configuration = Get-LaunchTreeDefaultConfiguration @defaultParameters
 
     if ($machineData) {
         foreach ($rootName in 'ManagedRoot', 'PersonalRoot') {
@@ -143,7 +143,7 @@ function Get-StartMenuFolderConfiguration {
                         Path     = $ConfigurationPath
                     }
                     [void] $healthFindings.Add(
-                        (New-StartMenuFolderHealthFinding @findingParameters)
+                        (New-LaunchTreeHealthFinding @findingParameters)
                     )
                 }
             }
@@ -161,7 +161,7 @@ function Get-StartMenuFolderConfiguration {
                     Message  = 'MaximumDepth must be an integer from 1 through 32.'
                     Path     = $ConfigurationPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
 
@@ -175,7 +175,7 @@ function Get-StartMenuFolderConfiguration {
                     Message  = 'LauncherHost must be WindowsPowerShell or PowerShell7.'
                     Path     = $ConfigurationPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
 
@@ -189,7 +189,7 @@ function Get-StartMenuFolderConfiguration {
                     Message  = 'DefaultSortOrder must be NameAscending or NameDescending.'
                     Path     = $ConfigurationPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
 
@@ -203,7 +203,7 @@ function Get-StartMenuFolderConfiguration {
                     Message  = 'CloseAfterLaunch must be a Boolean value.'
                     Path     = $ConfigurationPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
 
@@ -221,7 +221,7 @@ function Get-StartMenuFolderConfiguration {
                         Path     = $ConfigurationPath
                     }
                     [void] $healthFindings.Add(
-                        (New-StartMenuFolderHealthFinding @findingParameters)
+                        (New-LaunchTreeHealthFinding @findingParameters)
                     )
                 }
             }
@@ -238,7 +238,7 @@ function Get-StartMenuFolderConfiguration {
                         Path     = $ConfigurationPath
                     }
                     [void] $healthFindings.Add(
-                        (New-StartMenuFolderHealthFinding @findingParameters)
+                        (New-LaunchTreeHealthFinding @findingParameters)
                     )
                 }
             }
@@ -260,7 +260,7 @@ function Get-StartMenuFolderConfiguration {
                             Path     = $ConfigurationPath
                         }
                         [void] $healthFindings.Add(
-                            (New-StartMenuFolderHealthFinding @findingParameters)
+                            (New-LaunchTreeHealthFinding @findingParameters)
                         )
                     } else {
                         $configuration.Diagnostics[$nameProperty.Key] = $candidateName
@@ -281,7 +281,7 @@ function Get-StartMenuFolderConfiguration {
                         Path     = $ConfigurationPath
                     }
                     [void] $healthFindings.Add(
-                        (New-StartMenuFolderHealthFinding @findingParameters)
+                        (New-LaunchTreeHealthFinding @findingParameters)
                     )
                 }
             }
@@ -299,7 +299,7 @@ function Get-StartMenuFolderConfiguration {
                         Path     = $ConfigurationPath
                     }
                     [void] $healthFindings.Add(
-                        (New-StartMenuFolderHealthFinding @findingParameters)
+                        (New-LaunchTreeHealthFinding @findingParameters)
                     )
                 }
             }
@@ -309,7 +309,7 @@ function Get-StartMenuFolderConfiguration {
     $resolvedPreferencePath = $configuration.PreferencePath
     if (-not $skipPreferences -and
         (Test-Path -LiteralPath $resolvedPreferencePath -PathType Leaf)) {
-        $preferenceResult = Import-StartMenuFolderJson -LiteralPath $resolvedPreferencePath
+        $preferenceResult = Import-LaunchTreeJson -LiteralPath $resolvedPreferencePath
         if (-not $preferenceResult.Succeeded) {
             $findingParameters = @{
                 Code     = 'PreferenceInvalidJson'
@@ -317,7 +317,7 @@ function Get-StartMenuFolderConfiguration {
                 Message  = $preferenceResult.Message
                 Path     = $resolvedPreferencePath
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
         } else {
             $preferenceData = $preferenceResult.Value
             $preferenceSchemaIsValid = $true
@@ -336,7 +336,7 @@ function Get-StartMenuFolderConfiguration {
                     Message  = 'User preference schema version is unsupported.'
                     Path     = $resolvedPreferencePath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             } else {
                 if ($preferenceData.PSObject.Properties['SortOrder'] -and
                     $preferenceData.SortOrder -in @('NameAscending', 'NameDescending')) {
@@ -364,7 +364,7 @@ function Get-StartMenuFolderConfiguration {
     }
 
     $result = [PSCustomObject] @{
-        PSTypeName        = 'StartMenuFolders.Configuration'
+        PSTypeName        = 'LaunchTree.Configuration'
         IsValid           = $configurationIsValid
         SchemaVersion     = $configuration.SchemaVersion
         VendorName        = $configuration.VendorName
@@ -392,7 +392,7 @@ function Get-StartMenuFolderConfiguration {
             Path          = [string] $finding.Path
             ErrorCode     = [string] $finding.Code
         }
-        $null = Write-StartMenuFolderEvent @eventParameters
+        $null = Write-LaunchTreeEvent @eventParameters
     }
 
     $result

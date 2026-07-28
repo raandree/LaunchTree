@@ -27,7 +27,7 @@ try {
 $deadline = [DateTime]::UtcNow.AddSeconds(15)
 while ([DateTime]::UtcNow -lt $deadline) {
     try {
-        $message = "StartMenuFolders standard-user Event Log probe: $Nonce"
+        $message = "LaunchTree standard-user Event Log probe: $Nonce"
         [Diagnostics.EventLog]::WriteEntry(
             $SourceName,
             $message,

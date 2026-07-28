@@ -1,4 +1,4 @@
-function Remove-StartMenuFolder {
+function Remove-LaunchTree {
     <#
         .SYNOPSIS
             Removes module-owned Generated State.
@@ -22,7 +22,7 @@ function Remove-StartMenuFolder {
             Preserves event registration, such as during non-elevated cleanup.
 
         .EXAMPLE
-            Remove-StartMenuFolder -Confirm:$false
+            Remove-LaunchTree -Confirm:$false
 
             Removes module-owned Generated State while preserving source data.
     #>
@@ -49,21 +49,21 @@ function Remove-StartMenuFolder {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
     if (-not $PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $ConfigurationPath = $configuration.ConfigurationPath
     }
     if (-not $PSBoundParameters.ContainsKey('GeneratedStatePath')) {
         $stateDirectory = Split-Path -Path $ConfigurationPath -Parent
-        $GeneratedStatePath = Join-Path $stateDirectory 'StartMenuFolders.generated.json'
+        $GeneratedStatePath = Join-Path $stateDirectory 'LaunchTree.generated.json'
     }
     if (-not $PSBoundParameters.ContainsKey('CachePath')) {
         $CachePath = $configuration.Cache.Path
     }
 
-    $state = Import-StartMenuFolderGeneratedState -LiteralPath $GeneratedStatePath
+    $state = Import-LaunchTreeGeneratedState -LiteralPath $GeneratedStatePath
     $ownedPaths = @($state.StartEntries | Where-Object { $_ } | Select-Object -ExpandProperty ShortcutPath)
-    if (-not $PSCmdlet.ShouldProcess('StartMenuFolders Generated State', 'Remove')) {
+    if (-not $PSCmdlet.ShouldProcess('LaunchTree Generated State', 'Remove')) {
         return
     }
 
@@ -84,7 +84,7 @@ function Remove-StartMenuFolder {
     }
 
     if (-not $SkipEventLog) {
-        if (-not (Test-StartMenuFolderAdministrator)) {
+        if (-not (Test-LaunchTreeAdministrator)) {
             throw [System.UnauthorizedAccessException]::new(
                 'Event Log removal requires administrator rights.'
             )
@@ -101,7 +101,7 @@ function Remove-StartMenuFolder {
     }
 
     [PSCustomObject] @{
-        PSTypeName = 'StartMenuFolders.RemovalResult'
+        PSTypeName = 'LaunchTree.RemovalResult'
         Succeeded  = $true
         Removed    = [string[]] $removed
     }

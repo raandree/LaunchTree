@@ -181,13 +181,13 @@ Successful Launch Item use must not be audited.
 
 ### FR-027 Return structured health
 
-`Test-StartMenuFolder` must return a top-level `Healthy`, `Degraded`, or
+`Test-LaunchTree` must return a top-level `Healthy`, `Degraded`, or
 `Unhealthy` state and structured Health Findings for configuration, Generated
 State drift, content, compatibility, cache, and recent events.
 
 ### FR-028 Export a redacted Support Bundle
 
-`Export-StartMenuFolderSupportBundle` must create a Support Bundle containing
+`Export-LaunchTreeSupportBundle` must create a Support Bundle containing
 the configuration summary, Generated State inventory, cache metadata, and
 relevant events. It must omit Launch Item arguments and URL query strings.
 
@@ -199,13 +199,13 @@ activation.
 
 ### FR-030 Read effective configuration
 
-`Get-StartMenuFolderConfiguration` must return the effective machine
+`Get-LaunchTreeConfiguration` must return the effective machine
 configuration, resolved paths, user preferences, fallback warnings, and source
 of each value without creating or rewriting any file.
 
 ### FR-031 Read diagnostics
 
-`Get-StartMenuFolderDiagnostic` must return structured, redacted event and
+`Get-LaunchTreeDiagnostic` must return structured, redacted event and
 Health Finding objects. It must support time, event ID, level, and operation
 filters without returning successful Launch Item activity.
 
@@ -227,13 +227,13 @@ or a standard interactive user cannot read and write a probe event.
 
 | Command | Purpose | Required behavior |
 | --- | --- | --- |
-| `Get-StartMenuFolderConfiguration` | Read effective machine settings and user preferences | Implements `FR-030` |
-| `Test-StartMenuFolder` | Evaluate installation health | Implements `FR-027` and supports automation-friendly output |
-| `Update-StartMenuFolder` | Reconcile Generated State | Supports `ShouldProcess`; implements `FR-022` and `FR-023` |
-| `Show-StartMenuFolder` | Open or activate the Launcher | Requires an Entry Root name and implements `FR-009` through `FR-019` |
-| `Get-StartMenuFolderDiagnostic` | Read structured recent events and Health Findings | Implements `FR-031` and applies `QR-012` |
-| `Export-StartMenuFolderSupportBundle` | Export support evidence | Implements `FR-028` and supports `ShouldProcess` |
-| `Remove-StartMenuFolder` | Remove Generated State | Supports `ShouldProcess`; implements `FR-024` |
+| `Get-LaunchTreeConfiguration` | Read effective machine settings and user preferences | Implements `FR-030` |
+| `Test-LaunchTree` | Evaluate installation health | Implements `FR-027` and supports automation-friendly output |
+| `Update-LaunchTree` | Reconcile Generated State | Supports `ShouldProcess`; implements `FR-022` and `FR-023` |
+| `Show-LaunchTree` | Open or activate the Launcher | Requires an Entry Root name and implements `FR-009` through `FR-019` |
+| `Get-LaunchTreeDiagnostic` | Read structured recent events and Health Findings | Implements `FR-031` and applies `QR-012` |
+| `Export-LaunchTreeSupportBundle` | Export support evidence | Implements `FR-028` and supports `ShouldProcess` |
+| `Remove-LaunchTree` | Remove Generated State | Supports `ShouldProcess`; implements `FR-024` |
 
 No version 1 public command creates, edits, renames, moves, or deletes source
 content.

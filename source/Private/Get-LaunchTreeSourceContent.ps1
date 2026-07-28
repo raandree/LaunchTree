@@ -1,4 +1,4 @@
-function Get-StartMenuFolderSourceContent {
+function Get-LaunchTreeSourceContent {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -48,7 +48,7 @@ function Get-StartMenuFolderSourceContent {
                 Message  = $errorRecord.Exception.Message
                 Path     = $CurrentPath
             }
-            [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+            [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             return
         }
 
@@ -60,7 +60,7 @@ function Get-StartMenuFolderSourceContent {
                     Message  = 'Directory reparse points are not traversed.'
                     Path     = $directory.FullName
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
                 continue
             }
 
@@ -72,7 +72,7 @@ function Get-StartMenuFolderSourceContent {
                     Message  = "Content exceeds maximum depth $SnapshotMaximumDepth."
                     Path     = $directory.FullName
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
                 continue
             }
 
@@ -80,7 +80,7 @@ function Get-StartMenuFolderSourceContent {
             $descriptionPath = Join-Path -Path $directory.FullName -ChildPath 'description.txt'
             $description = $null
             try {
-                $description = Get-StartMenuFolderDescription -LiteralPath $descriptionPath
+                $description = Get-LaunchTreeDescription -LiteralPath $descriptionPath
             } catch {
                 $errorRecord = $_
                 $findingParameters = @{
@@ -89,11 +89,11 @@ function Get-StartMenuFolderSourceContent {
                     Message  = $errorRecord.Exception.Message
                     Path     = $descriptionPath
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
 
             [void] $objects.Add([PSCustomObject] @{
-                PSTypeName         = 'StartMenuFolders.MenuFolder'
+                PSTypeName         = 'LaunchTree.MenuFolder'
                 Kind               = 'MenuFolder'
                 Name               = $directory.Name
                 Description        = $description
@@ -128,7 +128,7 @@ function Get-StartMenuFolderSourceContent {
                 continue
             }
 
-            $detail = Get-StartMenuFolderLaunchItemDetail -LiteralPath $file.FullName
+            $detail = Get-LaunchTreeLaunchItemDetail -LiteralPath $file.FullName
             if (-not $detail.Succeeded) {
                 $findingParameters = @{
                     Code     = $detail.Code
@@ -136,13 +136,13 @@ function Get-StartMenuFolderSourceContent {
                     Message  = $detail.Message
                     Path     = $file.FullName
                 }
-                [void] $healthFindings.Add((New-StartMenuFolderHealthFinding @findingParameters))
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
                 continue
             }
 
             $relativePath = $file.FullName.Substring($SnapshotSourceRoot.Length).TrimStart('\', '/')
             [void] $objects.Add([PSCustomObject] @{
-                PSTypeName         = 'StartMenuFolders.LaunchItem'
+                PSTypeName         = 'LaunchTree.LaunchItem'
                 Kind               = 'LaunchItem'
                 Name               = $file.BaseName
                 Description        = $detail.Description

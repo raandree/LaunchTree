@@ -1,4 +1,4 @@
-function Get-StartMenuFolderSessionIdentity {
+function Get-LaunchTreeSessionIdentity {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param()
@@ -13,7 +13,7 @@ function Get-StartMenuFolderSessionIdentity {
     $suffix = '{0}.{1}' -f $sessionId, $sid
 
     [PSCustomObject] @{
-        MutexName = 'Local\StartMenuFolders.{0}' -f $suffix
-        PipeName  = 'StartMenuFolders.{0}' -f $suffix
+        MutexName = 'Local\LaunchTree.{0}' -f $suffix
+        PipeName  = 'LaunchTree.{0}' -f $suffix
     }
 }

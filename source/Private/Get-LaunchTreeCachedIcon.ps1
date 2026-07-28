@@ -1,4 +1,4 @@
-function Get-StartMenuFolderCachedIcon {
+function Get-LaunchTreeCachedIcon {
     [CmdletBinding()]
     [OutputType([object])]
     param(
@@ -11,7 +11,7 @@ function Get-StartMenuFolderCachedIcon {
         return $null
     }
 
-    Initialize-StartMenuFolderWpf
+    Initialize-LaunchTreeWpf
     $stream = [IO.File]::Open(
         $LiteralPath,
         [IO.FileMode]::Open,

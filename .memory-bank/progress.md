@@ -32,6 +32,9 @@ release remains gated by external environment evidence.
   runtime dependencies; independent final re-review returned `APPROVE`.
 - 2026-07-28: Added and validated the canonical operator getting-started path
   from module installation through first Launcher use and cleanup.
+- 2026-07-28: Renamed the product from `StartMenuFolders` to `LaunchTree`
+  across the module, commands, paths, Event Log identity, type names, tests,
+  specifications, and Memory Bank while the module is still unreleased.
 
 ## Stable capabilities
 

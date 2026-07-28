@@ -1,7 +1,7 @@
-function Export-StartMenuFolderSupportBundle {
+function Export-LaunchTreeSupportBundle {
     <#
         .SYNOPSIS
-            Exports a redacted StartMenuFolders Support Bundle.
+            Exports a redacted LaunchTree Support Bundle.
 
         .DESCRIPTION
             Creates a ZIP archive containing effective configuration summaries,
@@ -15,7 +15,7 @@ function Export-StartMenuFolderSupportBundle {
             Specifies an alternate machine configuration JSON file.
 
         .EXAMPLE
-            Export-StartMenuFolderSupportBundle -Path C:\Temp\StartMenuFolders.zip
+            Export-LaunchTreeSupportBundle -Path C:\Temp\LaunchTree.zip
 
             Exports a redacted Support Bundle to the requested path.
     #>
@@ -40,16 +40,16 @@ function Export-StartMenuFolderSupportBundle {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-StartMenuFolderConfiguration @configurationParameters
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
     $healthParameters = @{}
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $healthParameters.ConfigurationPath = $ConfigurationPath
     }
-    $health = Test-StartMenuFolder @healthParameters
-    $diagnostics = @(Get-StartMenuFolderDiagnostic -LogName $configuration.Diagnostics.LogName)
+    $health = Test-LaunchTree @healthParameters
+    $diagnostics = @(Get-LaunchTreeDiagnostic -LogName $configuration.Diagnostics.LogName)
 
     $temporaryPath = Join-Path $env:TEMP (
-        'StartMenuFolders-support-{0}' -f [guid]::NewGuid().ToString('N')
+        'LaunchTree-support-{0}' -f [guid]::NewGuid().ToString('N')
     )
     $null = New-Item -Path $temporaryPath -ItemType Directory -Force
     try {
@@ -69,7 +69,7 @@ function Export-StartMenuFolderSupportBundle {
         }
         foreach ($fileName in $files.Keys) {
             $json = $files[$fileName] | ConvertTo-Json -Depth 8
-            $redactedJson = ConvertTo-StartMenuFolderRedactedText -InputObject $json
+            $redactedJson = ConvertTo-LaunchTreeRedactedText -InputObject $json
             $filePath = Join-Path $temporaryPath $fileName
             [IO.File]::WriteAllText($filePath, $redactedJson, [Text.UTF8Encoding]::new($false))
         }
@@ -91,7 +91,7 @@ function Export-StartMenuFolderSupportBundle {
             Path          = $outputPath
             ErrorCode     = $bundleError.FullyQualifiedErrorId
         }
-        $null = Write-StartMenuFolderEvent @eventParameters
+        $null = Write-LaunchTreeEvent @eventParameters
         throw
     } finally {
         Remove-Item -LiteralPath $temporaryPath -Recurse -Force -ErrorAction SilentlyContinue

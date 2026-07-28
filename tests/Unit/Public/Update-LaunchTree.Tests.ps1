@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,13 +7,13 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Update-StartMenuFolder' -Tag 'Unit' {
+Describe 'Update-LaunchTree' -Tag 'Unit' {
     BeforeEach {
         $caseRoot = Join-Path -Path $TestDrive -ChildPath ([guid]::NewGuid().ToString('N'))
         $script:managedRoot = Join-Path -Path $caseRoot -ChildPath 'Managed'
         $script:startMenuPath = Join-Path -Path $caseRoot -ChildPath 'Programs'
-        $script:configurationPath = Join-Path -Path $caseRoot -ChildPath 'StartMenuFolders.json'
-        $script:generatedStatePath = Join-Path -Path $caseRoot -ChildPath 'StartMenuFolders.generated.json'
+        $script:configurationPath = Join-Path -Path $caseRoot -ChildPath 'LaunchTree.json'
+        $script:generatedStatePath = Join-Path -Path $caseRoot -ChildPath 'LaunchTree.generated.json'
         $null = New-Item -Path $script:managedRoot -ItemType Directory -Force
         $null = New-Item -Path $script:startMenuPath -ItemType Directory -Force
 
@@ -36,13 +36,13 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
 
     Context 'When Entry Roots need Start Entries' {
         It 'Should create owned Start Entries with stable opaque Entry IDs' {
-            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+            Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
                 $true
             }
             $null = New-Item -Path (Join-Path $script:managedRoot 'EntryA') -ItemType Directory
             $null = New-Item -Path (Join-Path $script:managedRoot 'EntryB') -ItemType Directory
 
-            $firstResult = Update-StartMenuFolder @script:updateParameters
+            $firstResult = Update-LaunchTree @script:updateParameters
             $firstState = Get-Content -LiteralPath $script:generatedStatePath -Raw |
                 ConvertFrom-Json
             $firstIdentifiers = @{}
@@ -51,7 +51,7 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
                 { [guid]::Parse($entry.EntryId) } | Should -Not -Throw
             }
 
-            $secondResult = Update-StartMenuFolder @script:updateParameters
+            $secondResult = Update-LaunchTree @script:updateParameters
             $secondState = Get-Content -LiteralPath $script:generatedStatePath -Raw |
                 ConvertFrom-Json
 
@@ -68,7 +68,7 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
             }
             $assertion = @{
                 ModuleName      = $moduleName
-                CommandName     = 'Write-StartMenuFolderEvent'
+                CommandName     = 'Write-LaunchTreeEvent'
                 Times           = 2
                 Exactly         = $true
                 ParameterFilter = { $EventId -eq 1302 }
@@ -79,14 +79,14 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
         It 'Should remove only stale Start Entries recorded as owned' {
             $entryA = New-Item -Path (Join-Path $script:managedRoot 'EntryA') -ItemType Directory
             $entryB = New-Item -Path (Join-Path $script:managedRoot 'EntryB') -ItemType Directory
-            $null = Update-StartMenuFolder @script:updateParameters
+            $null = Update-LaunchTree @script:updateParameters
             $initialState = Get-Content -LiteralPath $script:generatedStatePath -Raw |
                 ConvertFrom-Json
             $entryAId = ($initialState.StartEntries |
                 Where-Object EntryRootPath -eq $entryA.FullName).EntryId
 
             Remove-Item -LiteralPath $entryB.FullName -Recurse -Force
-            $result = Update-StartMenuFolder @script:updateParameters
+            $result = Update-LaunchTree @script:updateParameters
             $updatedState = Get-Content -LiteralPath $script:generatedStatePath -Raw |
                 ConvertFrom-Json
 
@@ -105,7 +105,7 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
             'unowned-content' | Set-Content -LiteralPath $collisionPath -Encoding ASCII
             $originalHash = (Get-FileHash -LiteralPath $collisionPath).Hash
 
-            { Update-StartMenuFolder @script:updateParameters } |
+            { Update-LaunchTree @script:updateParameters } |
                 Should -Throw -ExpectedMessage '*unowned*'
 
             (Get-FileHash -LiteralPath $collisionPath).Hash | Should -Be $originalHash
@@ -119,7 +119,7 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
                 ConvertTo-Json |
                 Set-Content -LiteralPath $script:configurationPath -Encoding UTF8
 
-            { Update-StartMenuFolder @script:updateParameters } |
+            { Update-LaunchTree @script:updateParameters } |
                 Should -Throw -ExpectedMessage '*schema version*'
             $script:generatedStatePath | Should -Not -Exist
             Get-ChildItem -LiteralPath $script:startMenuPath -Filter '*.lnk' |
@@ -130,7 +130,7 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
     Context 'When a transaction fails after a Start Entry changes' {
         It 'Should restore the prior Start Entry and Generated State' {
             $entry = New-Item -Path (Join-Path $script:managedRoot 'EntryA') -ItemType Directory
-            $null = Update-StartMenuFolder @script:updateParameters
+            $null = Update-LaunchTree @script:updateParameters
             $shortcutPath = Join-Path $script:startMenuPath 'EntryA.lnk'
             $originalShortcutHash = (Get-FileHash -LiteralPath $shortcutPath).Hash
             $originalState = Get-Content -LiteralPath $script:generatedStatePath -Raw
@@ -157,18 +157,18 @@ Describe 'Update-StartMenuFolder' -Tag 'Unit' {
             } -MockWith {
                 throw [System.IO.IOException]::new('Injected ownership commit failure.')
             }
-            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+            Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
                 $true
             }
 
-            { Update-StartMenuFolder @script:updateParameters } |
+            { Update-LaunchTree @script:updateParameters } |
                 Should -Throw -ExpectedMessage '*Injected ownership commit failure*'
 
             (Get-FileHash -LiteralPath $shortcutPath).Hash | Should -Be $originalShortcutHash
             Get-Content -LiteralPath $script:generatedStatePath -Raw | Should -Be $originalState
             $assertion = @{
                 ModuleName      = $moduleName
-                CommandName     = 'Write-StartMenuFolderEvent'
+                CommandName     = 'Write-LaunchTreeEvent'
                 Times           = 1
                 Exactly         = $true
                 ParameterFilter = { $EventId -eq 1301 }

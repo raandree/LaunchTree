@@ -1,4 +1,4 @@
-function Get-StartMenuFolderIconCachePath {
+function Get-LaunchTreeIconCachePath {
     [CmdletBinding()]
     [OutputType([string])]
     param(

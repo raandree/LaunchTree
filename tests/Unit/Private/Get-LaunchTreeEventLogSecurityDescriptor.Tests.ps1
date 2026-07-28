@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,10 +7,10 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Get-StartMenuFolderEventLogSecurityDescriptor' -Tag 'Unit' {
+Describe 'Get-LaunchTreeEventLogSecurityDescriptor' -Tag 'Unit' {
     It 'Should grant Interactive Users read and write without clear access' {
         $descriptor = InModuleScope -ModuleName $moduleName {
-            Get-StartMenuFolderEventLogSecurityDescriptor
+            Get-LaunchTreeEventLogSecurityDescriptor
         }
 
         $descriptor | Should -Be (
@@ -22,13 +22,13 @@ Describe 'Get-StartMenuFolderEventLogSecurityDescriptor' -Tag 'Unit' {
     It 'Should validate only read and write access without clear rights' {
         $results = InModuleScope -ModuleName $moduleName {
             @(
-                Test-StartMenuFolderInteractiveEventAccess -SecurityDescriptor (
+                Test-LaunchTreeInteractiveEventAccess -SecurityDescriptor (
                     'O:BAG:SYD:(A;;0x7;;;SY)(A;;0x7;;;BA)(A;;0x3;;;IU)'
                 )
-                Test-StartMenuFolderInteractiveEventAccess -SecurityDescriptor (
+                Test-LaunchTreeInteractiveEventAccess -SecurityDescriptor (
                     'O:BAG:SYD:(A;;0x7;;;SY)(A;;0x1;;;IU)'
                 )
-                Test-StartMenuFolderInteractiveEventAccess -SecurityDescriptor (
+                Test-LaunchTreeInteractiveEventAccess -SecurityDescriptor (
                     'O:BAG:SYD:(A;;0x7;;;SY)(A;;0x7;;;IU)'
                 )
             )
@@ -39,10 +39,10 @@ Describe 'Get-StartMenuFolderEventLogSecurityDescriptor' -Tag 'Unit' {
 
     It 'Should compile the linked-token process runner on the current edition' {
         $typeName = InModuleScope -ModuleName $moduleName {
-            Initialize-StartMenuFolderUnelevatedProcess
-            [StartMenuFolders.UnelevatedProcess].FullName
+            Initialize-LaunchTreeUnelevatedProcess
+            [LaunchTree.UnelevatedProcess].FullName
         }
 
-        $typeName | Should -Be 'StartMenuFolders.UnelevatedProcess'
+        $typeName | Should -Be 'LaunchTree.UnelevatedProcess'
     }
 }

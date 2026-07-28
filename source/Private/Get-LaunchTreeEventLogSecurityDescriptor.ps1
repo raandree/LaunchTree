@@ -1,4 +1,4 @@
-function Get-StartMenuFolderEventLogSecurityDescriptor {
+function Get-LaunchTreeEventLogSecurityDescriptor {
     [CmdletBinding()]
     [OutputType([string])]
     param()

@@ -1,4 +1,4 @@
-# Design Concept: StartMenuFolders
+# Design Concept: LaunchTree
 
 > Status: SIGNED OFF
 > Interview conducted: 2026-07-28
@@ -6,7 +6,7 @@
 
 ## Purpose
 
-StartMenuFolders extends the practical depth of the Windows Start experience
+LaunchTree extends the practical depth of the Windows Start experience
 without attempting to inject custom content into the Windows 11 Category view.
 Each immediate child directory of the Managed Root is represented by an
 ordinary machine-wide Start shortcut with a high-resolution folder icon. The
@@ -100,13 +100,13 @@ only by deployment automation.
 The default managed root is:
 
 ```text
-C:\ProgramData\StartMenuFolders\StartMenuFolders
+C:\ProgramData\LaunchTree\LaunchTree
 ```
 
 Setup accepts a `VendorName` that changes the pattern to:
 
 ```text
-C:\ProgramData\<VendorName>\StartMenuFolders
+C:\ProgramData\<VendorName>\LaunchTree
 ```
 
 An explicit machine JSON file stores root, presentation defaults, depth,
@@ -123,7 +123,7 @@ verify signatures or hashes for managed content.
 The default Personal Root is:
 
 ```text
-%APPDATA%\<VendorName>\StartMenuFolders
+%APPDATA%\<VendorName>\LaunchTree
 ```
 
 The Personal Root augments corresponding managed entry directories. Version 1 does

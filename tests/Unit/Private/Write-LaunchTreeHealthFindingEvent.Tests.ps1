@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,13 +7,13 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Write-StartMenuFolderHealthFindingEvent' -Tag 'Unit' {
+Describe 'Write-LaunchTreeHealthFindingEvent' -Tag 'Unit' {
     It 'Should map supported content findings to their stable event IDs' {
-        Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+        Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
             $true
         }
         $configuration = [PSCustomObject] @{
-            Diagnostics = [PSCustomObject] @{ SourceName = 'StartMenuFolders' }
+            Diagnostics = [PSCustomObject] @{ SourceName = 'LaunchTree' }
         }
         $finding = [PSCustomObject] @{
             Code     = 'UrlSchemeRejected'
@@ -30,13 +30,13 @@ Describe 'Write-StartMenuFolderHealthFindingEvent' -Tag 'Unit' {
                 Configuration = $TestConfiguration
                 HealthFinding = $TestFinding
             }
-            Write-StartMenuFolderHealthFindingEvent @parameters
+            Write-LaunchTreeHealthFindingEvent @parameters
         }
 
         $result | Should -BeTrue
         $assertion = @{
             ModuleName      = $moduleName
-            CommandName     = 'Write-StartMenuFolderEvent'
+            CommandName     = 'Write-LaunchTreeEvent'
             Times           = 1
             Exactly         = $true
             ParameterFilter = { $EventId -eq 1104 }

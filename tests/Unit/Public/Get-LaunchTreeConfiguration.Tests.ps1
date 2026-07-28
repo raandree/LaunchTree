@@ -1,5 +1,5 @@
 ﻿BeforeAll {
-    $script:moduleName = 'StartMenuFolders'
+    $script:moduleName = 'LaunchTree'
     Import-Module -Name $script:moduleName -Force -ErrorAction Stop
 }
 
@@ -7,7 +7,7 @@ AfterAll {
     Remove-Module -Name $script:moduleName -Force -ErrorAction SilentlyContinue
 }
 
-Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
+Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
     BeforeEach {
         $script:originalEnvironment = @{
             APPDATA      = $env:APPDATA
@@ -35,16 +35,16 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
                 PreferencePath    = $preferencePath
             }
 
-            $result = Get-StartMenuFolderConfiguration @parameters
+            $result = Get-LaunchTreeConfiguration @parameters
 
-            $result.PSObject.TypeNames | Should -Contain 'StartMenuFolders.Configuration'
+            $result.PSObject.TypeNames | Should -Contain 'LaunchTree.Configuration'
             $result.SchemaVersion | Should -Be 1
-            $result.VendorName | Should -Be 'StartMenuFolders'
+            $result.VendorName | Should -Be 'LaunchTree'
             $result.ManagedRoot | Should -Be (
-                Join-Path $env:ProgramData 'StartMenuFolders\StartMenuFolders'
+                Join-Path $env:ProgramData 'LaunchTree\LaunchTree'
             )
             $result.PersonalRoot | Should -Be (
-                Join-Path $env:APPDATA 'StartMenuFolders\StartMenuFolders'
+                Join-Path $env:APPDATA 'LaunchTree\LaunchTree'
             )
             $result.MaximumDepth | Should -Be 5
             $result.LauncherHost | Should -Be 'WindowsPowerShell'
@@ -99,7 +99,7 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
                 PreferencePath    = $preferencePath
             }
 
-            $result = Get-StartMenuFolderConfiguration @parameters
+            $result = Get-LaunchTreeConfiguration @parameters
 
             $result.VendorName | Should -Be 'Contoso'
             $result.MaximumDepth | Should -Be 9
@@ -122,18 +122,18 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
         It 'Should use defaults and return a warning for malformed JSON' {
             $configurationPath = Join-Path -Path $TestDrive -ChildPath 'machine.json'
             '{ not-json' | Set-Content -LiteralPath $configurationPath -Encoding UTF8
-            Mock -ModuleName $moduleName -CommandName Write-StartMenuFolderEvent -MockWith {
+            Mock -ModuleName $moduleName -CommandName Write-LaunchTreeEvent -MockWith {
                 $true
             }
 
-            $result = Get-StartMenuFolderConfiguration -ConfigurationPath $configurationPath
+            $result = Get-LaunchTreeConfiguration -ConfigurationPath $configurationPath
 
-            $result.VendorName | Should -Be 'StartMenuFolders'
+            $result.VendorName | Should -Be 'LaunchTree'
             $result.HealthFindings | Should -HaveCount 1
             $result.HealthFindings[0].Code | Should -Be 'ConfigurationInvalidJson'
             $assertion = @{
                 ModuleName      = $moduleName
-                CommandName     = 'Write-StartMenuFolderEvent'
+                CommandName     = 'Write-LaunchTreeEvent'
                 Times           = 1
                 Exactly         = $true
                 ParameterFilter = { $EventId -eq 1001 }
@@ -153,7 +153,7 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
                 PreferencePath    = $preferencePath
             }
 
-            $result = Get-StartMenuFolderConfiguration @parameters
+            $result = Get-LaunchTreeConfiguration @parameters
 
             $result.IsValid | Should -BeFalse
             $result.HealthFindings.Code | Should -Contain 'ConfigurationSchemaUnsupported'
@@ -178,12 +178,12 @@ Describe 'Get-StartMenuFolderConfiguration' -Tag 'Unit' {
             } | ConvertTo-Json -Depth 5 |
                 Set-Content -LiteralPath $configurationPath -Encoding UTF8
 
-            $result = Get-StartMenuFolderConfiguration -ConfigurationPath $configurationPath
+            $result = Get-LaunchTreeConfiguration -ConfigurationPath $configurationPath
 
             $result.Cache.MaximumSizeMB | Should -Be 64
             $result.Cache.MaximumAgeDays | Should -Be 30
-            $result.Diagnostics.LogName | Should -Be 'StartMenuFolders'
-            $result.Diagnostics.SourceName | Should -Be 'StartMenuFolders'
+            $result.Diagnostics.LogName | Should -Be 'LaunchTree'
+            $result.Diagnostics.SourceName | Should -Be 'LaunchTree'
             $result.HealthFindings.Code | Should -Contain 'CacheMaximumSizeInvalid'
             $result.HealthFindings.Code | Should -Contain 'CacheMaximumAgeInvalid'
             $result.HealthFindings.Code | Should -Contain 'DiagnosticsLogNameInvalid'

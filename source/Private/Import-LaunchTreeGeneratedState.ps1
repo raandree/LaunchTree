@@ -1,4 +1,4 @@
-function Import-StartMenuFolderGeneratedState {
+function Import-LaunchTreeGeneratedState {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(
@@ -11,7 +11,7 @@ function Import-StartMenuFolderGeneratedState {
         return $null
     }
 
-    $result = Import-StartMenuFolderJson -LiteralPath $LiteralPath
+    $result = Import-LaunchTreeJson -LiteralPath $LiteralPath
     if (-not $result.Succeeded) {
         throw [System.IO.InvalidDataException]::new(
             "Generated State is invalid: $($result.Message)"

@@ -1,4 +1,4 @@
-function Save-StartMenuFolderCachedIcon {
+function Save-LaunchTreeCachedIcon {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
@@ -15,7 +15,7 @@ function Save-StartMenuFolderCachedIcon {
         [string] $LiteralPath
     )
 
-    Initialize-StartMenuFolderWpf
+    Initialize-LaunchTreeWpf
     $directory = Split-Path -Path $LiteralPath -Parent
     $null = New-Item -Path $directory -ItemType Directory -Force
     $temporaryPath = "$LiteralPath.$([guid]::NewGuid().ToString('N')).tmp"

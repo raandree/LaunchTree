@@ -9,18 +9,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Path $PSScriptRoot -Parent
 $moduleManifest = Get-ChildItem -LiteralPath (
-    Join-Path $repositoryRoot 'output/module/StartMenuFolders'
-) -Recurse -Filter 'StartMenuFolders.psd1' |
+    Join-Path $repositoryRoot 'output/module/LaunchTree'
+) -Recurse -Filter 'LaunchTree.psd1' |
     Sort-Object FullName -Descending |
     Select-Object -First 1
 if (-not $moduleManifest) {
     throw 'Build the module before generating a Launcher screenshot.'
 }
 
-$fixtureRoot = Join-Path $env:TEMP ('StartMenuFolders-capture-' + [guid]::NewGuid().ToString('N'))
+$fixtureRoot = Join-Path $env:TEMP ('LaunchTree-capture-' + [guid]::NewGuid().ToString('N'))
 $managedRoot = Join-Path $fixtureRoot 'Managed'
 $personalRoot = Join-Path $fixtureRoot 'Personal'
-$configurationPath = Join-Path $fixtureRoot 'StartMenuFolders.json'
+$configurationPath = Join-Path $fixtureRoot 'LaunchTree.json'
 $outputPath = [IO.Path]::GetFullPath($Path)
 $originalLocalAppData = $env:LOCALAPPDATA
 
@@ -94,7 +94,7 @@ try {
         ConfigurationPath = $configurationPath
         CapturePath       = $outputPath
     }
-    Show-StartMenuFolder @showParameters
+    Show-LaunchTree @showParameters
 
     Add-Type -AssemblyName System.Drawing
     $bitmap = [Drawing.Bitmap]::new($outputPath)
@@ -127,6 +127,6 @@ try {
     }
 } finally {
     $env:LOCALAPPDATA = $originalLocalAppData
-    Remove-Module -Name StartMenuFolders -Force -ErrorAction SilentlyContinue
+    Remove-Module -Name LaunchTree -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 }

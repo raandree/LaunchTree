@@ -1,4 +1,4 @@
-function Get-StartMenuFolderDefinitionHash {
+function Get-LaunchTreeDefinitionHash {
     [CmdletBinding()]
     [OutputType([string])]
     param(

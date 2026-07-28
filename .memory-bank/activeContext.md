@@ -9,8 +9,8 @@ source: current task evidence
 
 ## Current focus
 
-Complete external release validation for the implemented StartMenuFolders
-module while preserving the approved behavior and security boundaries.
+Complete external release validation for the implemented LaunchTree module
+while preserving the approved behavior and security boundaries.
 
 ## Evidence
 
@@ -30,6 +30,9 @@ module while preserving the approved behavior and security boundaries.
 - `docs/open-issues.md` tracks ten issues. External Windows Server, ARM64,
     visual-matrix, application-control, and elevated Event Log evidence remain
     release gates; schema-2 migration is future work.
+- The product, module, command noun prefix, paths, configuration file names,
+    Event Log name and source, and type names are renamed to `LaunchTree`
+    before first release, so no deployed Generated State needs migration.
 
 ## Next step
 

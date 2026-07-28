@@ -1,4 +1,4 @@
-function Save-StartMenuFolderVisual {
+function Save-LaunchTreeVisual {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]

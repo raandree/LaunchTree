@@ -14,22 +14,22 @@ to the module.
 
 `VendorName` must be a single valid Windows directory-name segment. It must not
 be rooted, contain a directory separator, equal `.` or `..`, or contain Windows
-invalid filename characters. The default is `StartMenuFolders`.
+invalid filename characters. The default is `LaunchTree`.
 
 ### CR-002 Default paths
 
-For `VendorName = StartMenuFolders`, defaults are:
+For `VendorName = LaunchTree`, defaults are:
 
 | Purpose | Path |
 | --- | --- |
-| Managed Root | `%ProgramData%\StartMenuFolders\StartMenuFolders` |
-| Machine configuration | `%ProgramData%\StartMenuFolders\StartMenuFolders.json` |
-| Generated State ownership record | `%ProgramData%\StartMenuFolders\StartMenuFolders.generated.json` |
-| Personal Root | `%APPDATA%\StartMenuFolders\StartMenuFolders` |
-| User preferences | `%APPDATA%\StartMenuFolders\StartMenuFolders.preferences.json` |
-| User cache | `%LOCALAPPDATA%\StartMenuFolders\StartMenuFolders\Cache\v1` |
+| Managed Root | `%ProgramData%\LaunchTree\LaunchTree` |
+| Machine configuration | `%ProgramData%\LaunchTree\LaunchTree.json` |
+| Generated State ownership record | `%ProgramData%\LaunchTree\LaunchTree.generated.json` |
+| Personal Root | `%APPDATA%\LaunchTree\LaunchTree` |
+| User preferences | `%APPDATA%\LaunchTree\LaunchTree.preferences.json` |
+| User cache | `%LOCALAPPDATA%\LaunchTree\LaunchTree\Cache\v1` |
 
-Replacing `VendorName` changes only the first `StartMenuFolders` segment in
+Replacing `VendorName` changes only the first `LaunchTree` segment in
 each path. Callers may override the machine configuration path explicitly.
 
 ### CR-003 Start Entry location
@@ -58,9 +58,9 @@ Reconciliation must refuse every mutation without reading other fields.
 ```json
 {
   "SchemaVersion": 1,
-  "VendorName": "StartMenuFolders",
-  "ManagedRoot": "C:\\ProgramData\\StartMenuFolders\\StartMenuFolders",
-  "PersonalRoot": "%APPDATA%\\StartMenuFolders\\StartMenuFolders",
+  "VendorName": "LaunchTree",
+  "ManagedRoot": "C:\\ProgramData\\LaunchTree\\LaunchTree",
+  "PersonalRoot": "%APPDATA%\\LaunchTree\\LaunchTree",
   "MaximumDepth": 5,
   "LauncherHost": "WindowsPowerShell",
   "DefaultSortOrder": "NameAscending",
@@ -70,8 +70,8 @@ Reconciliation must refuse every mutation without reading other fields.
     "MaximumAgeDays": 30
   },
   "Diagnostics": {
-    "LogName": "StartMenuFolders",
-    "SourceName": "StartMenuFolders",
+    "LogName": "LaunchTree",
+    "SourceName": "LaunchTree",
     "MaximumLogSizeMB": 25,
     "TargetRetentionDays": 30
   }
@@ -83,7 +83,7 @@ Reconciliation must refuse every mutation without reading other fields.
 | Field | Type | Default | Constraint |
 | --- | --- | --- | --- |
 | `SchemaVersion` | Integer | `1` | Must equal a supported schema version; future versions fail closed |
-| `VendorName` | String | `StartMenuFolders` | Must satisfy `CR-001` |
+| `VendorName` | String | `LaunchTree` | Must satisfy `CR-001` |
 | `ManagedRoot` | String | Derived by `CR-002` | Absolute local path after environment expansion |
 | `PersonalRoot` | String | Derived by `CR-002` | Absolute path after expansion in user context |
 | `MaximumDepth` | Integer | `5` | Inclusive range `1..32` |
@@ -92,8 +92,8 @@ Reconciliation must refuse every mutation without reading other fields.
 | `CloseAfterLaunch` | Boolean | `true` | No coercion from strings or numbers |
 | `Cache.MaximumSizeMB` | Integer | `64` | Inclusive range `16..256` |
 | `Cache.MaximumAgeDays` | Integer | `30` | Inclusive range `1..90` |
-| `Diagnostics.LogName` | String | `StartMenuFolders` | Non-empty and valid for Windows Event Log registration |
-| `Diagnostics.SourceName` | String | `StartMenuFolders` | Non-empty and valid for Windows Event Log registration |
+| `Diagnostics.LogName` | String | `LaunchTree` | Non-empty and valid for Windows Event Log registration |
+| `Diagnostics.SourceName` | String | `LaunchTree` | Non-empty and valid for Windows Event Log registration |
 | `Diagnostics.MaximumLogSizeMB` | Integer | `25` | Inclusive range `1..128` |
 | `Diagnostics.TargetRetentionDays` | Integer | `30` | Inclusive range `1..90` |
 
@@ -168,7 +168,7 @@ Generated State.
 
 ### CR-010 Event ranges
 
-The default dedicated log and source are both `StartMenuFolders`. Event IDs are
+The default dedicated log and source are both `LaunchTree`. Event IDs are
 stable within schema version 1:
 
 | Range | Category |
@@ -237,7 +237,7 @@ the operating system. The ownership record stores the resolved absolute host
 path. The argument sequence is:
 
 ```text
--NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -STA -File "<ModuleBase>\Scripts\Start-StartMenuFolderLauncher.ps1" -EntryId "<GUID>" -ConfigurationPath "<absolute-path>"
+-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -STA -File "<ModuleBase>\Scripts\Start-LaunchTreeLauncher.ps1" -EntryId "<GUID>" -ConfigurationPath "<absolute-path>"
 ```
 
 The Entry ID is a GUID from `CR-007`; no Entry Root name or source path appears
