@@ -52,7 +52,9 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   tabs, and
   Launch Items appear as compact rows. Selecting a tab keeps the whole tab
   strip visible and highlights the selected tab; a Menu Folder below the
-  selected tab appears as a row that moves the tab strip one level deeper.
+  selected tab appears as a row that moves the tab strip one level deeper. The
+  window widens to fit the tab strip instead of scrolling it, and shows no item
+  count.
 - Provide global type-to-search across all configured entries in the grid
   layout. The tabbed list layout navigates through tabs instead.
 - Follow Windows light, dark, and high-contrast settings.

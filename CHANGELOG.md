@@ -50,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Fit the `TabbedList` window width to the tab strip so the tabs no longer
+  scroll horizontally; the width grows to the required size within 80 percent of
+  the work area, never shrinks below the width the user chose, and an automatic
+  fit is not stored as a user dimension
+- Drop the item count from the `TabbedList` status line and collapse that line
+  unless it carries an error; `Grid` still reports its item and result counts
 - Reduce the Launcher header to a single compact line holding Back, the title,
   the active description, and Close; the breadcrumb and the separate description
   line are gone, the current path is now the title tooltip, and the header and

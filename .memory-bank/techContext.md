@@ -43,8 +43,9 @@ source: repository evidence
   with one intentional host-dependent skip.
 - Recursive PSScriptAnalyzer: zero production-source findings.
 - `tools/New-LauncherScreenshot.ps1`: nonblank default `TabbedList` frame at
-  `1001x1060` with 36 sampled colors and `Grid` frame at `1120x866` with 120
-  sampled colors; the tool rejects stale builds and wrong layout aspect ratios.
+  `1204x1060` with 33 sampled colors and `Grid` frame at `1120x866` with 120
+  sampled colors; the tool rejects stale builds, a short `TabbedList` frame, and
+  a tall `Grid` frame.
 - `tools/Test-OfflineLifecycle.ps1`: copied module version `0.2.0`, health
   `Healthy`, WPF capture, successful removal, and zero runtime dependencies.
 - External visual-scale/theme, Windows Server, ARM64, AppLocker/WDAC, and live

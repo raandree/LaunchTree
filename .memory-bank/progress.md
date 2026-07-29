@@ -15,21 +15,11 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
-- Canonical Memory Bank base initialized.
-- 2026-07-28: Completed the adversarial requirements interview and created the
-  draft Design Concept.
-- 2026-07-28: Signed off the Design Concept; documented 33 functional, 22
-  quality, and 12 configuration requirements, 17 acceptance scenarios, ten
-  ADRs, a canonical glossary, and nine managed issues.
-- 2026-07-28: Independent security re-review closed every Blocker and Major and
-  returned `READY FOR IMPLEMENTATION`.
-- 2026-07-28: Implemented all seven public commands, recursive Content Snapshot
-  discovery, transactional Reconciliation, the session-local WPF Launcher,
-  Shell-native invocation, operational diagnostics, cache/preferences, health,
-  Support Bundle export, and ownership-only removal.
-- 2026-07-28: Full Sampler workflows passed in both supported PowerShell
-  editions with 131 tests; isolated file-copy deployment passed with zero
-  runtime dependencies; independent final re-review returned `APPROVE`.
+- 2026-07-28: Baselined the project in git history: canonical Memory Bank,
+  requirements interview, signed Design Concept with 33 functional, 22 quality,
+  and 12 configuration requirements, 17 acceptance scenarios, ten ADRs, a
+  glossary, and nine issues; implemented all seven public commands; passed both
+  editions with 131 tests and an independent `APPROVE`.
 - 2026-07-28: Added and validated the canonical operator getting-started path
   from module installation through first Launcher use and cleanup.
 - 2026-07-28: Renamed the product from `StartMenuFolders` to `LaunchTree`
@@ -158,6 +148,17 @@ release remains gated by external environment evidence.
   clear at 43 and 124. A follow-up pass trimmed the header margin to `6,2` and
   the tab padding to `12,7,12,5`, measured on the capture as a 32 DIU header
   over a 34 DIU tab strip, down from about 116 DIU of stacked chrome.
+- 2026-07-29: Made the `TabbedList` window width follow its tab strip and
+  removed the item count from that layout. Summing `TabItem.DesiredSize` and
+  reading `ScrollViewer.ExtentWidth` once both under-measured by roughly one
+  tab, because the extent is exact only after the strip remeasures at the new
+  width. The fit now seeds from the extent and then grows by the reported
+  `ExtentWidth - ViewportWidth` overflow until the strip stops scrolling,
+  bounded by 80 percent of the work area and floored at the width the user last
+  chose. An automatic fit is tracked separately from that floor so it is never
+  persisted as a user dimension. Measured: 4 short tabs stay at the 680 DIU
+  default, 7 long tabs reach 1329 device pixels, and the 8-tab capture fixture
+  reaches 1204 with every tab visible and no horizontal scrollbar.
 - 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
   click. Selecting a tab previously navigated into it, which rebuilt the strip
   from that folder's children and hid every sibling. The Launcher now tracks a

@@ -96,7 +96,10 @@ or no child Menu Folder tab can replace it; when that tab is hidden, the first
 child Menu Folder tab must be selected. Selecting a tab must keep the whole
 tab strip visible and highlight the selected tab. A Menu Folder below the
 selected tab must appear as a list row, and opening that row must move the tab
-strip one level deeper. Machine configuration may select `Grid` for the tile
+strip one level deeper. The window width must fit the tab strip without
+horizontal scrolling, within the work-area maximum and never below the width
+the user last chose, and the layout must not display an item count. Machine
+configuration may select `Grid` for the tile
 presentation.
 
 ### FR-012 Search all Entry Roots

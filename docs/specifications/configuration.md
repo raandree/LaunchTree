@@ -151,7 +151,8 @@ not contain Launch Item targets, search history, or usage
 history. Missing or null first-run dimensions fit visible content, with a
 minimum of 520 by 420 device-independent pixels and a maximum of 80 percent of
 the active work area. A user resize stores the resulting dimensions, and a user
-move stores the resulting coordinates.
+move stores the resulting coordinates. A width the Launcher derives from the
+`TabbedList` tab strip is not a user dimension and is not stored.
 
 ## Generated State
 

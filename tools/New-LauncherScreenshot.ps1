@@ -141,8 +141,8 @@ try {
         if ($bitmap.Width -lt 520 -or $bitmap.Height -lt 420) {
             throw "Launcher capture is too small: $($bitmap.Width)x$($bitmap.Height)."
         }
-        if ($LauncherLayout -eq 'TabbedList' -and $bitmap.Width -ge $bitmap.Height) {
-            throw 'TabbedList capture must use the expected tall first-run layout.'
+        if ($LauncherLayout -eq 'TabbedList' -and $bitmap.Height -lt 700) {
+            throw 'TabbedList capture must use the expected tall list layout.'
         }
         if ($LauncherLayout -eq 'Grid' -and $bitmap.Width -le $bitmap.Height) {
             throw 'Grid capture must use the expected wide first-run layout.'

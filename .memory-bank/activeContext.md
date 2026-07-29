@@ -53,6 +53,8 @@ while preserving the approved behavior and security boundaries.
 - A dragged window position is remembered and restored on the next activation,
   clamped to the virtual screen; only a first run without stored coordinates
   opens near the Start button.
+- `TabbedList` sizes the window width to its tab strip instead of scrolling the
+  tabs, and shows no item count.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

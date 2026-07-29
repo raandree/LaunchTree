@@ -540,7 +540,7 @@
                                 BorderBrush="$( $borderBrush.Color.ToString() )"
                                 BorderThickness="0,0,0,1"
                                 Padding="{TemplateBinding Padding}">
-                    <ScrollViewer Focusable="False"
+                    <ScrollViewer x:Name="PART_TabScroll" Focusable="False"
                                                 HorizontalScrollBarVisibility="Auto"
                                                 VerticalScrollBarVisibility="Disabled">
                         <StackPanel IsItemsHost="True" Orientation="Horizontal" />
@@ -647,6 +647,47 @@
     $script:activeConfiguration = $Configuration
     $script:activeSnapshot = $Snapshot
     $script:activeEntryName = $EntryName
+    $script:baseWindowWidth = $window.Width
+    $script:autoWindowWidth = $window.Width
+
+    $fitWidthToTabs = {
+        if ($folderTabs.Items.Count -eq 0) {
+            return
+        }
+        $tabScroll = $folderTabs.Template.FindName('PART_TabScroll', $folderTabs)
+        if (-not $tabScroll) {
+            return
+        }
+        # A width the user chose replaces the floor the automatic fit grows from.
+        if ([Math]::Abs($window.ActualWidth - $script:autoWindowWidth) -gt 0.5) {
+            $script:baseWindowWidth = $window.ActualWidth
+        }
+        $chromeWidth = $folderTabs.Padding.Left + $folderTabs.Padding.Right +
+            $rootBorder.BorderThickness.Left + $rootBorder.BorderThickness.Right
+        $maximumWidth = [System.Windows.SystemParameters]::WorkArea.Width * 0.8
+        $folderTabs.UpdateLayout()
+        # A zero extent means the strip is not measured yet, as before the window is shown.
+        if ($tabScroll.ExtentWidth -le 0) {
+            return
+        }
+        $targetWidth = [Math]::Min(
+            $maximumWidth,
+            [Math]::Max($script:baseWindowWidth, $tabScroll.ExtentWidth + $chromeWidth)
+        )
+        # The extent is exact only after a remeasure, so grow until the strip stops scrolling.
+        for ($pass = 0; $pass -lt 4; $pass++) {
+            if ([Math]::Abs($targetWidth - $window.Width) -gt 0.5) {
+                $script:autoWindowWidth = $targetWidth
+                $window.Width = $targetWidth
+            }
+            $folderTabs.UpdateLayout()
+            $overflow = $tabScroll.ExtentWidth - $tabScroll.ViewportWidth
+            if ($overflow -le 0.5 -or $targetWidth -ge $maximumWidth) {
+                break
+            }
+            $targetWidth = [Math]::Min($maximumWidth, $targetWidth + $overflow)
+        }
+    }
 
     $renderItems = {
         $interactionStopwatch = [Diagnostics.Stopwatch]::StartNew()
@@ -753,6 +794,7 @@
                 $selectedTab.IsSelected = $true
                 [void] $selectedTab.BringIntoView()
             }
+            & $fitWidthToTabs
         } else {
             $candidateItems = if ($isSearching) {
                 @($script:activeSnapshot.Objects | Where-Object {
@@ -969,6 +1011,7 @@
                     } else {
                         $statusText.Foreground = [System.Windows.Media.Brushes]::IndianRed
                         $statusText.Text = $launchResult.Message
+                        $statusText.Visibility = [System.Windows.Visibility]::Visible
                     }
                 }
                 $eventArguments.Handled = $true
@@ -995,10 +1038,17 @@
         } else {
             $candidateItems.Count
         }
-        $statusText.Text = if ($isSearching) {
+        $statusText.Text = if ($useTabbedListLayout) {
+            ''
+        } elseif ($isSearching) {
             '{0} results across all Start Entries' -f $visibleCount
         } else {
             '{0} items' -f $visibleCount
+        }
+        $statusText.Visibility = if ([string]::IsNullOrEmpty($statusText.Text)) {
+            [System.Windows.Visibility]::Collapsed
+        } else {
+            [System.Windows.Visibility]::Visible
         }
         $timerParameters = @{
             Timer       = $iconTimer
@@ -1120,6 +1170,7 @@
                 $activationError = $_
                 $statusText.Foreground = [System.Windows.Media.Brushes]::IndianRed
                 $statusText.Text = $activationError.Exception.Message
+                $statusText.Visibility = [System.Windows.Visibility]::Visible
             }
             $message = $ActivationServer.Take(0)
         }
@@ -1270,6 +1321,10 @@
             $null = Write-LaunchTreePerformanceEvent @performanceParameters
         }
         $workArea = [System.Windows.SystemParameters]::WorkArea
+        if ($useTabbedListLayout) {
+            & $fitWidthToTabs
+            $window.UpdateLayout()
+        }
         $savedLeft = $Configuration.Window.Left
         $savedTop = $Configuration.Window.Top
         if ($null -ne $savedLeft -and $null -ne $savedTop) {
@@ -1349,7 +1404,13 @@
                     } else {
                         'NameAscending'
                     }
-                    Width         = $window.ActualWidth
+                    Width         = if ([Math]::Abs(
+                            $window.ActualWidth - $script:autoWindowWidth
+                        ) -gt 0.5) {
+                        $window.ActualWidth
+                    } else {
+                        $script:baseWindowWidth
+                    }
                     Height        = $window.ActualHeight
                     Left          = $window.Left
                     Top           = $window.Top
