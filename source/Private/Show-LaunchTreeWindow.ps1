@@ -265,7 +265,6 @@
     $searchBorder.Child = $searchGrid
 
     $folderTabs = [System.Windows.Controls.TabControl]::new()
-    $folderTabs.Height = 44
     $folderTabs.Background = $surfaceBrush
     $folderTabs.BorderBrush = $borderBrush
     $folderTabs.BorderThickness = [System.Windows.Thickness]::new(0, 0, 0, 1)
@@ -462,6 +461,82 @@
 "@
     $sortBox.Style = [System.Windows.Markup.XamlReader]::Parse($sortStyleXaml)
 
+    $scrollBarStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       TargetType="ScrollBar">
+  <Setter Property="Background" Value="Transparent" />
+  <Setter Property="BorderThickness" Value="0" />
+  <Setter Property="Width" Value="10" />
+  <Setter Property="Template">
+    <Setter.Value>
+      <ControlTemplate TargetType="ScrollBar">
+        <Grid Background="Transparent" SnapsToDevicePixels="True">
+          <Track x:Name="PART_Track" IsDirectionReversed="True">
+            <Track.DecreaseRepeatButton>
+              <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0"
+                            Focusable="False" IsTabStop="False" />
+            </Track.DecreaseRepeatButton>
+            <Track.Thumb>
+              <Thumb>
+                <Thumb.Template>
+                  <ControlTemplate TargetType="Thumb">
+                    <Border Background="$( $secondaryBrush.Color.ToString() )"
+                            CornerRadius="3" Margin="2" Opacity="0.55" />
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+            <Track.IncreaseRepeatButton>
+              <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0"
+                            Focusable="False" IsTabStop="False" />
+            </Track.IncreaseRepeatButton>
+          </Track>
+        </Grid>
+      </ControlTemplate>
+    </Setter.Value>
+  </Setter>
+  <Style.Triggers>
+    <Trigger Property="Orientation" Value="Horizontal">
+      <Setter Property="Width" Value="Auto" />
+      <Setter Property="Height" Value="10" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Grid Background="Transparent" SnapsToDevicePixels="True">
+              <Track x:Name="PART_Track">
+                <Track.DecreaseRepeatButton>
+                  <RepeatButton Command="ScrollBar.PageLeftCommand" Opacity="0"
+                                Focusable="False" IsTabStop="False" />
+                </Track.DecreaseRepeatButton>
+                <Track.Thumb>
+                  <Thumb>
+                    <Thumb.Template>
+                      <ControlTemplate TargetType="Thumb">
+                        <Border Background="$( $secondaryBrush.Color.ToString() )"
+                                CornerRadius="3" Margin="2" Opacity="0.55" />
+                      </ControlTemplate>
+                    </Thumb.Template>
+                  </Thumb>
+                </Track.Thumb>
+                <Track.IncreaseRepeatButton>
+                  <RepeatButton Command="ScrollBar.PageRightCommand" Opacity="0"
+                                Focusable="False" IsTabStop="False" />
+                </Track.IncreaseRepeatButton>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Trigger>
+  </Style.Triggers>
+</Style>
+"@
+    $window.Resources.Add(
+        [System.Windows.Controls.Primitives.ScrollBar],
+        [System.Windows.Markup.XamlReader]::Parse($scrollBarStyleXaml)
+    )
+
         if ($useTabbedListLayout) {
                 $tabControlStyleXaml = @"
 <Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -475,10 +550,12 @@
             <ControlTemplate TargetType="TabControl">
                 <Border Background="{TemplateBinding Background}"
                                 BorderBrush="$( $borderBrush.Color.ToString() )"
-                                BorderThickness="0,0,0,1">
-                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                BorderThickness="0,0,0,1"
+                                Padding="{TemplateBinding Padding}">
+                    <ScrollViewer Focusable="False"
+                                                HorizontalScrollBarVisibility="Auto"
                                                 VerticalScrollBarVisibility="Disabled">
-                        <TabPanel IsItemsHost="True" />
+                        <StackPanel IsItemsHost="True" Orientation="Horizontal" />
                     </ScrollViewer>
                 </Border>
             </ControlTemplate>

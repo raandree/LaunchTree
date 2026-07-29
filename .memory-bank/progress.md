@@ -119,6 +119,13 @@ release remains gated by external environment evidence.
   example configuration, and operator docs, and renamed the Grid screenshot to
   `launcher-grid.png` so the capture tool derives each file name from its
   layout.
+- 2026-07-29: Fixed the `TabbedList` tab strip rendering blank against real
+  content. The strip was pinned to 44 device-independent pixels while its
+  template hosted a horizontal scrollbar, so the 30 Menu Folders under
+  `Programs` left about four pixels for labels. The strip now sizes to
+  content and lays tabs out in one scrollable row, the window themes its
+  scrollbars, and the capture fixture gained Menu Folders so the checked-in
+  screenshot exercises tab overflow.
 
 ## Stable capabilities
 

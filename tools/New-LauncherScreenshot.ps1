@@ -52,6 +52,11 @@ try {
     $env:LOCALAPPDATA = Join-Path $fixtureRoot 'LocalAppData'
     $entertainment = New-Item -Path (Join-Path $managedRoot 'Entertainment') -ItemType Directory -Force
     $media = New-Item -Path (Join-Path $entertainment.FullName 'Media tools') -ItemType Directory
+    # Enough Menu Folders that the tab strip overflows and must scroll.
+    foreach ($folderName in 'Games', 'Photo editing', 'Streaming services',
+        'Productivity suites', 'Video conferencing') {
+        $null = New-Item -Path (Join-Path $entertainment.FullName $folderName) -ItemType Directory
+    }
     $null = New-Item -Path (Join-Path $managedRoot 'Work essentials') -ItemType Directory
     $personalEntry = New-Item -Path (Join-Path $personalRoot 'Entertainment') -ItemType Directory -Force
 

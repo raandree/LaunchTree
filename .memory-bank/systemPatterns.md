@@ -20,9 +20,9 @@ interactive users.
 Implementation adds a current-user named-pipe activation channel, bounded
 versioned icon cache, presentation-only preference file, structured Health
 Findings, diagnostics, WPF/offline validation, and tested layout helpers.
-`TabbedList` is the default Launcher Layout, projecting snapshots into tabs
-and rows; `Grid` stays selectable. Runtime artifacts have no external
-dependency. Launcher controls use themed XAML with paired high-contrast colors.
+`TabbedList` is the default Launcher Layout; `Grid` stays selectable. Runtime
+artifacts have no external dependency. Launcher controls use themed XAML with
+paired high-contrast colors, and scrollbar-hosting strips size to content.
 
 ## Documentation
 
