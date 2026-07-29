@@ -99,6 +99,12 @@ release remains gated by external environment evidence.
   `Write-LaunchTreeEvent` still swallows the failure as a non-fatal diagnostic
   loss, and `Register-LaunchTreeEventLog` reports the `DeleteEventSource`
   remediation. Full suite green: 145 passed, 0 failed.
+- 2026-07-29: Restyled the Launcher sort selector. The `ComboBox` still used the
+  Windows system theme template, so it rendered as a light-gray classic control
+  inside the dark Fluent window. `Show-LaunchTreeWindow` now applies a parsed
+  XAML `Style` that themes the closed control, chevron, hover, open, and
+  keyboard focus states, and the drop-down list. Verified by rendering the
+  Launcher and the open popup; full suite green: 145 passed, 0 failed.
 
 ## Stable capabilities
 

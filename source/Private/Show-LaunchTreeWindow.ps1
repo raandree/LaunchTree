@@ -166,8 +166,9 @@
     [void] $header.Children.Add($titleStack)
 
     $sortBox = [System.Windows.Controls.ComboBox]::new()
-    $sortBox.Width = 106
-    $sortBox.Height = 34
+    $sortBox.Width = 132
+    $sortBox.Height = 36
+    $sortBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $sortBox.Margin = [System.Windows.Thickness]::new(12, 0, 8, 0)
     [void] $sortBox.Items.Add('Name A-Z')
     [void] $sortBox.Items.Add('Name Z-A')
@@ -273,6 +274,113 @@
     foreach ($button in @($backButton, $closeButton)) {
         $button.Style = $buttonStyle
     }
+
+    $sortStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+       TargetType="ComboBox">
+  <Setter Property="Foreground" Value="$( $foregroundBrush.Color.ToString() )" />
+  <Setter Property="FontSize" Value="13" />
+  <Setter Property="VerticalContentAlignment" Value="Center" />
+  <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+  <Setter Property="ItemContainerStyle">
+    <Setter.Value>
+      <Style TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="$( $foregroundBrush.Color.ToString() )" />
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="ComboBoxItem">
+              <Border x:Name="ItemRoot" Background="Transparent" CornerRadius="4"
+                      Margin="4,1,4,1" Padding="0,7,10,7" SnapsToDevicePixels="True">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <Border x:Name="ItemAccent" Width="3" Height="16" CornerRadius="2"
+                          Background="$( $accentBrush.Color.ToString() )"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Visibility="Collapsed" />
+                  <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
+                                    TextElement.Foreground="$( $foregroundBrush.Color.ToString() )" />
+                </Grid>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsHighlighted" Value="True">
+                  <Setter TargetName="ItemRoot" Property="Background" Value="$hoverColor" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                  <Setter TargetName="ItemRoot" Property="Background" Value="$pressedColor" />
+                  <Setter TargetName="ItemAccent" Property="Visibility" Value="Visible" />
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+    </Setter.Value>
+  </Setter>
+  <Setter Property="Template">
+    <Setter.Value>
+      <ControlTemplate TargetType="ComboBox">
+        <Grid>
+          <Border x:Name="Root" Background="$( $surfaceBrush.Color.ToString() )"
+                  BorderBrush="$( $borderBrush.Color.ToString() )" BorderThickness="1"
+                  CornerRadius="6" SnapsToDevicePixels="True" />
+          <ToggleButton Focusable="False" ClickMode="Press"
+                        IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
+                                    RelativeSource={RelativeSource TemplatedParent}}">
+            <ToggleButton.Template>
+              <ControlTemplate TargetType="ToggleButton">
+                <Border Background="Transparent" />
+              </ControlTemplate>
+            </ToggleButton.Template>
+          </ToggleButton>
+          <ContentPresenter Margin="12,0,34,0" IsHitTestVisible="False"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                            TextElement.Foreground="$( $foregroundBrush.Color.ToString() )"
+                            Content="{TemplateBinding SelectionBoxItem}"
+                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                            ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" />
+          <TextBlock Text="&#xE70D;" FontFamily="Segoe Fluent Icons" FontSize="11"
+                     Foreground="$( $secondaryBrush.Color.ToString() )"
+                     IsHitTestVisible="False" Margin="0,0,13,0"
+                     HorizontalAlignment="Right" VerticalAlignment="Center" />
+          <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="4"
+                 AllowsTransparency="True" Focusable="False" PopupAnimation="Fade"
+                 IsOpen="{TemplateBinding IsDropDownOpen}">
+            <Border Background="$( $surfaceBrush.Color.ToString() )"
+                    BorderBrush="$( $borderBrush.Color.ToString() )" BorderThickness="1"
+                    CornerRadius="6" Padding="0,4,0,4" SnapsToDevicePixels="True"
+                    MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                    MinWidth="{Binding ActualWidth,
+                              RelativeSource={RelativeSource TemplatedParent}}">
+              <ScrollViewer>
+                <StackPanel IsItemsHost="True"
+                            KeyboardNavigation.DirectionalNavigation="Contained" />
+              </ScrollViewer>
+            </Border>
+          </Popup>
+        </Grid>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True">
+            <Setter TargetName="Root" Property="Background" Value="$hoverColor" />
+          </Trigger>
+          <Trigger Property="IsDropDownOpen" Value="True">
+            <Setter TargetName="Root" Property="Background" Value="$pressedColor" />
+            <Setter TargetName="Root" Property="BorderBrush" Value="$( $accentBrush.Color.ToString() )" />
+          </Trigger>
+          <Trigger Property="IsKeyboardFocusWithin" Value="True">
+            <Setter TargetName="Root" Property="BorderBrush" Value="$( $accentBrush.Color.ToString() )" />
+            <Setter TargetName="Root" Property="BorderThickness" Value="2" />
+          </Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate>
+    </Setter.Value>
+  </Setter>
+</Style>
+"@
+    $sortBox.Style = [System.Windows.Markup.XamlReader]::Parse($sortStyleXaml)
 
     $script:currentRelativePath = ''
     $script:visibleButtons = [System.Collections.Generic.List[object]]::new()

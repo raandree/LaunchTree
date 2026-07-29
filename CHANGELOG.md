@@ -36,6 +36,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Restyle the Launcher sort selector to match the window theme with a rounded
+  surface, themed border and chevron, hover, open, and keyboard focus states,
+  and a themed drop-down list with an accent bar on the selected order
 - Rename the module, all seven commands, ProgramData and roaming paths, machine
   configuration and Generated State file names, the Event Log name and source,
   and the exported type names from `StartMenuFolders` to `LaunchTree`
