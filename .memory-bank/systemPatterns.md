@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-28
+last-verified: 2026-07-29
 owner: active-agent
 source: repository evidence
 ---
@@ -19,10 +19,10 @@ interactive users.
 
 Implementation adds a current-user named-pipe activation channel, bounded
 versioned icon cache, presentation-only preference file, structured Health
-Findings, redacted diagnostic events, and reproducible WPF/offline validation
-tools. Runtime artifacts have no external PowerShell module dependency. Every
-Launcher control needs an explicit themed XAML style, because a system-theme
-template renders as a classic control inside the themed window.
+Findings, diagnostics, WPF/offline validation, and tested layout helpers.
+`Grid` remains the default Launcher Layout; `TabbedList` projects snapshots
+into tabs and rows. Runtime artifacts have no external dependency. Every
+Launcher control uses explicit themed XAML with paired high-contrast colors.
 
 ## Documentation
 

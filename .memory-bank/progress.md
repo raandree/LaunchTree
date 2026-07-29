@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-28
+last-verified: 2026-07-29
 owner: active-agent
 source: repository evidence
 ---
@@ -105,6 +105,14 @@ release remains gated by external environment evidence.
   XAML `Style` that themes the closed control, chevron, hover, open, and
   keyboard focus states, and the drop-down list. Verified by rendering the
   Launcher and the open popup; full suite green: 145 passed, 0 failed.
+- 2026-07-29: Added the machine-selectable Launcher Layout contract. `Grid`
+  remains the default; `TabbedList` presents Menu Folders as tabs, the active
+  description above them, and Launch Items as compact rows. Added tested
+  projection, navigation, duplicate-search context, and icon-timer helpers;
+  paired high-contrast states; hardened deterministic captures; rendered both
+  layouts; and passed 159 tests in PowerShell 7 plus 159 tests with one
+  intentional skip in Windows PowerShell 5.1. Independent re-review approved
+  with no Blocker or Major findings.
 
 ## Stable capabilities
 

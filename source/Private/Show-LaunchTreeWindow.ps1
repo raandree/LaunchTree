@@ -60,6 +60,7 @@
         Write-Verbose -Message $themeError.Exception.Message
     }
     $isLight = -not $isHighContrast -and $appsUseLightTheme -eq 1
+    $useTabbedListLayout = $Configuration.LauncherLayout -eq 'TabbedList'
 
     if ($isHighContrast) {
         $windowBrush = [System.Windows.SystemColors]::WindowBrush
@@ -89,16 +90,35 @@
         $hoverColor = '#383838'
         $pressedColor = '#474747'
     }
+    if ($isHighContrast) {
+        $hoverForegroundColor = [System.Windows.SystemColors]::HighlightTextColor.ToString()
+        $pressedForegroundColor = [System.Windows.SystemColors]::ControlTextColor.ToString()
+    } else {
+        $hoverForegroundColor = $foregroundBrush.Color.ToString()
+        $pressedForegroundColor = $foregroundBrush.Color.ToString()
+    }
 
     $window = [System.Windows.Window]::new()
     $window.Title = $EntryName
     $window.WindowStyle = [System.Windows.WindowStyle]::None
     $window.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
     $window.ShowInTaskbar = $true
-    $window.MinWidth = 520
+    $window.MinWidth = if ($useTabbedListLayout) { 600 } else { 520 }
     $window.MinHeight = 420
-    $window.Width = if ($Configuration.Window.Width) { $Configuration.Window.Width } else { 760 }
-    $window.Height = if ($Configuration.Window.Height) { $Configuration.Window.Height } else { 590 }
+    $window.Width = if ($Configuration.Window.Width) {
+        $Configuration.Window.Width
+    } elseif ($useTabbedListLayout) {
+        680
+    } else {
+        760
+    }
+    $window.Height = if ($Configuration.Window.Height) {
+        $Configuration.Window.Height
+    } elseif ($useTabbedListLayout) {
+        720
+    } else {
+        590
+    }
     $window.Background = $windowBrush
     $window.Foreground = $foregroundBrush
     $window.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe UI Variable Text')
@@ -119,13 +139,19 @@
     [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
     $rootGrid.RowDefinitions[1].Height = [System.Windows.GridLength]::Auto
     [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[2].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    $rootGrid.RowDefinitions[2].Height = [System.Windows.GridLength]::Auto
     [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[3].Height = [System.Windows.GridLength]::Auto
+    $rootGrid.RowDefinitions[3].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
+    $rootGrid.RowDefinitions[4].Height = [System.Windows.GridLength]::Auto
     $rootBorder.Child = $rootGrid
 
     $header = [System.Windows.Controls.Grid]::new()
-    $header.Margin = [System.Windows.Thickness]::new(20, 16, 20, 10)
+    $header.Margin = if ($useTabbedListLayout) {
+        [System.Windows.Thickness]::new(24, 18, 24, 14)
+    } else {
+        [System.Windows.Thickness]::new(20, 16, 20, 10)
+    }
     [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
     $header.ColumnDefinitions[0].Width = [System.Windows.GridLength]::Auto
     [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
@@ -153,14 +179,25 @@
     $title = [System.Windows.Controls.TextBlock]::new()
     $title.Text = $EntryName
     $title.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe UI Variable Display Semibold')
-    $title.FontSize = 24
+    $title.FontSize = if ($useTabbedListLayout) { 20 } else { 24 }
     $title.Foreground = $foregroundBrush
+    $descriptionText = [System.Windows.Controls.TextBlock]::new()
+    $descriptionText.Foreground = $secondaryBrush
+    $descriptionText.FontSize = 12
+    $descriptionText.Margin = [System.Windows.Thickness]::new(0, 3, 0, 0)
+    $descriptionText.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $descriptionText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+    $descriptionText.MaxHeight = 42
+    $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
     $breadcrumb = [System.Windows.Controls.TextBlock]::new()
     $breadcrumb.Text = $EntryName
     $breadcrumb.Foreground = $secondaryBrush
     $breadcrumb.FontSize = 12
     $breadcrumb.Margin = [System.Windows.Thickness]::new(0, 3, 0, 0)
     [void] $titleStack.Children.Add($title)
+    if ($useTabbedListLayout) {
+        [void] $titleStack.Children.Add($descriptionText)
+    }
     [void] $titleStack.Children.Add($breadcrumb)
     [System.Windows.Controls.Grid]::SetColumn($titleStack, 1)
     [void] $header.Children.Add($titleStack)
@@ -188,12 +225,19 @@
     [void] $header.Children.Add($closeButton)
 
     $searchBorder = [System.Windows.Controls.Border]::new()
-    $searchBorder.Margin = [System.Windows.Thickness]::new(20, 0, 20, 14)
+    $searchBorder.Margin = if ($useTabbedListLayout) {
+        [System.Windows.Thickness]::new(24, 12, 24, 8)
+    } else {
+        [System.Windows.Thickness]::new(20, 0, 20, 14)
+    }
     $searchBorder.Background = $surfaceBrush
     $searchBorder.BorderBrush = $borderBrush
     $searchBorder.BorderThickness = [System.Windows.Thickness]::new(1)
     $searchBorder.CornerRadius = [System.Windows.CornerRadius]::new(6)
-    [System.Windows.Controls.Grid]::SetRow($searchBorder, 1)
+    [System.Windows.Controls.Grid]::SetRow(
+        $searchBorder,
+        $(if ($useTabbedListLayout) { 2 } else { 1 })
+    )
     [void] $rootGrid.Children.Add($searchBorder)
 
     $searchGrid = [System.Windows.Controls.Grid]::new()
@@ -220,22 +264,52 @@
     [void] $searchGrid.Children.Add($searchBox)
     $searchBorder.Child = $searchGrid
 
+    $folderTabs = [System.Windows.Controls.TabControl]::new()
+    $folderTabs.Height = 44
+    $folderTabs.Background = $surfaceBrush
+    $folderTabs.BorderBrush = $borderBrush
+    $folderTabs.BorderThickness = [System.Windows.Thickness]::new(0, 0, 0, 1)
+    $folderTabs.Visibility = if ($useTabbedListLayout) {
+        [System.Windows.Visibility]::Visible
+    } else {
+        [System.Windows.Visibility]::Collapsed
+    }
+    [System.Windows.Controls.Grid]::SetRow($folderTabs, 1)
+    [void] $rootGrid.Children.Add($folderTabs)
+
     $scrollViewer = [System.Windows.Controls.ScrollViewer]::new()
     $scrollViewer.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
     $scrollViewer.HorizontalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Disabled
-    $scrollViewer.Padding = [System.Windows.Thickness]::new(14, 0, 14, 8)
-    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 2)
+    $scrollViewer.Padding = if ($useTabbedListLayout) {
+        [System.Windows.Thickness]::new(24, 8, 20, 8)
+    } else {
+        [System.Windows.Thickness]::new(14, 0, 14, 8)
+    }
+    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 3)
     [void] $rootGrid.Children.Add($scrollViewer)
-    $itemsPanel = [System.Windows.Controls.WrapPanel]::new()
-    $itemsPanel.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
-    $scrollViewer.Content = $itemsPanel
+    if ($useTabbedListLayout) {
+        $itemsPanel = [System.Windows.Controls.StackPanel]::new()
+        $itemsPanel.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Stretch
+        $listBorder = [System.Windows.Controls.Border]::new()
+        $listBorder.Background = $surfaceBrush
+        $listBorder.BorderBrush = $borderBrush
+        $listBorder.BorderThickness = [System.Windows.Thickness]::new(1)
+        $listBorder.CornerRadius = [System.Windows.CornerRadius]::new(8)
+        $listBorder.VerticalAlignment = [System.Windows.VerticalAlignment]::Top
+        $listBorder.Child = $itemsPanel
+        $scrollViewer.Content = $listBorder
+    } else {
+        $itemsPanel = [System.Windows.Controls.WrapPanel]::new()
+        $itemsPanel.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
+        $scrollViewer.Content = $itemsPanel
+    }
 
     $statusText = [System.Windows.Controls.TextBlock]::new()
     $statusText.Margin = [System.Windows.Thickness]::new(20, 8, 20, 14)
     $statusText.Foreground = $secondaryBrush
     $statusText.FontSize = 12
     $statusText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    [System.Windows.Controls.Grid]::SetRow($statusText, 3)
+    [System.Windows.Controls.Grid]::SetRow($statusText, 4)
     [void] $rootGrid.Children.Add($statusText)
 
     $buttonStyleXaml = @"
@@ -256,9 +330,11 @@
         <ControlTemplate.Triggers>
           <Trigger Property="IsMouseOver" Value="True">
             <Setter TargetName="Root" Property="Background" Value="$hoverColor" />
+                        <Setter Property="Foreground" Value="$hoverForegroundColor" />
           </Trigger>
           <Trigger Property="IsPressed" Value="True">
             <Setter TargetName="Root" Property="Background" Value="$pressedColor" />
+                        <Setter Property="Foreground" Value="$pressedForegroundColor" />
           </Trigger>
           <Trigger Property="IsKeyboardFocused" Value="True">
             <Setter TargetName="Root" Property="BorderBrush" Value="$( $accentBrush.Color.ToString() )" />
@@ -302,16 +378,18 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center"
                           Visibility="Collapsed" />
                   <ContentPresenter Grid.Column="1" VerticalAlignment="Center"
-                                    TextElement.Foreground="$( $foregroundBrush.Color.ToString() )" />
+                                    TextElement.Foreground="{TemplateBinding Foreground}" />
                 </Grid>
               </Border>
               <ControlTemplate.Triggers>
                 <Trigger Property="IsHighlighted" Value="True">
                   <Setter TargetName="ItemRoot" Property="Background" Value="$hoverColor" />
+                                    <Setter Property="Foreground" Value="$hoverForegroundColor" />
                 </Trigger>
                 <Trigger Property="IsSelected" Value="True">
                   <Setter TargetName="ItemRoot" Property="Background" Value="$pressedColor" />
                   <Setter TargetName="ItemAccent" Property="Visibility" Value="Visible" />
+                                    <Setter Property="Foreground" Value="$pressedForegroundColor" />
                 </Trigger>
               </ControlTemplate.Triggers>
             </ControlTemplate>
@@ -338,7 +416,7 @@
           </ToggleButton>
           <ContentPresenter Margin="12,0,34,0" IsHitTestVisible="False"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
-                            TextElement.Foreground="$( $foregroundBrush.Color.ToString() )"
+                            TextElement.Foreground="{TemplateBinding Foreground}"
                             Content="{TemplateBinding SelectionBoxItem}"
                             ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                             ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" />
@@ -365,10 +443,12 @@
         <ControlTemplate.Triggers>
           <Trigger Property="IsMouseOver" Value="True">
             <Setter TargetName="Root" Property="Background" Value="$hoverColor" />
+                        <Setter Property="Foreground" Value="$hoverForegroundColor" />
           </Trigger>
           <Trigger Property="IsDropDownOpen" Value="True">
             <Setter TargetName="Root" Property="Background" Value="$pressedColor" />
             <Setter TargetName="Root" Property="BorderBrush" Value="$( $accentBrush.Color.ToString() )" />
+                        <Setter Property="Foreground" Value="$pressedForegroundColor" />
           </Trigger>
           <Trigger Property="IsKeyboardFocusWithin" Value="True">
             <Setter TargetName="Root" Property="BorderBrush" Value="$( $accentBrush.Color.ToString() )" />
@@ -382,12 +462,126 @@
 "@
     $sortBox.Style = [System.Windows.Markup.XamlReader]::Parse($sortStyleXaml)
 
+        if ($useTabbedListLayout) {
+                $tabControlStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TargetType="TabControl">
+    <Setter Property="Background" Value="$( $surfaceBrush.Color.ToString() )" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="20,0,12,0" />
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="TabControl">
+                <Border Background="{TemplateBinding Background}"
+                                BorderBrush="$( $borderBrush.Color.ToString() )"
+                                BorderThickness="0,0,0,1">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                                VerticalScrollBarVisibility="Disabled">
+                        <TabPanel IsItemsHost="True" />
+                    </ScrollViewer>
+                </Border>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+                $folderTabs.Style = [System.Windows.Markup.XamlReader]::Parse($tabControlStyleXaml)
+
+                $tabItemStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TargetType="TabItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="$( $secondaryBrush.Color.ToString() )" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Padding" Value="14,11,14,9" />
+    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="TabItem">
+                <Border x:Name="TabRoot" Background="{TemplateBinding Background}"
+                                BorderBrush="Transparent" BorderThickness="0,0,0,2"
+                                Padding="{TemplateBinding Padding}">
+                    <ContentPresenter ContentSource="Header"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center" />
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter TargetName="TabRoot" Property="BorderBrush"
+                                        Value="$( $accentBrush.Color.ToString() )" />
+                        <Setter Property="Foreground" Value="$( $accentBrush.Color.ToString() )" />
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="TabRoot" Property="Background" Value="$hoverColor" />
+                        <Setter Property="Foreground" Value="$hoverForegroundColor" />
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="TabRoot" Property="BorderBrush"
+                                        Value="$( $accentBrush.Color.ToString() )" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+                $tabItemStyle = [System.Windows.Markup.XamlReader]::Parse($tabItemStyleXaml)
+
+                $listItemStyleXaml = @"
+<Style xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="$( $foregroundBrush.Color.ToString() )" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="2" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    <Setter Property="Template">
+        <Setter.Value>
+            <ControlTemplate TargetType="Button">
+                <Border x:Name="FocusRoot" BorderBrush="Transparent"
+                                BorderThickness="2" CornerRadius="5"
+                                Padding="{TemplateBinding Padding}">
+                    <Border x:Name="RowRoot" Background="{TemplateBinding Background}"
+                                    BorderBrush="$( $borderBrush.Color.ToString() )"
+                                    BorderThickness="0,0,0,1" Padding="14,8">
+                        <ContentPresenter HorizontalAlignment="Stretch"
+                                                            VerticalAlignment="Center" />
+                    </Border>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="RowRoot" Property="Background" Value="$hoverColor" />
+                        <Setter Property="Foreground" Value="$hoverForegroundColor" />
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Setter TargetName="RowRoot" Property="Background" Value="$pressedColor" />
+                        <Setter Property="Foreground" Value="$pressedForegroundColor" />
+                    </Trigger>
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="FocusRoot" Property="BorderBrush"
+                                        Value="$( $accentBrush.Color.ToString() )" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Setter.Value>
+    </Setter>
+</Style>
+"@
+                $listItemStyle = [System.Windows.Markup.XamlReader]::Parse($listItemStyleXaml)
+        }
+
     $script:currentRelativePath = ''
     $script:visibleButtons = [System.Collections.Generic.List[object]]::new()
     $script:iconJobs = [System.Collections.Generic.List[object]]::new()
     $script:activeConfiguration = $Configuration
     $script:activeSnapshot = $Snapshot
     $script:activeEntryName = $EntryName
+    $script:isRenderingFolderTabs = $false
 
     $renderItems = {
         $interactionStopwatch = [Diagnostics.Stopwatch]::StartNew()
@@ -397,25 +591,114 @@
 
         $searchText = $searchBox.Text.Trim()
         $isSearching = -not [string]::IsNullOrWhiteSpace($searchText)
-        $candidateItems = if ($isSearching) {
-            @($script:activeSnapshot.Objects | Where-Object {
-                $_.Name.IndexOf($searchText, [StringComparison]::CurrentCultureIgnoreCase) -ge 0
-            })
+        if ($useTabbedListLayout) {
+            $contentParameters = @{
+                Snapshot            = $script:activeSnapshot
+                EntryName           = $script:activeEntryName
+                CurrentRelativePath = $script:currentRelativePath
+                SearchText          = $searchText
+                Descending          = $sortBox.SelectedIndex -eq 1
+            }
+            $tabbedContent = Get-LaunchTreeTabbedListContent @contentParameters
+            $candidateItems = @($tabbedContent.LaunchItems)
+            $menuFolders = @($tabbedContent.MenuFolders)
+            $menuFolderTabs = @($tabbedContent.MenuFolderTabs)
+
+            $descriptionText.Text = $tabbedContent.Description
+            $descriptionText.Visibility = if ([string]::IsNullOrWhiteSpace(
+                    $tabbedContent.Description
+                )) {
+                [System.Windows.Visibility]::Collapsed
+            } else {
+                [System.Windows.Visibility]::Visible
+            }
+            $descriptionText.ToolTip = if ($descriptionText.Visibility -eq
+                [System.Windows.Visibility]::Visible) {
+                $tabbedContent.Description
+            } else {
+                $null
+            }
+            $breadcrumb.Text = if ($script:currentRelativePath) {
+                @($script:activeEntryName, $script:currentRelativePath) -join '  ›  '
+            } else {
+                $script:activeEntryName
+            }
+
+            $script:isRenderingFolderTabs = $true
+            $folderTabs.Items.Clear()
+            $currentTab = [System.Windows.Controls.TabItem]::new()
+            $currentTab.Header = $tabbedContent.CurrentName
+            $currentTab.Style = $tabItemStyle
+            $currentTab.IsSelected = $true
+            [void] $folderTabs.Items.Add($currentTab)
+            foreach ($menuFolderTab in $menuFolderTabs) {
+                $menuFolder = $menuFolderTab.Item
+                if ($isSearching -and
+                    $menuFolder.EntryName -eq $script:activeEntryName -and
+                    $menuFolder.RelativePath -eq $script:currentRelativePath) {
+                    continue
+                }
+                $folderTab = [System.Windows.Controls.TabItem]::new()
+                if ($isSearching) {
+                    $tabHeader = [System.Windows.Controls.StackPanel]::new()
+                    $tabName = [System.Windows.Controls.TextBlock]::new()
+                    $tabName.Text = $menuFolderTab.Header
+                    $tabContext = [System.Windows.Controls.TextBlock]::new()
+                    $tabContext.Text = $menuFolderTab.Context
+                    $tabContext.FontSize = 10
+                    $tabContext.Opacity = 0.76
+                    $tabContext.MaxWidth = 220
+                    $tabContext.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+                    [void] $tabHeader.Children.Add($tabName)
+                    [void] $tabHeader.Children.Add($tabContext)
+                    $folderTab.Header = $tabHeader
+                } else {
+                    $folderTab.Header = $menuFolderTab.Header
+                }
+                $folderTab.Style = $tabItemStyle
+                $folderTab.Tag = $menuFolder
+                if (-not [string]::IsNullOrWhiteSpace($menuFolder.Description)) {
+                    $folderTab.ToolTip = $menuFolder.Description
+                }
+                [void] $folderTabs.Items.Add($folderTab)
+            }
+            $folderTabs.SelectedItem = $currentTab
+            $script:isRenderingFolderTabs = $false
         } else {
-            @($script:activeSnapshot.Objects | Where-Object {
-                $_.EntryName -eq $script:activeEntryName -and
-                $_.ParentRelativePath -eq $script:currentRelativePath
-            })
+            $candidateItems = if ($isSearching) {
+                @($script:activeSnapshot.Objects | Where-Object {
+                    $_.Name.IndexOf(
+                        $searchText,
+                        [StringComparison]::CurrentCultureIgnoreCase
+                    ) -ge 0
+                })
+            } else {
+                @($script:activeSnapshot.Objects | Where-Object {
+                    $_.EntryName -eq $script:activeEntryName -and
+                    $_.ParentRelativePath -eq $script:currentRelativePath
+                })
+            }
+            $menuFolders = @($candidateItems | Where-Object Kind -eq 'MenuFolder')
         }
 
         $descending = $sortBox.SelectedIndex -eq 1
-        $candidateItems = @($candidateItems | Sort-Object -Property Name -Descending:$descending)
+        if (-not $useTabbedListLayout) {
+            $candidateItems = @(
+                $candidateItems | Sort-Object -Property Name -Descending:$descending
+            )
+        }
         foreach ($item in $candidateItems) {
             $button = [System.Windows.Controls.Button]::new()
-            $button.Style = $buttonStyle
-            $button.Width = 122
-            $button.Height = 112
-            $button.Margin = [System.Windows.Thickness]::new(5)
+            $button.Style = if ($useTabbedListLayout) { $listItemStyle } else { $buttonStyle }
+            if ($useTabbedListLayout) {
+                $button.Height = 66
+                $button.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Stretch
+                $button.Margin = [System.Windows.Thickness]::new(0)
+            } else {
+                $button.Width = 122
+                $button.Height = 112
+                $button.Margin = [System.Windows.Thickness]::new(5)
+            }
             $button.Tag = $item
             $button.ContextMenu = $null
             if (-not [string]::IsNullOrWhiteSpace($item.Description)) {
@@ -426,38 +709,96 @@
                 $button.ToolTip = $tooltip
             }
 
-            $stack = [System.Windows.Controls.StackPanel]::new()
-            $stack.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
             $iconGrid = [System.Windows.Controls.Grid]::new()
-            $iconGrid.Width = 52
-            $iconGrid.Height = 52
+            $iconGrid.Width = if ($useTabbedListLayout) { 36 } else { 52 }
+            $iconGrid.Height = if ($useTabbedListLayout) { 36 } else { 52 }
             $placeholder = [System.Windows.Controls.TextBlock]::new()
             $placeholder.Text = if ($item.Kind -eq 'MenuFolder') { [char] 0xE8B7 } else { [char] 0xE8A5 }
             $placeholder.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-            $placeholder.FontSize = 35
+            $placeholder.FontSize = if ($useTabbedListLayout) { 24 } else { 35 }
             $placeholder.Foreground = $accentBrush
             $placeholder.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
             $placeholder.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
             $image = [System.Windows.Controls.Image]::new()
-            $image.Width = 48
-            $image.Height = 48
+            $image.Width = if ($useTabbedListLayout) { 32 } else { 48 }
+            $image.Height = if ($useTabbedListLayout) { 32 } else { 48 }
             $image.Stretch = [System.Windows.Media.Stretch]::Uniform
             [void] $iconGrid.Children.Add($placeholder)
             [void] $iconGrid.Children.Add($image)
 
             $label = [System.Windows.Controls.TextBlock]::new()
             $label.Text = $item.Name
-            $label.Foreground = $foregroundBrush
-            $label.TextAlignment = [System.Windows.TextAlignment]::Center
-            $label.TextWrapping = [System.Windows.TextWrapping]::Wrap
             $label.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-            $label.MaxHeight = 39
-            $label.Width = 104
-            $label.Margin = [System.Windows.Thickness]::new(0, 7, 0, 0)
+            if ($useTabbedListLayout) {
+                $label.FontSize = 13
+                $label.FontWeight = [System.Windows.FontWeights]::SemiBold
 
-            [void] $stack.Children.Add($iconGrid)
-            [void] $stack.Children.Add($label)
-            $button.Content = $stack
+                $detail = [System.Windows.Controls.TextBlock]::new()
+                $detail.FontSize = 11
+                $detail.Opacity = 0.72
+                $detail.Margin = [System.Windows.Thickness]::new(0, 2, 0, 0)
+                $detail.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+                $detail.Text = if ($isSearching) {
+                    $location = if ($item.ParentRelativePath) {
+                        '{0} › {1}' -f $item.EntryName, $item.ParentRelativePath
+                    } else {
+                        $item.EntryName
+                    }
+                    '{0} | {1}' -f $location, $item.ContentSource
+                } elseif (-not [string]::IsNullOrWhiteSpace($item.Description)) {
+                    $item.Description
+                } else {
+                    $item.ContentSource
+                }
+
+                $textStack = [System.Windows.Controls.StackPanel]::new()
+                $textStack.Margin = [System.Windows.Thickness]::new(12, 0, 12, 0)
+                [void] $textStack.Children.Add($label)
+                [void] $textStack.Children.Add($detail)
+
+                $openIcon = [System.Windows.Controls.TextBlock]::new()
+                $openIcon.Text = [char] 0xE8A7
+                $openIcon.FontFamily = [System.Windows.Media.FontFamily]::new(
+                    'Segoe Fluent Icons'
+                )
+                $openIcon.FontSize = 14
+                $openIcon.Opacity = 0.72
+                $openIcon.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+
+                $rowGrid = [System.Windows.Controls.Grid]::new()
+                [void] $rowGrid.ColumnDefinitions.Add(
+                    [System.Windows.Controls.ColumnDefinition]::new()
+                )
+                $rowGrid.ColumnDefinitions[0].Width = [System.Windows.GridLength]::Auto
+                [void] $rowGrid.ColumnDefinitions.Add(
+                    [System.Windows.Controls.ColumnDefinition]::new()
+                )
+                $rowGrid.ColumnDefinitions[1].Width = [System.Windows.GridLength]::new(
+                    1,
+                    [System.Windows.GridUnitType]::Star
+                )
+                [void] $rowGrid.ColumnDefinitions.Add(
+                    [System.Windows.Controls.ColumnDefinition]::new()
+                )
+                $rowGrid.ColumnDefinitions[2].Width = [System.Windows.GridLength]::Auto
+                [System.Windows.Controls.Grid]::SetColumn($textStack, 1)
+                [System.Windows.Controls.Grid]::SetColumn($openIcon, 2)
+                [void] $rowGrid.Children.Add($iconGrid)
+                [void] $rowGrid.Children.Add($textStack)
+                [void] $rowGrid.Children.Add($openIcon)
+                $button.Content = $rowGrid
+            } else {
+                $stack = [System.Windows.Controls.StackPanel]::new()
+                $stack.HorizontalAlignment = [System.Windows.HorizontalAlignment]::Center
+                $label.TextAlignment = [System.Windows.TextAlignment]::Center
+                $label.TextWrapping = [System.Windows.TextWrapping]::Wrap
+                $label.MaxHeight = 39
+                $label.Width = 104
+                $label.Margin = [System.Windows.Thickness]::new(0, 7, 0, 0)
+                [void] $stack.Children.Add($iconGrid)
+                [void] $stack.Children.Add($label)
+                $button.Content = $stack
+            }
             [void] $itemsPanel.Children.Add($button)
             [void] $script:visibleButtons.Add($button)
 
@@ -551,18 +892,37 @@
 
         if ($candidateItems.Count -eq 0) {
             $emptyText = [System.Windows.Controls.TextBlock]::new()
-            $emptyText.Text = if ($isSearching) { 'No matching items' } else { 'This folder is empty' }
+            $emptyText.Text = if ($isSearching -and $menuFolders.Count -gt 0) {
+                'Matching folders are shown as tabs'
+            } elseif ($isSearching) {
+                'No matching items'
+            } elseif ($useTabbedListLayout -and $menuFolders.Count -gt 0) {
+                'Select a folder tab'
+            } else {
+                'This folder is empty'
+            }
             $emptyText.Foreground = $secondaryBrush
             $emptyText.FontSize = 16
             $emptyText.Margin = [System.Windows.Thickness]::new(24, 60, 24, 24)
             [void] $itemsPanel.Children.Add($emptyText)
         }
 
-        $statusText.Text = if ($isSearching) {
-            '{0} results across all Start Entries' -f $candidateItems.Count
+        $visibleCount = if ($useTabbedListLayout) {
+            $tabbedContent.VisibleCount
         } else {
-            '{0} items' -f $candidateItems.Count
+            $candidateItems.Count
         }
+        $statusText.Text = if ($isSearching) {
+            '{0} results across all Start Entries' -f $visibleCount
+        } else {
+            '{0} items' -f $visibleCount
+        }
+        $timerParameters = @{
+            Timer       = $iconTimer
+            IconJobs    = $script:iconJobs
+            CapturePath = $CapturePath
+        }
+        $null = Invoke-LaunchTreeIconTimer @timerParameters
         $interactionStopwatch.Stop()
         $performanceParameters = @{
             Configuration = $script:activeConfiguration
@@ -652,14 +1012,24 @@
 
                 $script:activeConfiguration = $nextConfiguration
                 $script:activeSnapshot = $nextSnapshot
-                $script:activeEntryName = $nextEntry.Name
-                $script:currentRelativePath = ''
+                $navigationParameters = @{
+                    Action              = 'ActivateEntry'
+                    EntryName           = $script:activeEntryName
+                    CurrentRelativePath = $script:currentRelativePath
+                    ActivatedEntryName  = $nextEntry.Name
+                }
+                $navigationState = Get-LaunchTreeNavigationState @navigationParameters
+                $script:activeEntryName = $navigationState.EntryName
+                $script:currentRelativePath = $navigationState.RelativePath
                 $title.Text = $nextEntry.Name
                 $window.Title = $nextEntry.Name
-                $breadcrumb.Text = $nextEntry.Name
-                $backButton.IsEnabled = $false
-                $searchBox.Text = ''
-                & $renderItems
+                $backButton.IsEnabled = $navigationState.BackEnabled
+                if ($navigationState.ClearSearch -and
+                    -not [string]::IsNullOrWhiteSpace($searchBox.Text)) {
+                    $searchBox.Text = ''
+                } else {
+                    & $renderItems
+                }
                 [void] $window.Activate()
             } catch {
                 $activationError = $_
@@ -674,15 +1044,49 @@
         if ([string]::IsNullOrWhiteSpace($script:currentRelativePath)) {
             return
         }
-        $parent = [IO.Path]::GetDirectoryName($script:currentRelativePath)
-        $script:currentRelativePath = if ($parent) { $parent } else { '' }
-        $breadcrumb.Text = if ($script:currentRelativePath) {
-            @($script:activeEntryName, $script:currentRelativePath) -join '  ›  '
-        } else {
-            $script:activeEntryName
+        $navigationParameters = @{
+            Action              = 'Back'
+            EntryName           = $script:activeEntryName
+            CurrentRelativePath = $script:currentRelativePath
         }
-        $backButton.IsEnabled = -not [string]::IsNullOrWhiteSpace($script:currentRelativePath)
-        & $renderItems
+        $navigationState = Get-LaunchTreeNavigationState @navigationParameters
+        $script:activeEntryName = $navigationState.EntryName
+        $script:currentRelativePath = $navigationState.RelativePath
+        $backButton.IsEnabled = $navigationState.BackEnabled
+        if ($navigationState.ClearSearch -and
+            -not [string]::IsNullOrWhiteSpace($searchBox.Text)) {
+            $searchBox.Text = ''
+        } else {
+            & $renderItems
+        }
+    })
+    $folderTabs.Add_SelectionChanged({
+        if (-not $useTabbedListLayout -or $script:isRenderingFolderTabs) {
+            return
+        }
+        $selectedTab = $folderTabs.SelectedItem
+        if (-not $selectedTab -or -not $selectedTab.Tag) {
+            return
+        }
+
+        $navigationParameters = @{
+            Action              = 'SelectFolder'
+            EntryName           = $script:activeEntryName
+            CurrentRelativePath = $script:currentRelativePath
+            Folder              = $selectedTab.Tag
+        }
+        $navigationState = Get-LaunchTreeNavigationState @navigationParameters
+        $script:activeEntryName = $navigationState.EntryName
+        $script:currentRelativePath = $navigationState.RelativePath
+        $title.Text = $navigationState.EntryName
+        $window.Title = $navigationState.EntryName
+        $backButton.IsEnabled = $navigationState.BackEnabled
+        if ($navigationState.ClearSearch -and
+            -not [string]::IsNullOrWhiteSpace($searchBox.Text)) {
+            $searchBox.Text = ''
+        } else {
+            & $renderItems
+        }
     })
     $closeButton.Add_Click({ $window.Close() })
     $sortBox.Add_SelectionChanged({ & $renderItems })
@@ -714,7 +1118,8 @@
             [System.Windows.Input.Key]::Right,
             [System.Windows.Input.Key]::Up,
             [System.Windows.Input.Key]::Down
-        ) -and $script:visibleButtons.Count -gt 0) {
+        ) -and $script:visibleButtons.Count -gt 0 -and
+            (-not $useTabbedListLayout -or -not $folderTabs.IsKeyboardFocusWithin)) {
             $currentIndex = -1
             for ($index = 0; $index -lt $script:visibleButtons.Count; $index++) {
                 if ($script:visibleButtons[$index].IsKeyboardFocused) {
@@ -722,7 +1127,11 @@
                     break
                 }
             }
-            $columns = [Math]::Max(1, [int] [Math]::Floor($itemsPanel.ActualWidth / 132))
+            $columns = if ($useTabbedListLayout) {
+                1
+            } else {
+                [Math]::Max(1, [int] [Math]::Floor($itemsPanel.ActualWidth / 132))
+            }
             $delta = switch ($eventArguments.Key) {
                 Left { -1 }
                 Right { 1 }
@@ -766,9 +1175,12 @@
         if ($window.Top -lt $workArea.Top) {
             $window.Top = $workArea.Top
         }
-        if (-not $CapturePath -and $script:iconJobs.Count -gt 0) {
-            $iconTimer.Start()
+        $timerParameters = @{
+            Timer       = $iconTimer
+            IconJobs    = $script:iconJobs
+            CapturePath = $CapturePath
         }
+        $null = Invoke-LaunchTreeIconTimer @timerParameters
         if ($ActivationServer) {
             $activationTimer.Start()
         }

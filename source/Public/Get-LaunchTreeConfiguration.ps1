@@ -179,6 +179,20 @@ function Get-LaunchTreeConfiguration {
             }
         }
 
+        if ($machineData.PSObject.Properties['LauncherLayout']) {
+            if ($machineData.LauncherLayout -in @('Grid', 'TabbedList')) {
+                $configuration['LauncherLayout'] = [string] $machineData.LauncherLayout
+            } else {
+                $findingParameters = @{
+                    Code     = 'LauncherLayoutInvalid'
+                    Severity = 'Warning'
+                    Message  = 'LauncherLayout must be Grid or TabbedList.'
+                    Path     = $ConfigurationPath
+                }
+                [void] $healthFindings.Add((New-LaunchTreeHealthFinding @findingParameters))
+            }
+        }
+
         if ($machineData.PSObject.Properties['DefaultSortOrder']) {
             if ($machineData.DefaultSortOrder -in @('NameAscending', 'NameDescending')) {
                 $configuration['SortOrder'] = [string] $machineData.DefaultSortOrder
@@ -372,6 +386,7 @@ function Get-LaunchTreeConfiguration {
         PersonalRoot      = $configuration.PersonalRoot
         MaximumDepth      = $configuration.MaximumDepth
         LauncherHost      = $configuration.LauncherHost
+        LauncherLayout    = $configuration.LauncherLayout
         SortOrder         = $configuration.SortOrder
         CloseAfterLaunch  = $configuration.CloseAfterLaunch
         Cache             = [PSCustomObject] $configuration.Cache

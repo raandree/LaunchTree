@@ -5,6 +5,7 @@
     "PersonalRoot": "%APPDATA%\\LaunchTree\\LaunchTree",
     "MaximumDepth": 5,
     "LauncherHost": "WindowsPowerShell",
+    "LauncherLayout": "Grid",
     "DefaultSortOrder": "NameAscending",
     "CloseAfterLaunch": true,
     "Cache": {

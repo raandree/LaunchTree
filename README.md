@@ -6,8 +6,6 @@ for managed Entry Roots and opens their recursive content in a WPF Launcher.
 The module is under active development. Its signed behavior and release gates
 are defined in the [specifications](docs/specifications/README.md).
 
-![Dark-theme Launcher showing recursive folders and high-resolution icons](docs/images/wpf/launcher-default.png)
-
 ## Getting started
 
 Follow the [getting-started guide](docs/getting-started.md) to build or install
@@ -32,6 +30,20 @@ C:\ProgramData\LaunchTree\LaunchTree
 Every immediate directory becomes a Start Entry. Nested directories become
 Menu Folders. `.lnk` files and HTTP(S) `.url` files become Launch Items.
 Optional UTF-8 `description.txt` files provide Menu Folder tooltips.
+
+## Launcher layouts
+
+Set `LauncherLayout` in the machine configuration to choose the presentation.
+`Grid` remains the default. `TabbedList` shows Menu Folders as tabs, places the
+active description above them, and renders Launch Items as compact rows.
+
+### Grid
+
+![Default dark-theme Grid Launcher](docs/images/wpf/launcher-default.png)
+
+### Tabbed list
+
+![Dark-theme TabbedList Launcher](docs/images/wpf/launcher-tabbed-list.png)
 
 ## Commands
 

@@ -35,6 +35,7 @@ function Get-LaunchTreeDefaultConfiguration {
         PersonalRoot     = Join-Path -Path $roamingRoot -ChildPath 'LaunchTree'
         MaximumDepth     = 5
         LauncherHost     = 'WindowsPowerShell'
+        LauncherLayout   = 'Grid'
         SortOrder        = 'NameAscending'
         CloseAfterLaunch = $true
         Cache            = [ordered] @{

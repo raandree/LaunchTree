@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-28
+last-verified: 2026-07-29
 owner: active-agent
 source: repository evidence
 ---
@@ -38,12 +38,13 @@ source: repository evidence
   records, and signed design pass.
 - Single-file script: generated during `build`, parse-checked by the generator,
   and verified with no reachable module (45 commands, Reconciliation, health).
-- Full detached Sampler workflow: 131 tests pass under PowerShell 7.
-- Full detached Sampler workflow: 131 tests pass under Windows PowerShell 5.1
+- Full detached Sampler workflow: 159 tests pass under PowerShell 7.
+- Full detached Sampler workflow: 159 tests pass under Windows PowerShell 5.1
   with one intentional host-dependent skip.
 - Recursive PSScriptAnalyzer: zero production-source findings.
-- `tools/New-LauncherScreenshot.ps1`: nonblank WPF frame, `1120x866`, 17 sampled
-  colors, and 49,022 bytes.
+- `tools/New-LauncherScreenshot.ps1`: nonblank `Grid` frame at `1120x866` with
+  15 sampled colors and `TabbedList` frame at `1001x1060` with 12 sampled
+  colors; the tool rejects stale builds and wrong layout aspect ratios.
 - `tools/Test-OfflineLifecycle.ps1`: copied module version `0.2.0`, health
   `Healthy`, WPF capture, successful removal, and zero runtime dependencies.
 - External visual-scale/theme, Windows Server, ARM64, AppLocker/WDAC, and live

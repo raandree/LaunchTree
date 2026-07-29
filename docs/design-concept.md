@@ -37,6 +37,10 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   existing window and switches it to the requested entry.
 - Navigate nested directories in the same window with Back and breadcrumb
   affordances.
+- Keep the responsive grid as the default Launcher layout and allow machine
+  configuration to select a tabbed list layout. In the tabbed list layout,
+  Menu Folders are tabs, the active description appears above the tabs, and
+  Launch Items appear as compact rows.
 - Provide global type-to-search across all configured entries.
 - Follow Windows light, dark, and high-contrast settings.
 - Place the window near the Start button, fit it to content within screen
@@ -167,11 +171,15 @@ reconciled transactionally.
 
 ### WPF launcher
 
-The launcher presents a responsive Windows 11-inspired grid using stable item
-dimensions. Folders and links are sorted together by the selected name order.
-Folder activation replaces the current view in the same window. Back and
-breadcrumb navigation restore parent context. Empty folders remain visible and
-open to an explicit empty state.
+The Launcher provides two Windows-inspired layouts selected by machine
+configuration. `Grid` is the default and presents Menu Folders and Launch Items
+together in a responsive grid using stable item dimensions. `TabbedList`
+presents the current Menu Folder and its child Menu Folders as tabs, shows the
+active description above the tab strip, and presents Launch Items as compact
+rows. Both layouts use the selected name order. Menu Folder activation replaces
+the current view in the same window. Back and breadcrumb navigation restore
+parent context. Empty Menu Folders remain visible and open to an explicit empty
+state.
 
 Search covers every configured entry and shows enough path and source context
 to distinguish duplicate names. Right-click events are consumed throughout

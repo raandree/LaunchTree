@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-28
+last-verified: 2026-07-29
 owner: active-agent
 source: current task evidence
 ---
@@ -22,7 +22,8 @@ while preserving the approved behavior and security boundaries.
 - Seven exported commands implement configuration, health, Reconciliation,
     Launcher display, diagnostics, Support Bundle export, and removal.
 - Full Sampler workflows pass under PowerShell 7 and Windows PowerShell 5.1
-    with 131 tests, zero failures, and one intentional host-dependent skip.
+    with 159 tests, zero failures, and one intentional host-dependent skip on
+    Windows PowerShell 5.1.
 - The isolated file-copy lifecycle is `Healthy`, exercises the Launcher, and
     removes Generated State with zero runtime dependencies.
 - Independent security and quality re-review approved the implementation with
@@ -33,6 +34,11 @@ while preserving the approved behavior and security boundaries.
 - The product, module, command noun prefix, paths, configuration file names,
     Event Log name and source, and type names are renamed to `LaunchTree`
     before first release, so no deployed Generated State needs migration.
+- Machine configuration selects the Launcher Layout: `Grid` remains the
+    default, while `TabbedList` shows Menu Folders as tabs, the active
+    description above them, and Launch Items as compact rows.
+- Deterministic nonblank captures validate both layouts; independent re-review
+    approved the change with no remaining Blocker or Major findings.
 
 ## Next step
 

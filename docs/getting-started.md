@@ -162,14 +162,17 @@ Inspect the settings before creating content:
 $configuration = Get-LaunchTreeConfiguration
 $configuration |
     Select-Object IsValid, ConfigurationPath, ManagedRoot, PersonalRoot,
-        LauncherHost
+        LauncherHost, LauncherLayout
 $configuration.HealthFindings |
     Format-Table Severity, Code, Message, Path -AutoSize
 ```
 
 `IsValid` must be `True`. To change the defaults, copy the
 [machine configuration example](examples/LaunchTree.json) to the machine
-configuration path, edit it, and run this inspection again.
+configuration path, edit it, and run this inspection again. Keep
+`LauncherLayout` as `Grid` for the default tile presentation or set it to
+`TabbedList` for Menu Folder tabs, visible descriptions, and compact Launch
+Item rows.
 
 ## Create the first Entry Root manually
 

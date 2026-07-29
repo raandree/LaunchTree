@@ -80,7 +80,10 @@ sessions for one account, must have independent Launcher processes.
 
 Activating a Menu Folder must replace the visible content in the same window.
 Back and breadcrumb controls must restore parent context. Empty Menu Folders
-must open an explicit empty state.
+must open an explicit empty state. `Grid` must remain the default Launcher
+layout. When machine configuration selects `TabbedList`, the current Menu
+Folder and its child Menu Folders must be tabs, the active description must
+appear above the tabs, and Launch Items must appear as compact list rows.
 
 ### FR-012 Search all Entry Roots
 
@@ -90,7 +93,9 @@ enough relative path and Content Source context to distinguish equal names.
 ### FR-013 Sort by localized name
 
 The Launcher must support locale-aware, case-insensitive `NameAscending` and
-`NameDescending` ordering. Menu Folders and Launch Items must sort together.
+`NameDescending` ordering. `Grid` must sort Menu Folders and Launch Items
+together. `TabbedList` must independently sort Menu Folder tabs and Launch Item
+rows.
 
 ### FR-014 Follow Windows presentation settings
 
@@ -259,3 +264,4 @@ content.
 | AS-015 | Configuration uses an unsupported future schema version | Reconciliation refuses mutation and the Launcher shows an incompatible-configuration error |
 | AS-016 | Configuration and diagnostic commands run before any user preference file exists | Both commands return structured, redacted objects and create no files |
 | AS-017 | Touch press-and-hold occurs on each Launcher object type | No activation or context menu occurs |
+| AS-018 | Machine configuration selects `TabbedList` for an Entry Root with descriptions, nested Menu Folders, and Launch Items | The Launcher shows descriptions above Menu Folder tabs and renders Launch Items as compact rows; omitting the setting retains `Grid` |
