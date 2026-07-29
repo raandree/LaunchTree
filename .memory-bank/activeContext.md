@@ -22,8 +22,8 @@ while preserving the approved behavior and security boundaries.
 - Seven exported commands implement configuration, health, Reconciliation,
     Launcher display, diagnostics, Support Bundle export, and removal.
 - Full Sampler workflows pass under PowerShell 7 and Windows PowerShell 5.1
-    with 159 tests, zero failures, and one intentional host-dependent skip on
-    Windows PowerShell 5.1.
+    with 173 tests, zero failures, and one intentional host-dependent skip in
+    each supported edition.
 - The isolated file-copy lifecycle is `Healthy`, exercises the Launcher, and
     removes Generated State with zero runtime dependencies.
 - Independent security and quality re-review approved the implementation with
@@ -37,11 +37,13 @@ while preserving the approved behavior and security boundaries.
 - Machine configuration selects the Launcher Layout: `TabbedList` is the
     customer-requested default showing Menu Folders as tabs, the active
     description above them, and Launch Items as compact rows; `Grid` remains
-    selectable for the tile presentation.- `TabbedList` tab selection keeps the tab strip visible: a tab highlights and
-  opens in place, and only a Menu Folder list row moves the strip deeper. The
-  tab strip's owning Entry Root or Menu Folder keeps a tab only while it holds a
-  Launch Item of its own; otherwise the first child tab is selected.- Deterministic nonblank captures validate both layouts; independent re-review
-    approved the change with no remaining Blocker or Major findings.
+    selectable for the tile presentation.
+- `TabbedList` tab selection keeps the tab strip visible: a tab highlights and
+    opens in place, and only a Menu Folder list row moves the strip deeper.
+- The tab strip's owning Entry Root or Menu Folder keeps a tab only while it
+    holds a Launch Item of its own; otherwise the first child tab is selected.
+- Deterministic nonblank captures validate both Launcher Layouts; independent
+    re-review approved the change with no remaining Blocker or Major findings.
 - `CR-013` lets a caller relocate the menu for one invocation through
     `ManagedRoot` and `PersonalRoot` parameters on the read commands, while
     persistent relocation still belongs in the machine configuration.

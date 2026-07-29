@@ -160,10 +160,11 @@ release remains gated by external environment evidence.
   redirects the selection to the first child Menu Folder when the owning folder
   holds no Launch Item of its own; the owning tab survives only when no child
   tab can replace it, so a wholly empty Entry Root still renders. Added `AS-020`
-  and extended `FR-011`. Full suite green: 173 passed, 1 intentional skip, 0
-  failed; build clean with 0 errors and 0 warnings; a live capture of the
-  reported Entry Root shows the `Node.js` and `Pandoc` tabs with `Node.js`
-  selected and no `x1` tab.
+  and extended `FR-011`. Full workflows under PowerShell 7 and Windows
+  PowerShell 5.1 are green: 173 passed, 1 intentional skip, 0 failed in each;
+  builds are clean with 0 errors and 0 warnings. A live capture of the reported
+  Entry Root shows the `Node.js` and `Pandoc` tabs with `Node.js` selected and
+  no `x1` tab.
 
 ## Stable capabilities
 
