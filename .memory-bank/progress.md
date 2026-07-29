@@ -113,6 +113,12 @@ release remains gated by external environment evidence.
   layouts; and passed 159 tests in PowerShell 7 plus 159 tests with one
   intentional skip in Windows PowerShell 5.1. Independent re-review approved
   with no Blocker or Major findings.
+- 2026-07-29: Made `TabbedList` the default Launcher Layout on customer
+  request; `Grid` stays selectable through `LauncherLayout`. Updated the
+  signed design override log, `CR-005`, `FR-011`, `FR-013`, `AS-018`, the
+  example configuration, and operator docs, and renamed the Grid screenshot to
+  `launcher-grid.png` so the capture tool derives each file name from its
+  layout.
 
 ## Stable capabilities
 

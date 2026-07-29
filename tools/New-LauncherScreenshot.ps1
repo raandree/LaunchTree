@@ -3,14 +3,22 @@
 param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $Path = (Join-Path $PSScriptRoot '../docs/images/wpf/launcher-default.png'),
+    [string] $Path,
 
     [Parameter()]
     [ValidateSet('Grid', 'TabbedList')]
-    [string] $LauncherLayout = 'Grid'
+    [string] $LauncherLayout = 'TabbedList'
 )
 
 $ErrorActionPreference = 'Stop'
+if (-not $PSBoundParameters.ContainsKey('Path')) {
+    $layoutFileName = if ($LauncherLayout -eq 'TabbedList') {
+        'launcher-tabbed-list.png'
+    } else {
+        'launcher-grid.png'
+    }
+    $Path = Join-Path $PSScriptRoot "../docs/images/wpf/$layoutFileName"
+}
 $repositoryRoot = Split-Path -Path $PSScriptRoot -Parent
 $moduleManifest = Get-ChildItem -LiteralPath (
     Join-Path $repositoryRoot 'output/module/LaunchTree'

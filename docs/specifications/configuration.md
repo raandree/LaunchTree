@@ -63,7 +63,7 @@ Reconciliation must refuse every mutation without reading other fields.
   "PersonalRoot": "%APPDATA%\\LaunchTree\\LaunchTree",
   "MaximumDepth": 5,
   "LauncherHost": "WindowsPowerShell",
-  "LauncherLayout": "Grid",
+  "LauncherLayout": "TabbedList",
   "DefaultSortOrder": "NameAscending",
   "CloseAfterLaunch": true,
   "Cache": {
@@ -89,7 +89,7 @@ Reconciliation must refuse every mutation without reading other fields.
 | `PersonalRoot` | String | Derived by `CR-002` | Absolute path after expansion in user context |
 | `MaximumDepth` | Integer | `5` | Inclusive range `1..32` |
 | `LauncherHost` | String | `WindowsPowerShell` | `WindowsPowerShell` or `PowerShell7` |
-| `LauncherLayout` | String | `Grid` | `Grid` or `TabbedList` |
+| `LauncherLayout` | String | `TabbedList` | `Grid` or `TabbedList` |
 | `DefaultSortOrder` | String | `NameAscending` | `NameAscending` or `NameDescending` |
 | `CloseAfterLaunch` | Boolean | `true` | No coercion from strings or numbers |
 | `Cache.MaximumSizeMB` | Integer | `64` | Inclusive range `16..256` |

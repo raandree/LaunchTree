@@ -34,16 +34,17 @@ Optional UTF-8 `description.txt` files provide Menu Folder tooltips.
 ## Launcher layouts
 
 Set `LauncherLayout` in the machine configuration to choose the presentation.
-`Grid` remains the default. `TabbedList` shows Menu Folders as tabs, places the
-active description above them, and renders Launch Items as compact rows.
+`TabbedList` is the default: Menu Folders become tabs, the active description
+sits above them, and Launch Items render as compact rows. Select `Grid` for the
+tile presentation.
+
+### Tabbed list (default)
+
+![Default dark-theme TabbedList Launcher](docs/images/wpf/launcher-tabbed-list.png)
 
 ### Grid
 
-![Default dark-theme Grid Launcher](docs/images/wpf/launcher-default.png)
-
-### Tabbed list
-
-![Dark-theme TabbedList Launcher](docs/images/wpf/launcher-tabbed-list.png)
+![Dark-theme Grid Launcher](docs/images/wpf/launcher-grid.png)
 
 ## Commands
 

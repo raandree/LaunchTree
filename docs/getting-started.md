@@ -169,10 +169,9 @@ $configuration.HealthFindings |
 
 `IsValid` must be `True`. To change the defaults, copy the
 [machine configuration example](examples/LaunchTree.json) to the machine
-configuration path, edit it, and run this inspection again. Keep
-`LauncherLayout` as `Grid` for the default tile presentation or set it to
-`TabbedList` for Menu Folder tabs, visible descriptions, and compact Launch
-Item rows.
+configuration path, edit it, and run this inspection again. `LauncherLayout`
+defaults to `TabbedList`, which shows Menu Folder tabs, visible descriptions,
+and compact Launch Item rows. Set it to `Grid` for the tile presentation.
 
 ## Create the first Entry Root manually
 

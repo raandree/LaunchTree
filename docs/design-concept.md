@@ -2,7 +2,8 @@
 
 > Status: SIGNED OFF
 > Interview conducted: 2026-07-28
-> Override log: empty
+> Override log: 2026-07-29 - customer requirement makes `TabbedList` the
+> default Launcher layout; `Grid` remains available by configuration.
 
 ## Purpose
 
@@ -37,8 +38,8 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   existing window and switches it to the requested entry.
 - Navigate nested directories in the same window with Back and breadcrumb
   affordances.
-- Keep the responsive grid as the default Launcher layout and allow machine
-  configuration to select a tabbed list layout. In the tabbed list layout,
+- Use the tabbed list as the default Launcher layout and allow machine
+  configuration to select the responsive grid. In the tabbed list layout,
   Menu Folders are tabs, the active description appears above the tabs, and
   Launch Items appear as compact rows.
 - Provide global type-to-search across all configured entries.
@@ -172,11 +173,11 @@ reconciled transactionally.
 ### WPF launcher
 
 The Launcher provides two Windows-inspired layouts selected by machine
-configuration. `Grid` is the default and presents Menu Folders and Launch Items
-together in a responsive grid using stable item dimensions. `TabbedList`
-presents the current Menu Folder and its child Menu Folders as tabs, shows the
-active description above the tab strip, and presents Launch Items as compact
-rows. Both layouts use the selected name order. Menu Folder activation replaces
+configuration. `TabbedList` is the default and presents the current Menu Folder
+and its child Menu Folders as tabs, shows the active description above the tab
+strip, and presents Launch Items as compact rows. `Grid` presents Menu Folders
+and Launch Items together in a responsive grid using stable item dimensions.
+Both layouts use the selected name order. Menu Folder activation replaces
 the current view in the same window. Back and breadcrumb navigation restore
 parent context. Empty Menu Folders remain visible and open to an explicit empty
 state.

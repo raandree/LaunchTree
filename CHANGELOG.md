@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add an opt-in `TabbedList` Launcher layout with Menu Folder tabs, the active
-  description above the tabs, and compact Launch Item rows while retaining
-  `Grid` as the default
+- Add a `TabbedList` Launcher layout with Menu Folder tabs, the active
+  description above the tabs, and compact Launch Item rows; it is the default
+  presentation, and `LauncherLayout` selects `Grid` for the tile layout
 - Add a generated single-file `LaunchTree.ps1` delivery that contains the whole
   module logic, runs without installing a module, supports dot-sourcing and
   `-Command` dispatch, and points its Start Entries at the script itself; the

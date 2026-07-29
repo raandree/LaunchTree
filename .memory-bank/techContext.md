@@ -42,9 +42,9 @@ source: repository evidence
 - Full detached Sampler workflow: 159 tests pass under Windows PowerShell 5.1
   with one intentional host-dependent skip.
 - Recursive PSScriptAnalyzer: zero production-source findings.
-- `tools/New-LauncherScreenshot.ps1`: nonblank `Grid` frame at `1120x866` with
-  15 sampled colors and `TabbedList` frame at `1001x1060` with 12 sampled
-  colors; the tool rejects stale builds and wrong layout aspect ratios.
+- `tools/New-LauncherScreenshot.ps1`: nonblank default `TabbedList` frame at
+  `1001x1060` with 12 sampled colors and `Grid` frame at `1120x866` with 15
+  sampled colors; the tool rejects stale builds and wrong layout aspect ratios.
 - `tools/Test-OfflineLifecycle.ps1`: copied module version `0.2.0`, health
   `Healthy`, WPF capture, successful removal, and zero runtime dependencies.
 - External visual-scale/theme, Windows Server, ARM64, AppLocker/WDAC, and live

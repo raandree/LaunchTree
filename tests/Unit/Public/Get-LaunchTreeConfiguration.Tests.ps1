@@ -48,7 +48,7 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
             )
             $result.MaximumDepth | Should -Be 5
             $result.LauncherHost | Should -Be 'WindowsPowerShell'
-            $result.LauncherLayout | Should -Be 'Grid'
+            $result.LauncherLayout | Should -Be 'TabbedList'
             $result.SortOrder | Should -Be 'NameAscending'
             $result.CloseAfterLaunch | Should -BeTrue
             $result.Cache.MaximumSizeMB | Should -Be 64
@@ -70,7 +70,7 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
                 PersonalRoot    = (Join-Path $TestDrive 'Personal')
                 MaximumDepth    = 9
                 LauncherHost    = 'PowerShell7'
-                LauncherLayout  = 'TabbedList'
+                LauncherLayout  = 'Grid'
                 DefaultSortOrder = 'NameAscending'
                 CloseAfterLaunch = $true
                 Cache           = @{
@@ -106,7 +106,7 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
             $result.VendorName | Should -Be 'Contoso'
             $result.MaximumDepth | Should -Be 9
             $result.LauncherHost | Should -Be 'PowerShell7'
-            $result.LauncherLayout | Should -Be 'TabbedList'
+            $result.LauncherLayout | Should -Be 'Grid'
             $result.SortOrder | Should -Be 'NameDescending'
             $result.CloseAfterLaunch | Should -BeFalse
             $result.Window.Width | Should -Be 840
@@ -205,7 +205,7 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
 
             $result = Get-LaunchTreeConfiguration -ConfigurationPath $configurationPath
 
-            $result.LauncherLayout | Should -Be 'Grid'
+            $result.LauncherLayout | Should -Be 'TabbedList'
             $result.HealthFindings.Code | Should -Contain 'LauncherLayoutInvalid'
         }
     }

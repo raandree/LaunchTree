@@ -34,9 +34,10 @@ while preserving the approved behavior and security boundaries.
 - The product, module, command noun prefix, paths, configuration file names,
     Event Log name and source, and type names are renamed to `LaunchTree`
     before first release, so no deployed Generated State needs migration.
-- Machine configuration selects the Launcher Layout: `Grid` remains the
-    default, while `TabbedList` shows Menu Folders as tabs, the active
-    description above them, and Launch Items as compact rows.
+- Machine configuration selects the Launcher Layout: `TabbedList` is the
+    customer-requested default showing Menu Folders as tabs, the active
+    description above them, and Launch Items as compact rows; `Grid` remains
+    selectable for the tile presentation.
 - Deterministic nonblank captures validate both layouts; independent re-review
     approved the change with no remaining Blocker or Major findings.
 
