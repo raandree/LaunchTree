@@ -14,6 +14,12 @@ function Export-LaunchTreeSupportBundle {
         .PARAMETER ConfigurationPath
             Specifies an alternate machine configuration JSON file.
 
+        .PARAMETER ManagedRoot
+            Overrides the Managed Root that supplies Entry Roots.
+
+        .PARAMETER PersonalRoot
+            Overrides the Personal Root merged into matching Entry Roots.
+
         .EXAMPLE
             Export-LaunchTreeSupportBundle -Path C:\Temp\LaunchTree.zip
 
@@ -28,7 +34,15 @@ function Export-LaunchTreeSupportBundle {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $ConfigurationPath
+        [string] $ConfigurationPath,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $ManagedRoot,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $PersonalRoot
     )
 
     $outputPath = [IO.Path]::GetFullPath($Path)
@@ -40,12 +54,14 @@ function Export-LaunchTreeSupportBundle {
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
     }
-    $configuration = Get-LaunchTreeConfiguration @configurationParameters
-    $healthParameters = @{}
-    if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
-        $healthParameters.ConfigurationPath = $ConfigurationPath
+    if ($PSBoundParameters.ContainsKey('ManagedRoot')) {
+        $configurationParameters.ManagedRoot = $ManagedRoot
     }
-    $health = Test-LaunchTree @healthParameters
+    if ($PSBoundParameters.ContainsKey('PersonalRoot')) {
+        $configurationParameters.PersonalRoot = $PersonalRoot
+    }
+    $configuration = Get-LaunchTreeConfiguration @configurationParameters
+    $health = Test-LaunchTree @configurationParameters
     $diagnostics = @(Get-LaunchTreeDiagnostic -LogName $configuration.Diagnostics.LogName)
 
     $temporaryPath = Join-Path $env:TEMP (

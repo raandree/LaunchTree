@@ -209,4 +209,41 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
             $result.HealthFindings.Code | Should -Contain 'LauncherLayoutInvalid'
         }
     }
+
+    Context 'When root overrides are supplied as parameters' {
+        It 'Should apply CR-013 precedence over machine configuration roots' {
+            $configurationPath = Join-Path -Path $TestDrive -ChildPath 'machine.json'
+            $overrideManagedRoot = Join-Path -Path $TestDrive -ChildPath 'OverrideManaged'
+            $overridePersonalRoot = Join-Path -Path $TestDrive -ChildPath 'OverridePersonal'
+            @{
+                SchemaVersion = 1
+                ManagedRoot   = (Join-Path $TestDrive 'FileManaged')
+                PersonalRoot  = (Join-Path $TestDrive 'FilePersonal')
+            } | ConvertTo-Json |
+                Set-Content -LiteralPath $configurationPath -Encoding UTF8
+
+            $parameters = @{
+                ConfigurationPath = $configurationPath
+                ManagedRoot       = $overrideManagedRoot
+                PersonalRoot      = $overridePersonalRoot
+            }
+
+            $result = Get-LaunchTreeConfiguration @parameters
+
+            $result.ManagedRoot | Should -Be $overrideManagedRoot
+            $result.PersonalRoot | Should -Be $overridePersonalRoot
+            $result.HealthFindings | Should -BeNullOrEmpty
+        }
+
+        It 'Should expand environment variables in an overridden root' {
+            $result = Get-LaunchTreeConfiguration -ManagedRoot '%ProgramData%\Contoso\Menu'
+
+            $result.ManagedRoot | Should -Be (Join-Path $env:ProgramData 'Contoso\Menu')
+        }
+
+        It 'Should reject a relative root override instead of falling back' {
+            { Get-LaunchTreeConfiguration -ManagedRoot 'Relative\Menu' } |
+                Should -Throw -ExpectedMessage '*absolute path*'
+        }
+    }
 }

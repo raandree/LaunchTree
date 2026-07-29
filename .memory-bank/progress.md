@@ -132,6 +132,17 @@ release remains gated by external environment evidence.
   wrong folder because it rebuilt the tab collection from shared selection
   state; each tab now carries its own folder and navigates from its own click,
   verified by clicking `Canon Utilities` and reading back its four subfolders.
+- 2026-07-29: Added `CR-013` root override parameters on customer request.
+  `ManagedRoot` and `PersonalRoot` now override the machine configuration for a
+  single call to `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
+  `Test-LaunchTree`, and `Export-LaunchTreeSupportBundle`; an override is
+  environment-expanded and must be absolute, and a relative value throws instead
+  of falling back to an unintended root. `Update-LaunchTree` is deliberately
+  excluded because an activated Start Entry re-resolves the root from the
+  configuration file. The single-file script now also rejects a parameter the
+  selected `-Command` cannot use instead of discarding it silently, which is
+  what made `-Path` look like it relocated the menu. Full suite green: 167
+  passed, 0 failed.
 
 ## Stable capabilities
 

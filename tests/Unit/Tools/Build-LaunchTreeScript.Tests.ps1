@@ -51,6 +51,21 @@ Describe 'Build-LaunchTreeScript' -Tag 'Unit' {
         }
     }
 
+    It 'Should expose the CR-013 root overrides on the standalone parameter surface' {
+        $script:content | Should -Match '\[string\] \$ManagedRoot'
+        $script:content | Should -Match '\[string\] \$PersonalRoot'
+    }
+
+    It 'Should reject a parameter the selected command does not support' {
+        $unsupported = @{
+            Command = 'GetConfiguration'
+            Path    = Join-Path $TestDrive 'bundle.zip'
+        }
+
+        { & $script:outputPath @unsupported } |
+            Should -Throw -ExpectedMessage '*does not support*Path*'
+    }
+
     It 'Should resolve a standalone runtime context without an imported module' {
         $probe = {
             param($ScriptPath)

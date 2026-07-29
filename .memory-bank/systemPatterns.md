@@ -42,6 +42,11 @@ so the first failure stops the block instead of cascading.
 
 ## Constraints
 
+Root resolution has one owner, `Get-LaunchTreeConfiguration`; commands forward
+the `CR-013` `ManagedRoot` and `PersonalRoot` overrides to it. An invalid
+override throws instead of falling back, and `Update-LaunchTree` refuses them
+because an activated Start Entry re-resolves its root from the configuration.
+
 The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
 `Invoke-LaunchTreeStandardUserEventProbe`) launches a de-elevated process with
 `CreateProcessWithTokenW` and the UAC-linked token. From an interactive elevated
@@ -85,16 +90,11 @@ standard-user probe.
 
 ## Decisions
 
-### Decision 1: Use the canonical Memory Bank base
-
-- Choice: Keep durable project context in .memory-bank.
-- Rationale: Preserve evidence-backed context across sessions.
-
-### Decision 2: Require design sign-off before implementation
-
-- Choice: Treat `docs/design-concept.md` as a draft gate for module work.
-- Rationale: The native/WPF boundary and deployment constraints required an
-  explicit requirements interview before code could be evaluated correctly.
+- Keep durable project context in `.memory-bank` so evidence-backed context
+  survives across sessions.
+- Treat `docs/design-concept.md` as a sign-off gate for module work; the
+  native/WPF boundary and deployment constraints required an explicit
+  requirements interview before code could be evaluated correctly.
 
 ## Decision record index
 

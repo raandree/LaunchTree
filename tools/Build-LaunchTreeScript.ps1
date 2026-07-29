@@ -148,6 +148,14 @@ param(
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
+    [string] $ManagedRoot,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $PersonalRoot,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
     [string] $GeneratedStatePath,
 
     [Parameter()]
@@ -231,6 +239,18 @@ if ($Command -eq 'EventLogProbe') {
 
 $targetCommand = $script:LaunchTreeCommandMap[$Command]
 $targetParameters = (Get-Command -Name $targetCommand -CommandType Function).Parameters
+$unsupportedParameters = @(
+    $PSBoundParameters.Keys |
+        Where-Object { $_ -notin @('Command', 'Force') } |
+        Where-Object { -not $targetParameters.ContainsKey($_) } |
+        Sort-Object
+)
+if ($unsupportedParameters.Count -gt 0) {
+    throw [System.ArgumentException]::new(
+        "Command '$Command' does not support: $($unsupportedParameters -join ', ')."
+    )
+}
+
 $splat = @{}
 foreach ($parameterName in $PSBoundParameters.Keys) {
     if ($targetParameters.ContainsKey($parameterName)) {

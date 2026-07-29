@@ -20,6 +20,15 @@ Describe 'Show-LaunchTree' -Tag 'Unit' {
             Should -Contain 'EntryName'
     }
 
+    It 'Should accept CR-013 root overrides in every parameter set' {
+        $command = Get-Command -Name Show-LaunchTree -Module $moduleName
+
+        foreach ($parameterSet in $command.ParameterSets) {
+            $parameterSet.Parameters.Name | Should -Contain 'ManagedRoot'
+            $parameterSet.Parameters.Name | Should -Contain 'PersonalRoot'
+        }
+    }
+
     It 'Should reject a non-STA host before reading content' -Skip:(
         [Threading.Thread]::CurrentThread.GetApartmentState() -eq
             [Threading.ApartmentState]::STA

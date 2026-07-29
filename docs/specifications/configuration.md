@@ -32,6 +32,28 @@ For `VendorName = LaunchTree`, defaults are:
 Replacing `VendorName` changes only the first `LaunchTree` segment in
 each path. Callers may override the machine configuration path explicitly.
 
+### CR-013 Root override parameters
+
+`Get-LaunchTreeConfiguration`, `Show-LaunchTree`, `Test-LaunchTree`, and
+`Export-LaunchTreeSupportBundle` accept `ManagedRoot` and `PersonalRoot`
+parameters. The resolution precedence for both roots is:
+
+1. The parameter supplied to the command.
+2. The machine configuration field from `CR-005`.
+3. The default derived by `CR-002`.
+
+An override is expanded for environment variables and must be absolute. An
+invalid override is a caller error rather than invalid administrator input, so
+the command must throw instead of falling back to a lower-precedence value and
+resolving content from an unintended root.
+
+An override applies only to the invocation that supplies it. `Update-LaunchTree`
+must not accept these parameters: an activated Start Entry re-resolves the
+Managed Root from the machine configuration file named in its `CR-011`
+arguments and compares it with the `CR-007` ownership record, so Reconciliation
+from an unpersisted root would commit Start Entries that fail on activation. A
+relocated deployment must persist `ManagedRoot` in the machine configuration.
+
 ### CR-003 Start Entry location
 
 Machine-wide Start Entries live directly under the Common Programs directory

@@ -42,6 +42,42 @@ Describe 'Export-LaunchTreeSupportBundle' -Tag 'Unit' {
         ($content -join "`n") | Should -Not -Match 'token=|ArgumentList|TargetPath'
     }
 
+    It 'Should forward CR-013 root overrides to configuration and health evaluation' {
+        $bundlePath = Join-Path $TestDrive 'Override.zip'
+        $overrideRoot = Join-Path $TestDrive 'Relocated'
+        Mock -ModuleName $moduleName -CommandName Get-LaunchTreeConfiguration -MockWith {
+            [PSCustomObject] @{
+                VendorName        = 'LaunchTree'
+                ManagedRoot       = $ManagedRoot
+                PersonalRoot      = 'C:\Personal'
+                ConfigurationPath = 'C:\Config\LaunchTree.json'
+                PreferencePath    = 'C:\Users\Person\preferences.json'
+                Cache             = [PSCustomObject] @{ Path = 'C:\Cache' }
+                Diagnostics       = [PSCustomObject] @{ LogName = 'LaunchTree' }
+            }
+        }
+        Mock -ModuleName $moduleName -CommandName Test-LaunchTree -MockWith {
+            [PSCustomObject] @{ Status = 'Healthy'; HealthFindings = @() }
+        }
+        Mock -ModuleName $moduleName -CommandName Get-LaunchTreeDiagnostic
+
+        $parameters = @{
+            Path        = $bundlePath
+            ManagedRoot = $overrideRoot
+            Confirm     = $false
+        }
+        $null = Export-LaunchTreeSupportBundle @parameters
+
+        $assertion = @{
+            ModuleName      = $moduleName
+            Times           = 1
+            Exactly         = $true
+            ParameterFilter = { $ManagedRoot -eq $overrideRoot }
+        }
+        Should -Invoke @assertion -CommandName 'Get-LaunchTreeConfiguration'
+        Should -Invoke @assertion -CommandName 'Test-LaunchTree'
+    }
+
     It 'Should emit event 1601 when archive creation fails' {
         $bundlePath = Join-Path $TestDrive 'Failed.zip'
         Mock -ModuleName $moduleName -CommandName Get-LaunchTreeConfiguration -MockWith {

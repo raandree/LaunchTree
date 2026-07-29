@@ -18,6 +18,12 @@ function Show-LaunchTree {
         .PARAMETER ConfigurationPath
             Specifies the machine configuration JSON file to read.
 
+        .PARAMETER ManagedRoot
+            Overrides the Managed Root that supplies Entry Roots.
+
+        .PARAMETER PersonalRoot
+            Overrides the Personal Root merged into matching Entry Roots.
+
         .PARAMETER GeneratedStatePath
             Overrides the Generated State path used with EntryId.
 
@@ -28,6 +34,11 @@ function Show-LaunchTree {
             Show-LaunchTree -EntryName 'Entertainment'
 
             Opens the Entertainment Entry Root.
+
+        .EXAMPLE
+            Show-LaunchTree -EntryName 'Programs' -ManagedRoot C:\Menus\Contoso
+
+            Opens an Entry Root below a Managed Root supplied for this call.
     #>
     [CmdletBinding(DefaultParameterSetName = 'ByEntryId')]
     param(
@@ -41,6 +52,14 @@ function Show-LaunchTree {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string] $ConfigurationPath,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $ManagedRoot,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $PersonalRoot,
 
         [Parameter(ParameterSetName = 'ByEntryId')]
         [ValidateNotNullOrEmpty()]
@@ -62,6 +81,12 @@ function Show-LaunchTree {
     $configurationParameters = @{}
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
+    }
+    if ($PSBoundParameters.ContainsKey('ManagedRoot')) {
+        $configurationParameters.ManagedRoot = $ManagedRoot
+    }
+    if ($PSBoundParameters.ContainsKey('PersonalRoot')) {
+        $configurationParameters.PersonalRoot = $PersonalRoot
     }
     $configuration = Get-LaunchTreeConfiguration @configurationParameters
     if (-not $configuration.IsValid) {

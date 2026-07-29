@@ -40,6 +40,9 @@ while preserving the approved behavior and security boundaries.
     selectable for the tile presentation.
 - Deterministic nonblank captures validate both layouts; independent re-review
     approved the change with no remaining Blocker or Major findings.
+- `CR-013` lets a caller relocate the menu for one invocation through
+    `ManagedRoot` and `PersonalRoot` parameters on the read commands, while
+    persistent relocation still belongs in the machine configuration.
 
 ## Next step
 

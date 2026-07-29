@@ -14,6 +14,7 @@ a preferred behavior that may be waived only through an accepted decision.
 
 The module must derive the Managed Root and Personal Root from the machine
 configuration. Missing optional path fields must use the defaults in `CR-002`.
+A caller may override either root for a single invocation under `CR-013`.
 Environment variables in the Personal Root must be expanded in the signed-in
 user context.
 

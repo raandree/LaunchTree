@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `ManagedRoot` and `PersonalRoot` parameters to
+  `Get-LaunchTreeConfiguration`, `Show-LaunchTree`, `Test-LaunchTree`, and
+  `Export-LaunchTreeSupportBundle` so one invocation can read menu content from
+  a location other than the configured roots; an override must be an absolute
+  path and is rejected instead of silently falling back
 - Add a `TabbedList` Launcher layout with Menu Folder tabs, the active
   description above the tabs, and compact Launch Item rows and no sort selector
   or search box; it is the default presentation, and `LauncherLayout` selects
@@ -41,6 +46,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reject a parameter that the selected `-Command` of the single-file
+  `LaunchTree.ps1` does not accept instead of silently discarding it, so a
+  misapplied path no longer runs the command against the default location
 - Restyle the Launcher sort selector to match the window theme with a rounded
   surface, themed border and chevron, hover, open, and keyboard focus states,
   and a themed drop-down list with an accent bar on the selected order

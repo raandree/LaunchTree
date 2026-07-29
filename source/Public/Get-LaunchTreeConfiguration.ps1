@@ -14,6 +14,14 @@ function Get-LaunchTreeConfiguration {
         .PARAMETER ConfigurationPath
             Specifies an alternate machine configuration JSON file to read.
 
+        .PARAMETER ManagedRoot
+            Overrides the Managed Root that supplies Entry Roots. The value
+            takes precedence over the machine configuration file.
+
+        .PARAMETER PersonalRoot
+            Overrides the Personal Root merged into matching Entry Roots. The
+            value takes precedence over the machine configuration file.
+
         .PARAMETER PreferencePath
             Specifies an alternate user preference JSON file to read.
 
@@ -26,6 +34,11 @@ function Get-LaunchTreeConfiguration {
             Get-LaunchTreeConfiguration -ConfigurationPath C:\Config\LaunchTree.json
 
             Reads machine settings from an explicitly supplied file.
+
+        .EXAMPLE
+            Get-LaunchTreeConfiguration -ManagedRoot C:\Menus\Contoso
+
+            Resolves settings against a Managed Root supplied for this call.
     #>
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -37,6 +50,14 @@ function Get-LaunchTreeConfiguration {
         [Parameter()]
         [ValidateNotNullOrEmpty()]
         [string] $ConfigurationPath,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $ManagedRoot,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $PersonalRoot,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -318,6 +339,28 @@ function Get-LaunchTreeConfiguration {
                 }
             }
         }
+    }
+
+    $rootOverrides = [ordered] @{
+        ManagedRoot  = $ManagedRoot
+        PersonalRoot = $PersonalRoot
+    }
+    foreach ($rootName in $rootOverrides.Keys) {
+        if (-not $PSBoundParameters.ContainsKey($rootName)) {
+            continue
+        }
+
+        $overridePath = [Environment]::ExpandEnvironmentVariables(
+            [string] $rootOverrides[$rootName]
+        )
+        if (-not [IO.Path]::IsPathRooted($overridePath)) {
+            throw [System.ArgumentException]::new(
+                "$rootName must resolve to an absolute path.",
+                $rootName
+            )
+        }
+
+        $configuration[$rootName] = $overridePath
     }
 
     $resolvedPreferencePath = $configuration.PreferencePath

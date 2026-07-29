@@ -173,6 +173,22 @@ configuration path, edit it, and run this inspection again. `LauncherLayout`
 defaults to `TabbedList`, which shows Menu Folder tabs, visible descriptions,
 and compact Launch Item rows. Set it to `Grid` for the tile presentation.
 
+To read menu content from another location for a single command, pass
+`-ManagedRoot` and `-PersonalRoot` instead of editing the machine
+configuration. `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
+`Test-LaunchTree`, and `Export-LaunchTreeSupportBundle` accept both, and each
+value must be an absolute path:
+
+```powershell
+Show-LaunchTree -EntryName 'Programs' -ManagedRoot 'C:\Menus\Contoso'
+Test-LaunchTree -ManagedRoot 'C:\Menus\Contoso' -SkipEventLog
+```
+
+The single-file script accepts the same parameters after `-Command`.
+`Update-LaunchTree` does not accept them: an activated Start Entry re-reads the
+Managed Root from the machine configuration, so a permanently relocated menu
+must set `ManagedRoot` in that file.
+
 ## Create the first Entry Root manually
 
 Skip this section when the setup script already created the sample content.

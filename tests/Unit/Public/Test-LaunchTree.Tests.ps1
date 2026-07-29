@@ -56,6 +56,28 @@ Describe 'Test-LaunchTree' -Tag 'Unit' {
         $result.HealthFindings.Code | Should -Contain 'GeneratedStateMissing'
     }
 
+    It 'Should evaluate a CR-013 Managed Root override instead of the configured root' {
+        $overrideRoot = Join-Path $script:caseRoot 'Relocated'
+        $null = New-Item -Path (Join-Path $overrideRoot 'EntryA') -ItemType Directory -Force
+        @{
+            SchemaVersion = 1
+            ManagedRoot   = $script:managedRoot
+            PersonalRoot  = Join-Path $script:caseRoot 'Personal'
+        } | ConvertTo-Json | Set-Content $script:configurationPath -Encoding UTF8
+
+        $parameters = @{
+            ConfigurationPath  = $script:configurationPath
+            ManagedRoot        = $overrideRoot
+            GeneratedStatePath = $script:statePath
+            StartMenuPath      = $script:startMenuPath
+            SkipEventLog       = $true
+        }
+        $result = Test-LaunchTree @parameters
+
+        $result.EntryRootCount | Should -Be 1
+        $result.HealthFindings.Code | Should -Not -Contain 'ManagedRootInaccessible'
+    }
+
     It 'Should report Unhealthy without reading future-schema fields' {
         @{
             SchemaVersion = 2

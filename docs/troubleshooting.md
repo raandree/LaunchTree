@@ -34,6 +34,10 @@ Show-LaunchTree -EntryName 'LaunchTree Demo'
   background job, and a remote session are not.
 - Add `-ConfigurationPath` when the machine configuration is not at
   `%ProgramData%\LaunchTree\LaunchTree.json`.
+- `Entry Root '<name>' was not found` means the Entry Root is not an immediate
+  directory of the Managed Root that is currently in effect. Confirm the
+  effective root with `Get-LaunchTreeConfiguration`, then pass `-ManagedRoot`
+  for content kept somewhere else.
 
 ## Launch Item failures
 
@@ -115,6 +119,10 @@ The generated `LaunchTree.ps1` behaves like the module once it is dot-sourced.
 - `The term 'Update-LaunchTree' is not recognized` after running
   `.\LaunchTree.ps1` means the script was executed instead of dot-sourced. Use
   `. .\LaunchTree.ps1`, or pass `-Command Update`.
+- `Command '<name>' does not support: <parameter>` means the parameter belongs
+  to a different operation. The script exposes the union of every command's
+  parameters, so it rejects the ones the selected `-Command` cannot use, such
+  as `-Path` outside `-Command ExportSupportBundle`.
 - Start Entries stop working after the script is moved or renamed, because they
   still point at the previous script path. Run `-Command Update -Force` again
   from the new location.

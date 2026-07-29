@@ -11,6 +11,12 @@ function Test-LaunchTree {
         .PARAMETER ConfigurationPath
             Specifies the machine configuration JSON file to evaluate.
 
+        .PARAMETER ManagedRoot
+            Overrides the Managed Root that supplies Entry Roots.
+
+        .PARAMETER PersonalRoot
+            Overrides the Personal Root merged into matching Entry Roots.
+
         .PARAMETER GeneratedStatePath
             Overrides the Generated State ownership-record path.
 
@@ -34,6 +40,14 @@ function Test-LaunchTree {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
+        [string] $ManagedRoot,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [string] $PersonalRoot,
+
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
         [string] $GeneratedStatePath,
 
         [Parameter()]
@@ -47,6 +61,12 @@ function Test-LaunchTree {
     $configurationParameters = @{}
     if ($PSBoundParameters.ContainsKey('ConfigurationPath')) {
         $configurationParameters.ConfigurationPath = $ConfigurationPath
+    }
+    if ($PSBoundParameters.ContainsKey('ManagedRoot')) {
+        $configurationParameters.ManagedRoot = $ManagedRoot
+    }
+    if ($PSBoundParameters.ContainsKey('PersonalRoot')) {
+        $configurationParameters.PersonalRoot = $PersonalRoot
     }
     $configuration = Get-LaunchTreeConfiguration @configurationParameters
     $findings = [System.Collections.Generic.List[object]]::new()
