@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Hide the `TabbedList` tab of the Entry Root or Menu Folder that the tab strip
+  belongs to while it holds no Launch Item of its own, and select its first
+  child Menu Folder tab instead, so opening a folder that only groups
+  subfolders no longer starts on an empty tab
 - Keep the `TabbedList` tab strip visible when a Menu Folder tab is selected;
   a tab now highlights and opens its Launch Items in place instead of replacing
   the tab strip with that folder's children, and a Menu Folder below the

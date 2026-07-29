@@ -25,7 +25,7 @@ $expectedIdentifiers = [ordered] @{
     FR  = 1..33 | ForEach-Object { 'FR-{0:d3}' -f $_ }
     QR  = 1..22 | ForEach-Object { 'QR-{0:d3}' -f $_ }
     CR  = 1..13 | ForEach-Object { 'CR-{0:d3}' -f $_ }
-    AS  = 1..19 | ForEach-Object { 'AS-{0:d3}' -f $_ }
+    AS  = 1..20 | ForEach-Object { 'AS-{0:d3}' -f $_ }
     ADR = 1..10 | ForEach-Object { 'ADR-{0:d4}' -f $_ }
     OI  = 1..10 | ForEach-Object { 'OI-{0:d3}' -f $_ }
 }

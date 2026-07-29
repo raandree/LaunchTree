@@ -48,6 +48,31 @@ function Get-LaunchTreeTabbedListContent {
         )
     }
 
+    $sortParameters = @{
+        Property   = 'Name'
+        Descending = [bool] $Descending
+    }
+    $menuFolders = @(
+        $Snapshot.Objects |
+            Where-Object {
+                $_.Kind -eq 'MenuFolder' -and
+                $_.EntryName -eq $EntryName -and
+                $_.ParentRelativePath -eq $CurrentRelativePath
+            } |
+            Sort-Object @sortParameters
+    )
+
+    # The owning tab stays hidden while it holds no Launch Item and a tab can replace it.
+    $currentLaunchItems = @($Snapshot.Objects | Where-Object {
+        $_.Kind -eq 'LaunchItem' -and
+        $_.EntryName -eq $EntryName -and
+        $_.ParentRelativePath -eq $CurrentRelativePath
+    })
+    $currentTabVisible = $currentLaunchItems.Count -gt 0 -or $menuFolders.Count -eq 0
+    if (-not $currentTabVisible -and $SelectedRelativePath -eq $CurrentRelativePath) {
+        $SelectedRelativePath = [string] $menuFolders[0].RelativePath
+    }
+
     $selectedObject = if ($SelectedRelativePath -eq $CurrentRelativePath) {
         $currentObject
     } elseif ([string]::IsNullOrWhiteSpace($SelectedRelativePath)) {
@@ -64,20 +89,6 @@ function Get-LaunchTreeTabbedListContent {
             "Menu Folder '$SelectedRelativePath' is not present in Entry Root '$EntryName'."
         )
     }
-
-    $sortParameters = @{
-        Property   = 'Name'
-        Descending = [bool] $Descending
-    }
-    $menuFolders = @(
-        $Snapshot.Objects |
-            Where-Object {
-                $_.Kind -eq 'MenuFolder' -and
-                $_.EntryName -eq $EntryName -and
-                $_.ParentRelativePath -eq $CurrentRelativePath
-            } |
-            Sort-Object @sortParameters
-    )
 
     $selectedChildren = @($Snapshot.Objects | Where-Object {
         $_.EntryName -eq $EntryName -and
@@ -105,6 +116,7 @@ function Get-LaunchTreeTabbedListContent {
         SelectedName         = [string] $selectedObject.Name
         SelectedRelativePath = $SelectedRelativePath
         Description          = [string] $selectedObject.Description
+        CurrentTabVisible    = $currentTabVisible
         MenuFolders          = [object[]] $menuFolders
         ChildMenuFolders     = [object[]] $childMenuFolders
         LaunchItems          = [object[]] $launchItems

@@ -19,6 +19,14 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
                     Name        = 'Entry B'
                     Description = 'Entry B description'
                 }
+                [PSCustomObject] @{
+                    Name        = 'Entry C'
+                    Description = 'Entry C description'
+                }
+                [PSCustomObject] @{
+                    Name        = 'Entry D'
+                    Description = 'Entry D description'
+                }
             )
             Objects   = @(
                 [PSCustomObject] @{
@@ -80,6 +88,23 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
                     ParentRelativePath = ''
                     EntryName          = 'Entry B'
                 }
+                [PSCustomObject] @{
+                    Kind               = 'MenuFolder'
+                    Name               = 'Reports'
+                    Description        = 'Reports description'
+                    RelativePath       = 'Reports'
+                    ParentRelativePath = ''
+                    EntryName          = 'Entry C'
+                    ContentSource      = 'Managed'
+                }
+                [PSCustomObject] @{
+                    Kind               = 'LaunchItem'
+                    Name               = 'Monthly'
+                    Description        = 'Monthly report'
+                    RelativePath       = 'Reports\Monthly.url'
+                    ParentRelativePath = 'Reports'
+                    EntryName          = 'Entry C'
+                }
             )
         }
     }
@@ -95,10 +120,42 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
         $result.SelectedName | Should -Be 'Entry A'
         $result.SelectedRelativePath | Should -BeNullOrEmpty
         $result.Description | Should -Be 'Entry A description'
+        $result.CurrentTabVisible | Should -BeTrue
         $result.MenuFolders.Name | Should -Be @('Operations', 'Tools')
         @($result.ChildMenuFolders).Count | Should -Be 0
         $result.LaunchItems.Name | Should -Be @('Portal')
         $result.VisibleCount | Should -Be 3
+    }
+
+    It 'Should hide the FR-011 owning tab that holds no Launch Item of its own' {
+        $result = InModuleScope -ModuleName $moduleName -Parameters @{
+            TestSnapshot = $script:snapshot
+        } {
+            Get-LaunchTreeTabbedListContent -Snapshot $TestSnapshot -EntryName 'Entry C'
+        }
+
+        $result.CurrentTabVisible | Should -BeFalse
+        $result.CurrentName | Should -Be 'Entry C'
+        $result.MenuFolders.Name | Should -Be @('Reports')
+        $result.SelectedName | Should -Be 'Reports'
+        $result.SelectedRelativePath | Should -Be 'Reports'
+        $result.Description | Should -Be 'Reports description'
+        @($result.ChildMenuFolders).Count | Should -Be 0
+        $result.LaunchItems.Name | Should -Be @('Monthly')
+    }
+
+    It 'Should keep the owning tab when no Menu Folder tab can replace it' {
+        $result = InModuleScope -ModuleName $moduleName -Parameters @{
+            TestSnapshot = $script:snapshot
+        } {
+            Get-LaunchTreeTabbedListContent -Snapshot $TestSnapshot -EntryName 'Entry D'
+        }
+
+        $result.CurrentTabVisible | Should -BeTrue
+        $result.SelectedName | Should -Be 'Entry D'
+        @($result.MenuFolders).Count | Should -Be 0
+        @($result.LaunchItems).Count | Should -Be 0
+        $result.VisibleCount | Should -Be 0
     }
 
     It 'Should keep the sibling tabs visible when a Menu Folder tab is selected' {

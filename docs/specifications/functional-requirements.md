@@ -85,11 +85,14 @@ Back and breadcrumb controls must restore parent context. A Menu Folder whose
 subtree contains no Launch Item must not be displayed. `TabbedList` is the
 default Launcher layout: the owning Menu Folder and its child Menu Folders
 must be tabs, the selected tab's description must appear above the tabs, and
-the selected tab's Launch Items must appear as compact list rows. Selecting a
-tab must keep the whole tab strip visible and highlight the selected tab. A
-Menu Folder below the selected tab must appear as a list row, and opening that
-row must move the tab strip one level deeper. Machine configuration may select
-`Grid` for the tile presentation.
+the selected tab's Launch Items must appear as compact list rows. The owning
+Menu Folder must keep its own tab only while it holds a Launch Item directly
+or no child Menu Folder tab can replace it; when that tab is hidden, the first
+child Menu Folder tab must be selected. Selecting a tab must keep the whole
+tab strip visible and highlight the selected tab. A Menu Folder below the
+selected tab must appear as a list row, and opening that row must move the tab
+strip one level deeper. Machine configuration may select `Grid` for the tile
+presentation.
 
 ### FR-012 Search all Entry Roots
 
@@ -275,3 +278,4 @@ content.
 | AS-017 | Touch press-and-hold occurs on each Launcher object type | No activation or context menu occurs |
 | AS-018 | Machine configuration omits `LauncherLayout` for an Entry Root with descriptions, nested Menu Folders, and Launch Items | The Launcher shows descriptions above Menu Folder tabs and renders Launch Items as compact rows with no sort selector or search box; selecting `Grid` restores the tile presentation |
 | AS-019 | An Entry Root contains an empty Menu Folder, a Menu Folder holding only empty Menu Folders, and a Menu Folder whose only Launch Item is nested two levels deep | Only the Menu Folder with nested content and its populated ancestors are displayed |
+| AS-020 | A `TabbedList` Entry Root holds populated Menu Folders but no Launch Item of its own | The Entry Root has no tab of its own and the first Menu Folder tab is selected with its Launch Items |

@@ -152,6 +152,18 @@ release remains gated by external environment evidence.
   `Back` first returns to the owning tab, then leaves the level. Full suite
   green: 171 passed, 1 intentional skip, 0 failed; PSScriptAnalyzer clean; both
   layout captures byte-identical to the baseline first-run frames.
+- 2026-07-29: Stopped the `TabbedList` strip from opening on an empty tab. The
+  Content Snapshot already hid Menu Folders with no Launch Item beneath them,
+  but the strip always rendered a tab for its own Entry Root or Menu Folder, so
+  `Show -EntryName x1 -ManagedRoot C:\temp` opened on an `x1` tab with nothing
+  in it. `Get-LaunchTreeTabbedListContent` now reports `CurrentTabVisible` and
+  redirects the selection to the first child Menu Folder when the owning folder
+  holds no Launch Item of its own; the owning tab survives only when no child
+  tab can replace it, so a wholly empty Entry Root still renders. Added `AS-020`
+  and extended `FR-011`. Full suite green: 173 passed, 1 intentional skip, 0
+  failed; build clean with 0 errors and 0 warnings; a live capture of the
+  reported Entry Root shows the `Node.js` and `Pandoc` tabs with `Node.js`
+  selected and no `x1` tab.
 
 ## Stable capabilities
 

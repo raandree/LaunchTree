@@ -711,26 +711,32 @@
             }
 
             $folderTabs.Items.Clear()
-            $currentTab = [System.Windows.Controls.TabItem]::new()
-            $currentTab.Header = $tabbedContent.CurrentName
-            $currentTab.Style = $tabItemStyle
-            $currentTab.Add_PreviewMouseLeftButtonUp({
-                param($eventSource, $eventArguments)
-                $eventArguments.Handled = $true
-                & $selectTab $eventSource.Tag
-            })
-            $currentTab.Add_PreviewKeyDown({
-                param($eventSource, $eventArguments)
-                if ($eventArguments.Key -in @(
-                    [System.Windows.Input.Key]::Enter,
-                    [System.Windows.Input.Key]::Space
-                )) {
+            $selectedTab = $null
+            if ($tabbedContent.CurrentTabVisible) {
+                $currentTab = [System.Windows.Controls.TabItem]::new()
+                $currentTab.Header = $tabbedContent.CurrentName
+                $currentTab.Style = $tabItemStyle
+                $currentTab.Add_PreviewMouseLeftButtonUp({
+                    param($eventSource, $eventArguments)
                     $eventArguments.Handled = $true
                     & $selectTab $eventSource.Tag
+                })
+                $currentTab.Add_PreviewKeyDown({
+                    param($eventSource, $eventArguments)
+                    if ($eventArguments.Key -in @(
+                        [System.Windows.Input.Key]::Enter,
+                        [System.Windows.Input.Key]::Space
+                    )) {
+                        $eventArguments.Handled = $true
+                        & $selectTab $eventSource.Tag
+                    }
+                })
+                [void] $folderTabs.Items.Add($currentTab)
+                if ($tabbedContent.SelectedRelativePath -eq
+                    $tabbedContent.CurrentRelativePath) {
+                    $selectedTab = $currentTab
                 }
-            })
-            [void] $folderTabs.Items.Add($currentTab)
-            $selectedTab = $currentTab
+            }
             foreach ($menuFolder in $menuFolders) {
                 $folderTab = [System.Windows.Controls.TabItem]::new()
                 $folderTab.Header = $menuFolder.Name
@@ -759,10 +765,12 @@
                     $selectedTab = $folderTab
                 }
             }
-            $selectedTab.IsSelected = $true
             $folderTabs.SelectedItem = $selectedTab
             $folderTabs.UpdateLayout()
-            [void] $selectedTab.BringIntoView()
+            if ($selectedTab) {
+                $selectedTab.IsSelected = $true
+                [void] $selectedTab.BringIntoView()
+            }
         } else {
             $candidateItems = if ($isSearching) {
                 @($script:activeSnapshot.Objects | Where-Object {

@@ -10,6 +10,8 @@
 > - 2026-07-29: The tabbed list layout omits the sort selector and search box.
 > - 2026-07-29: Selecting a tab keeps the tab strip visible instead of
 >   navigating into the tab; only a Menu Folder row moves the strip deeper.
+> - 2026-07-29: The owning Menu Folder keeps a tab only while it holds a Launch
+>   Item of its own; otherwise the first child Menu Folder tab is selected.
 
 ## Purpose
 
