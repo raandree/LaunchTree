@@ -145,11 +145,13 @@ The user preference file is UTF-8 JSON and may contain only presentation state:
 ```
 
 Invalid user preferences use machine defaults without preventing the Launcher
-from opening. Window coordinates must be clamped to a current monitor work
-area. The file must not contain Launch Item targets, search history, or usage
+from opening. Remembered window coordinates must be clamped to the virtual
+screen so the window stays reachable on any connected monitor. The file must
+not contain Launch Item targets, search history, or usage
 history. Missing or null first-run dimensions fit visible content, with a
 minimum of 520 by 420 device-independent pixels and a maximum of 80 percent of
-the active work area. A user resize stores the resulting dimensions.
+the active work area. A user resize stores the resulting dimensions, and a user
+move stores the resulting coordinates.
 
 ## Generated State
 

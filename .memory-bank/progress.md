@@ -142,8 +142,17 @@ release remains gated by external environment evidence.
   configuration file. The single-file script now also rejects a parameter the
   selected `-Command` cannot use instead of discarding it silently, which is
   what made `-Path` look like it relocated the menu. Full suite green: 167
-  passed, 0 failed.
-- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
+  passed, 0 failed.- 2026-07-29: Replaced the tall Launcher header with a single compact line
+  holding Back, the title, and Close, moved the `TabbedList` description to its
+  own slim line above the tab strip, and dropped the breadcrumb line in favor of
+  a title tooltip. The header is now the drag handle: pressing it calls
+  `DragMove`, and `ContentRendered` restores a remembered `Window.Left`/`Top`
+  clamped to the virtual screen instead of always reopening near the Start
+  button. `CR-006` already required storing those coordinates; the Launcher had
+  never read them back. Verified end to end by seeding a preference at 200,150,
+  opening the Launcher, and reading 200,150 back from the preference file on
+  close. Both layout captures regenerated; full suite green: 173 passed,
+  0 failed, 1 skipped.- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
   click. Selecting a tab previously navigated into it, which rebuilt the strip
   from that folder's children and hid every sibling. The Launcher now tracks a
   tab-strip owner and a selected tab separately: `SelectTab` highlights a tab

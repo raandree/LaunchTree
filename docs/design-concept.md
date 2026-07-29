@@ -44,8 +44,8 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   own generated shortcuts, configuration state, event source, and caches.
 - Open one WPF process per signed-in user. A later activation reuses the
   existing window and switches it to the requested entry.
-- Navigate nested directories in the same window with Back and breadcrumb
-  affordances.
+- Navigate nested directories in the same window with a Back affordance in a
+  compact single-line header that also acts as the drag handle.
 - Use the tabbed list as the default Launcher layout and allow machine
   configuration to select the responsive grid. In the tabbed list layout,
   Menu Folders are tabs, the active description appears above the tabs, and
@@ -55,8 +55,9 @@ supported DPI settings, and right-click has no effect inside the WPF window.
 - Provide global type-to-search across all configured entries in the grid
   layout. The tabbed list layout navigates through tabs instead.
 - Follow Windows light, dark, and high-contrast settings.
-- Place the window near the Start button, fit it to content within screen
-  bounds, permit resizing, and scroll when necessary.
+- Place the window near the Start button on first use and at the remembered
+  position afterwards, fit it to content within screen bounds, permit resizing
+  and dragging the header to move it, and scroll when necessary.
 - Support keyboard navigation, touch interaction, and visible keyboard focus.
 - Allow users to select locale-aware name ascending or name descending sort in
   the grid layout. The tabbed list layout follows the configured order.
@@ -190,9 +191,9 @@ and its child Menu Folders as tabs, shows the active description above the tab
 strip, and presents Launch Items as compact rows. `Grid` presents Menu Folders
 and Launch Items together in a responsive grid using stable item dimensions.
 Both layouts use the selected name order. Menu Folder activation replaces
-the current view in the same window. Back and breadcrumb navigation restore
-parent context. A folder whose subtree contains no launchable item is not
-displayed at all.
+the current view in the same window. Back navigation restores parent context,
+and the header title exposes the current path as its tooltip. A folder whose
+subtree contains no launchable item is not displayed at all.
 
 Search covers every configured entry in the grid layout and shows enough path
 and source context to distinguish duplicate names. The tabbed list layout has

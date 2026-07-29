@@ -134,24 +134,17 @@
     $window.Content = $rootBorder
 
     $rootGrid = [System.Windows.Controls.Grid]::new()
-    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[0].Height = [System.Windows.GridLength]::Auto
-    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[1].Height = [System.Windows.GridLength]::Auto
-    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[2].Height = [System.Windows.GridLength]::Auto
-    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[3].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
-    [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
-    $rootGrid.RowDefinitions[4].Height = [System.Windows.GridLength]::Auto
+    for ($rowIndex = 0; $rowIndex -lt 6; $rowIndex++) {
+        [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
+        $rootGrid.RowDefinitions[$rowIndex].Height = [System.Windows.GridLength]::Auto
+    }
+    $rootGrid.RowDefinitions[4].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
     $rootBorder.Child = $rootGrid
 
     $header = [System.Windows.Controls.Grid]::new()
-    $header.Margin = if ($useTabbedListLayout) {
-        [System.Windows.Thickness]::new(24, 18, 24, 14)
-    } else {
-        [System.Windows.Thickness]::new(20, 16, 20, 10)
-    }
+    $header.Background = [System.Windows.Media.Brushes]::Transparent
+    $header.Margin = [System.Windows.Thickness]::new(8, 6, 8, 6)
+    $header.ToolTip = 'Drag to move the window'
     [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
     $header.ColumnDefinitions[0].Width = [System.Windows.GridLength]::Auto
     [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
@@ -166,47 +159,46 @@
     $backButton = [System.Windows.Controls.Button]::new()
     $backButton.Content = [char] 0xE72B
     $backButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $backButton.FontSize = 16
-    $backButton.Width = 36
-    $backButton.Height = 36
-    $backButton.Margin = [System.Windows.Thickness]::new(0, 0, 12, 0)
+    $backButton.FontSize = 14
+    $backButton.Width = 32
+    $backButton.Height = 32
+    $backButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $backButton.ToolTip = 'Back'
     $backButton.IsEnabled = $false
     [System.Windows.Controls.Grid]::SetColumn($backButton, 0)
     [void] $header.Children.Add($backButton)
 
-    $titleStack = [System.Windows.Controls.StackPanel]::new()
     $title = [System.Windows.Controls.TextBlock]::new()
     $title.Text = $EntryName
-    $title.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe UI Variable Display Semibold')
-    $title.FontSize = if ($useTabbedListLayout) { 20 } else { 24 }
+    $title.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe UI Variable Text Semibold')
+    $title.FontSize = 14
     $title.Foreground = $foregroundBrush
+    $title.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $title.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+    $title.Margin = [System.Windows.Thickness]::new(8, 0, 8, 0)
+    [System.Windows.Controls.Grid]::SetColumn($title, 1)
+    [void] $header.Children.Add($title)
+
     $descriptionText = [System.Windows.Controls.TextBlock]::new()
     $descriptionText.Foreground = $secondaryBrush
     $descriptionText.FontSize = 12
-    $descriptionText.Margin = [System.Windows.Thickness]::new(0, 3, 0, 0)
+    $descriptionText.Margin = if ($useTabbedListLayout) {
+        [System.Windows.Thickness]::new(24, 0, 24, 10)
+    } else {
+        [System.Windows.Thickness]::new(20, 0, 20, 10)
+    }
     $descriptionText.TextWrapping = [System.Windows.TextWrapping]::Wrap
     $descriptionText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
     $descriptionText.MaxHeight = 42
     $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
-    $breadcrumb = [System.Windows.Controls.TextBlock]::new()
-    $breadcrumb.Text = $EntryName
-    $breadcrumb.Foreground = $secondaryBrush
-    $breadcrumb.FontSize = 12
-    $breadcrumb.Margin = [System.Windows.Thickness]::new(0, 3, 0, 0)
-    [void] $titleStack.Children.Add($title)
-    if ($useTabbedListLayout) {
-        [void] $titleStack.Children.Add($descriptionText)
-    }
-    [void] $titleStack.Children.Add($breadcrumb)
-    [System.Windows.Controls.Grid]::SetColumn($titleStack, 1)
-    [void] $header.Children.Add($titleStack)
+    [System.Windows.Controls.Grid]::SetRow($descriptionText, 1)
+    [void] $rootGrid.Children.Add($descriptionText)
 
     $sortBox = [System.Windows.Controls.ComboBox]::new()
     $sortBox.Width = 132
-    $sortBox.Height = 36
+    $sortBox.Height = 30
     $sortBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $sortBox.Margin = [System.Windows.Thickness]::new(12, 0, 8, 0)
+    $sortBox.Margin = [System.Windows.Thickness]::new(8, 0, 8, 0)
     [void] $sortBox.Items.Add('Name A-Z')
     [void] $sortBox.Items.Add('Name Z-A')
     $sortBox.SelectedIndex = if ($Configuration.SortOrder -eq 'NameDescending') { 1 } else { 0 }
@@ -220,9 +212,10 @@
     $closeButton = [System.Windows.Controls.Button]::new()
     $closeButton.Content = [char] 0xE8BB
     $closeButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $closeButton.FontSize = 14
-    $closeButton.Width = 36
-    $closeButton.Height = 36
+    $closeButton.FontSize = 12
+    $closeButton.Width = 32
+    $closeButton.Height = 32
+    $closeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $closeButton.ToolTip = 'Close'
     [System.Windows.Controls.Grid]::SetColumn($closeButton, 3)
     [void] $header.Children.Add($closeButton)
@@ -237,10 +230,7 @@
     $searchBorder.BorderBrush = $borderBrush
     $searchBorder.BorderThickness = [System.Windows.Thickness]::new(1)
     $searchBorder.CornerRadius = [System.Windows.CornerRadius]::new(6)
-    [System.Windows.Controls.Grid]::SetRow(
-        $searchBorder,
-        $(if ($useTabbedListLayout) { 2 } else { 1 })
-    )
+    [System.Windows.Controls.Grid]::SetRow($searchBorder, 3)
     if ($useTabbedListLayout) {
         $searchBorder.Visibility = [System.Windows.Visibility]::Collapsed
     }
@@ -279,7 +269,7 @@
     } else {
         [System.Windows.Visibility]::Collapsed
     }
-    [System.Windows.Controls.Grid]::SetRow($folderTabs, 1)
+    [System.Windows.Controls.Grid]::SetRow($folderTabs, 2)
     [void] $rootGrid.Children.Add($folderTabs)
 
     $scrollViewer = [System.Windows.Controls.ScrollViewer]::new()
@@ -290,7 +280,7 @@
     } else {
         [System.Windows.Thickness]::new(14, 0, 14, 8)
     }
-    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 3)
+    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 4)
     [void] $rootGrid.Children.Add($scrollViewer)
     if ($useTabbedListLayout) {
         $itemsPanel = [System.Windows.Controls.StackPanel]::new()
@@ -314,7 +304,7 @@
     $statusText.Foreground = $secondaryBrush
     $statusText.FontSize = 12
     $statusText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    [System.Windows.Controls.Grid]::SetRow($statusText, 4)
+    [System.Windows.Controls.Grid]::SetRow($statusText, 5)
     [void] $rootGrid.Children.Add($statusText)
 
     $buttonStyleXaml = @"
@@ -701,7 +691,7 @@
             } else {
                 $null
             }
-            $breadcrumb.Text = if ($tabbedContent.SelectedRelativePath) {
+            $title.ToolTip = if ($tabbedContent.SelectedRelativePath) {
                 @(
                     $script:activeEntryName,
                     $tabbedContent.SelectedRelativePath
@@ -1207,6 +1197,19 @@
         & $renderItems
     }
     $closeButton.Add_Click({ $window.Close() })
+    $header.Add_MouseLeftButtonDown({
+        param($eventSource, $eventArguments)
+        [void] $eventSource
+        if ($eventArguments.ButtonState -ne [System.Windows.Input.MouseButtonState]::Pressed) {
+            return
+        }
+        try {
+            $window.DragMove()
+        } catch {
+            $dragError = $_
+            Write-Verbose -Message $dragError.Exception.Message
+        }
+    })
     $sortBox.Add_SelectionChanged({ & $renderItems })
     $searchBox.Add_TextChanged({ & $renderItems })
     $window.Add_PreviewMouseRightButtonDown({
@@ -1275,24 +1278,41 @@
             $null = Write-LaunchTreePerformanceEvent @performanceParameters
         }
         $workArea = [System.Windows.SystemParameters]::WorkArea
-        $taskbarAlignment = 0
-        try {
-            $taskbarAlignment = [int] (Get-ItemPropertyValue -LiteralPath (
-                'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
-            ) -Name 'TaskbarAl' -ErrorAction Stop)
-        } catch {
-            $taskbarError = $_
-            Write-Verbose -Message $taskbarError.Exception.Message
-        }
-        $window.Left = if ($taskbarAlignment -eq 1) {
-            $workArea.Left + (($workArea.Width - $window.ActualWidth) / 2)
+        $savedLeft = $Configuration.Window.Left
+        $savedTop = $Configuration.Window.Top
+        if ($null -ne $savedLeft -and $null -ne $savedTop) {
+            $targetLeft = [double] $savedLeft
+            $targetTop = [double] $savedTop
+            # A remembered position may belong to any monitor, so clamp to the virtual screen.
+            $boundsLeft = [System.Windows.SystemParameters]::VirtualScreenLeft
+            $boundsTop = [System.Windows.SystemParameters]::VirtualScreenTop
+            $boundsRight = $boundsLeft + [System.Windows.SystemParameters]::VirtualScreenWidth
+            $boundsBottom = $boundsTop + [System.Windows.SystemParameters]::VirtualScreenHeight
         } else {
-            $workArea.Left + 12
+            $taskbarAlignment = 0
+            try {
+                $taskbarAlignment = [int] (Get-ItemPropertyValue -LiteralPath (
+                    'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+                ) -Name 'TaskbarAl' -ErrorAction Stop)
+            } catch {
+                $taskbarError = $_
+                Write-Verbose -Message $taskbarError.Exception.Message
+            }
+            $targetLeft = if ($taskbarAlignment -eq 1) {
+                $workArea.Left + (($workArea.Width - $window.ActualWidth) / 2)
+            } else {
+                $workArea.Left + 12
+            }
+            $targetTop = $workArea.Bottom - $window.ActualHeight - 12
+            $boundsLeft = $workArea.Left
+            $boundsTop = $workArea.Top
+            $boundsRight = $workArea.Right
+            $boundsBottom = $workArea.Bottom
         }
-        $window.Top = $workArea.Bottom - $window.ActualHeight - 12
-        if ($window.Top -lt $workArea.Top) {
-            $window.Top = $workArea.Top
-        }
+        $maximumLeft = [Math]::Max($boundsLeft, $boundsRight - $window.ActualWidth)
+        $maximumTop = [Math]::Max($boundsTop, $boundsBottom - $window.ActualHeight)
+        $window.Left = [Math]::Min([Math]::Max($targetLeft, $boundsLeft), $maximumLeft)
+        $window.Top = [Math]::Min([Math]::Max($targetTop, $boundsTop), $maximumTop)
         $timerParameters = @{
             Timer       = $iconTimer
             IconJobs    = $script:iconJobs
