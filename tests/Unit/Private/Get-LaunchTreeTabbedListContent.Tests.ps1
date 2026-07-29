@@ -66,6 +66,14 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
                 }
                 [PSCustomObject] @{
                     Kind               = 'LaunchItem'
+                    Name               = 'Console'
+                    Description        = 'Admin console'
+                    RelativePath       = 'Operations\Admin\Console.url'
+                    ParentRelativePath = 'Operations\Admin'
+                    EntryName          = 'Entry A'
+                }
+                [PSCustomObject] @{
+                    Kind               = 'LaunchItem'
                     Name               = 'Portal B'
                     Description        = 'Other portal'
                     RelativePath       = 'Portal B.url'
@@ -84,10 +92,36 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
         }
 
         $result.CurrentName | Should -Be 'Entry A'
+        $result.SelectedName | Should -Be 'Entry A'
+        $result.SelectedRelativePath | Should -BeNullOrEmpty
         $result.Description | Should -Be 'Entry A description'
         $result.MenuFolders.Name | Should -Be @('Operations', 'Tools')
+        @($result.ChildMenuFolders).Count | Should -Be 0
         $result.LaunchItems.Name | Should -Be @('Portal')
         $result.VisibleCount | Should -Be 3
+    }
+
+    It 'Should keep the sibling tabs visible when a Menu Folder tab is selected' {
+        $result = InModuleScope -ModuleName $moduleName -Parameters @{
+            TestSnapshot = $script:snapshot
+        } {
+            $parameters = @{
+                Snapshot             = $TestSnapshot
+                EntryName            = 'Entry A'
+                SelectedRelativePath = 'Operations'
+            }
+            Get-LaunchTreeTabbedListContent @parameters
+        }
+
+        $result.CurrentName | Should -Be 'Entry A'
+        $result.CurrentRelativePath | Should -BeNullOrEmpty
+        $result.MenuFolders.Name | Should -Be @('Operations', 'Tools')
+        $result.SelectedName | Should -Be 'Operations'
+        $result.SelectedRelativePath | Should -Be 'Operations'
+        $result.Description | Should -Be 'Operations description'
+        $result.ChildMenuFolders.Name | Should -Be @('Admin')
+        $result.LaunchItems.Name | Should -Be @('Dashboard')
+        $result.VisibleCount | Should -Be 4
     }
 
     It 'Should expose nested Menu Folders as tabs and the active Menu Folder description' {
@@ -95,17 +129,21 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
             TestSnapshot = $script:snapshot
         } {
             $parameters = @{
-                Snapshot            = $TestSnapshot
-                EntryName           = 'Entry A'
-                CurrentRelativePath = 'Operations'
+                Snapshot             = $TestSnapshot
+                EntryName            = 'Entry A'
+                CurrentRelativePath  = 'Operations'
+                SelectedRelativePath = 'Operations\Admin'
             }
             Get-LaunchTreeTabbedListContent @parameters
         }
 
         $result.CurrentName | Should -Be 'Operations'
-        $result.Description | Should -Be 'Operations description'
         $result.MenuFolders.Name | Should -Be @('Admin')
-        $result.LaunchItems.Name | Should -Be @('Dashboard')
+        $result.SelectedName | Should -Be 'Admin'
+        $result.Description | Should -Be 'Admin description'
+        @($result.ChildMenuFolders).Count | Should -Be 0
+        $result.LaunchItems.Name | Should -Be @('Console')
+        $result.VisibleCount | Should -Be 2
     }
 
     It 'Should independently sort FR-013 tabs and rows in descending name order' {

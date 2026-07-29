@@ -3,7 +3,7 @@ function Get-LaunchTreeNavigationState {
     [OutputType([PSCustomObject])]
     param(
         [Parameter(Mandatory)]
-        [ValidateSet('Back', 'SelectFolder', 'ActivateEntry')]
+        [ValidateSet('Back', 'SelectTab', 'SelectFolder', 'ActivateEntry')]
         [string] $Action,
 
         [Parameter(Mandatory)]
@@ -15,6 +15,10 @@ function Get-LaunchTreeNavigationState {
         [string] $CurrentRelativePath = '',
 
         [Parameter()]
+        [AllowEmptyString()]
+        [string] $SelectedRelativePath = '',
+
+        [Parameter()]
         [AllowNull()]
         [PSCustomObject] $Folder,
 
@@ -23,12 +27,38 @@ function Get-LaunchTreeNavigationState {
         [string] $ActivatedEntryName
     )
 
+    if (-not $PSBoundParameters.ContainsKey('SelectedRelativePath')) {
+        $SelectedRelativePath = $CurrentRelativePath
+    }
+
     $targetEntryName = $EntryName
     $targetRelativePath = $CurrentRelativePath
+    $targetSelectedRelativePath = $SelectedRelativePath
     switch ($Action) {
         'Back' {
+            if ($SelectedRelativePath -ne $CurrentRelativePath) {
+                $targetSelectedRelativePath = $CurrentRelativePath
+                break
+            }
+
             $parentPath = [IO.Path]::GetDirectoryName($CurrentRelativePath)
             $targetRelativePath = if ($parentPath) { $parentPath } else { '' }
+            $targetSelectedRelativePath = $targetRelativePath
+        }
+        'SelectTab' {
+            if (-not $Folder) {
+                $targetSelectedRelativePath = $CurrentRelativePath
+                break
+            }
+
+            if ([string]::IsNullOrWhiteSpace([string] $Folder.EntryName) -or
+                [string]::IsNullOrWhiteSpace([string] $Folder.RelativePath)) {
+                throw [InvalidOperationException]::new(
+                    'A selected Menu Folder tab requires an Entry Root and relative path.'
+                )
+            }
+            $targetEntryName = [string] $Folder.EntryName
+            $targetSelectedRelativePath = [string] $Folder.RelativePath
         }
         'SelectFolder' {
             if (-not $Folder -or
@@ -39,7 +69,9 @@ function Get-LaunchTreeNavigationState {
                 )
             }
             $targetEntryName = [string] $Folder.EntryName
-            $targetRelativePath = [string] $Folder.RelativePath
+            $targetSelectedRelativePath = [string] $Folder.RelativePath
+            $parentPath = [IO.Path]::GetDirectoryName($targetSelectedRelativePath)
+            $targetRelativePath = if ($parentPath) { $parentPath } else { '' }
         }
         'ActivateEntry' {
             if ([string]::IsNullOrWhiteSpace($ActivatedEntryName)) {
@@ -49,14 +81,19 @@ function Get-LaunchTreeNavigationState {
             }
             $targetEntryName = $ActivatedEntryName
             $targetRelativePath = ''
+            $targetSelectedRelativePath = ''
         }
     }
 
     [PSCustomObject] @{
-        PSTypeName   = 'LaunchTree.NavigationState'
-        EntryName    = $targetEntryName
-        RelativePath = $targetRelativePath
-        ClearSearch  = $true
-        BackEnabled  = -not [string]::IsNullOrWhiteSpace($targetRelativePath)
+        PSTypeName           = 'LaunchTree.NavigationState'
+        EntryName            = $targetEntryName
+        RelativePath         = $targetRelativePath
+        SelectedRelativePath = $targetSelectedRelativePath
+        ClearSearch          = $true
+        BackEnabled          = -not (
+            [string]::IsNullOrWhiteSpace($targetRelativePath) -and
+            $targetSelectedRelativePath -eq $targetRelativePath
+        )
     }
 }

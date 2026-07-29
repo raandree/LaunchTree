@@ -83,9 +83,12 @@ sessions for one account, must have independent Launcher processes.
 Activating a Menu Folder must replace the visible content in the same window.
 Back and breadcrumb controls must restore parent context. A Menu Folder whose
 subtree contains no Launch Item must not be displayed. `TabbedList` is the
-default Launcher layout: the current Menu Folder and its child Menu Folders
-must be tabs, the active description must appear above the tabs, and Launch
-Items must appear as compact list rows. Machine configuration may select
+default Launcher layout: the owning Menu Folder and its child Menu Folders
+must be tabs, the selected tab's description must appear above the tabs, and
+the selected tab's Launch Items must appear as compact list rows. Selecting a
+tab must keep the whole tab strip visible and highlight the selected tab. A
+Menu Folder below the selected tab must appear as a list row, and opening that
+row must move the tab strip one level deeper. Machine configuration may select
 `Grid` for the tile presentation.
 
 ### FR-012 Search all Entry Roots

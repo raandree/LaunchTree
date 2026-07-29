@@ -20,9 +20,10 @@ interactive users.
 Implementation adds a current-user named-pipe activation channel, bounded
 versioned icon cache, presentation-only preference file, structured Health
 Findings, diagnostics, WPF/offline validation, and tested layout helpers.
-`TabbedList` is the default Launcher Layout and omits search and sort; `Grid`
-keeps both. Runtime artifacts have no external dependency. Themed XAML,
-content-sized scrollbar strips, and per-tab click navigation are invariants.
+Runtime artifacts have no external dependency; themed XAML and content-sized
+scrollbar strips are invariants. The default `TabbedList` Launcher Layout omits
+the search and sort that `Grid` keeps, and separates tab-strip owner from
+selected tab, so a tab opens in place and only a Menu Folder row descends.
 
 ## Documentation
 
@@ -95,7 +96,6 @@ standard-user probe.
 - Treat `docs/design-concept.md` as a sign-off gate for module work; the
   native/WPF boundary and deployment constraints required an explicit
   requirements interview before code could be evaluated correctly.
-
 ## Decision record index
 
 - `ADR-0001`: Native Start Entries open the WPF Launcher.

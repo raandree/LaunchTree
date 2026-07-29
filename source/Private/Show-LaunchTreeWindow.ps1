@@ -659,6 +659,7 @@
         }
 
     $script:currentRelativePath = ''
+    $script:selectedRelativePath = ''
     $script:visibleButtons = [System.Collections.Generic.List[object]]::new()
     $script:iconJobs = [System.Collections.Generic.List[object]]::new()
     $script:activeConfiguration = $Configuration
@@ -676,13 +677,14 @@
             -not [string]::IsNullOrWhiteSpace($searchText)
         if ($useTabbedListLayout) {
             $contentParameters = @{
-                Snapshot            = $script:activeSnapshot
-                EntryName           = $script:activeEntryName
-                CurrentRelativePath = $script:currentRelativePath
-                Descending          = $script:activeConfiguration.SortOrder -eq 'NameDescending'
+                Snapshot             = $script:activeSnapshot
+                EntryName            = $script:activeEntryName
+                CurrentRelativePath  = $script:currentRelativePath
+                SelectedRelativePath = $script:selectedRelativePath
+                Descending           = $script:activeConfiguration.SortOrder -eq 'NameDescending'
             }
             $tabbedContent = Get-LaunchTreeTabbedListContent @contentParameters
-            $candidateItems = @($tabbedContent.LaunchItems)
+            $candidateItems = @($tabbedContent.ChildMenuFolders) + @($tabbedContent.LaunchItems)
             $menuFolders = @($tabbedContent.MenuFolders)
 
             $descriptionText.Text = $tabbedContent.Description
@@ -699,8 +701,11 @@
             } else {
                 $null
             }
-            $breadcrumb.Text = if ($script:currentRelativePath) {
-                @($script:activeEntryName, $script:currentRelativePath) -join '  ›  '
+            $breadcrumb.Text = if ($tabbedContent.SelectedRelativePath) {
+                @(
+                    $script:activeEntryName,
+                    $tabbedContent.SelectedRelativePath
+                ) -join '  ›  '
             } else {
                 $script:activeEntryName
             }
@@ -709,8 +714,23 @@
             $currentTab = [System.Windows.Controls.TabItem]::new()
             $currentTab.Header = $tabbedContent.CurrentName
             $currentTab.Style = $tabItemStyle
-            $currentTab.IsSelected = $true
+            $currentTab.Add_PreviewMouseLeftButtonUp({
+                param($eventSource, $eventArguments)
+                $eventArguments.Handled = $true
+                & $selectTab $eventSource.Tag
+            })
+            $currentTab.Add_PreviewKeyDown({
+                param($eventSource, $eventArguments)
+                if ($eventArguments.Key -in @(
+                    [System.Windows.Input.Key]::Enter,
+                    [System.Windows.Input.Key]::Space
+                )) {
+                    $eventArguments.Handled = $true
+                    & $selectTab $eventSource.Tag
+                }
+            })
             [void] $folderTabs.Items.Add($currentTab)
+            $selectedTab = $currentTab
             foreach ($menuFolder in $menuFolders) {
                 $folderTab = [System.Windows.Controls.TabItem]::new()
                 $folderTab.Header = $menuFolder.Name
@@ -722,7 +742,7 @@
                 $folderTab.Add_PreviewMouseLeftButtonUp({
                     param($eventSource, $eventArguments)
                     $eventArguments.Handled = $true
-                    & $navigateToFolder $eventSource.Tag
+                    & $selectTab $eventSource.Tag
                 })
                 $folderTab.Add_PreviewKeyDown({
                     param($eventSource, $eventArguments)
@@ -731,14 +751,18 @@
                         [System.Windows.Input.Key]::Space
                     )) {
                         $eventArguments.Handled = $true
-                        & $navigateToFolder $eventSource.Tag
+                        & $selectTab $eventSource.Tag
                     }
                 })
                 [void] $folderTabs.Items.Add($folderTab)
+                if ($menuFolder.RelativePath -eq $tabbedContent.SelectedRelativePath) {
+                    $selectedTab = $folderTab
+                }
             }
-            $folderTabs.SelectedItem = $currentTab
+            $selectedTab.IsSelected = $true
+            $folderTabs.SelectedItem = $selectedTab
             $folderTabs.UpdateLayout()
-            [void] $currentTab.BringIntoView()
+            [void] $selectedTab.BringIntoView()
         } else {
             $candidateItems = if ($isSearching) {
                 @($script:activeSnapshot.Objects | Where-Object {
@@ -930,8 +954,11 @@
             $button.Add_Click({
                 param($eventSource, $eventArguments)
                 $selectedItem = $eventSource.Tag
-                if ($selectedItem.Kind -eq 'MenuFolder') {
+                if ($selectedItem.Kind -eq 'MenuFolder' -and $useTabbedListLayout) {
+                    & $navigateToFolder $selectedItem
+                } elseif ($selectedItem.Kind -eq 'MenuFolder') {
                     $script:currentRelativePath = $selectedItem.RelativePath
+                    $script:selectedRelativePath = $selectedItem.RelativePath
                     $breadcrumb.Text = @(
                         $script:activeEntryName,
                         $script:currentRelativePath
@@ -1079,14 +1106,16 @@
                 $script:activeConfiguration = $nextConfiguration
                 $script:activeSnapshot = $nextSnapshot
                 $navigationParameters = @{
-                    Action              = 'ActivateEntry'
-                    EntryName           = $script:activeEntryName
-                    CurrentRelativePath = $script:currentRelativePath
-                    ActivatedEntryName  = $nextEntry.Name
+                    Action               = 'ActivateEntry'
+                    EntryName            = $script:activeEntryName
+                    CurrentRelativePath  = $script:currentRelativePath
+                    SelectedRelativePath = $script:selectedRelativePath
+                    ActivatedEntryName   = $nextEntry.Name
                 }
                 $navigationState = Get-LaunchTreeNavigationState @navigationParameters
                 $script:activeEntryName = $navigationState.EntryName
                 $script:currentRelativePath = $navigationState.RelativePath
+                $script:selectedRelativePath = $navigationState.SelectedRelativePath
                 $title.Text = $nextEntry.Name
                 $window.Title = $nextEntry.Name
                 $backButton.IsEnabled = $navigationState.BackEnabled
@@ -1107,17 +1136,20 @@
     })
 
     $backButton.Add_Click({
-        if ([string]::IsNullOrWhiteSpace($script:currentRelativePath)) {
+        if ([string]::IsNullOrWhiteSpace($script:currentRelativePath) -and
+            $script:selectedRelativePath -eq $script:currentRelativePath) {
             return
         }
         $navigationParameters = @{
-            Action              = 'Back'
-            EntryName           = $script:activeEntryName
-            CurrentRelativePath = $script:currentRelativePath
+            Action               = 'Back'
+            EntryName            = $script:activeEntryName
+            CurrentRelativePath  = $script:currentRelativePath
+            SelectedRelativePath = $script:selectedRelativePath
         }
         $navigationState = Get-LaunchTreeNavigationState @navigationParameters
         $script:activeEntryName = $navigationState.EntryName
         $script:currentRelativePath = $navigationState.RelativePath
+        $script:selectedRelativePath = $navigationState.SelectedRelativePath
         $backButton.IsEnabled = $navigationState.BackEnabled
         if ($navigationState.ClearSearch -and
             -not [string]::IsNullOrWhiteSpace($searchBox.Text)) {
@@ -1126,6 +1158,23 @@
             & $renderItems
         }
     })
+    $selectTab = {
+        param($Folder)
+
+        $navigationParameters = @{
+            Action               = 'SelectTab'
+            EntryName            = $script:activeEntryName
+            CurrentRelativePath  = $script:currentRelativePath
+            SelectedRelativePath = $script:selectedRelativePath
+            Folder               = $Folder
+        }
+        $navigationState = Get-LaunchTreeNavigationState @navigationParameters
+        $script:activeEntryName = $navigationState.EntryName
+        $script:currentRelativePath = $navigationState.RelativePath
+        $script:selectedRelativePath = $navigationState.SelectedRelativePath
+        $backButton.IsEnabled = $navigationState.BackEnabled
+        & $renderItems
+    }
     $navigateToFolder = {
         param($Folder)
 
@@ -1134,14 +1183,16 @@
         }
 
         $navigationParameters = @{
-            Action              = 'SelectFolder'
-            EntryName           = $script:activeEntryName
-            CurrentRelativePath = $script:currentRelativePath
-            Folder              = $Folder
+            Action               = 'SelectFolder'
+            EntryName            = $script:activeEntryName
+            CurrentRelativePath  = $script:currentRelativePath
+            SelectedRelativePath = $script:selectedRelativePath
+            Folder               = $Folder
         }
         $navigationState = Get-LaunchTreeNavigationState @navigationParameters
         $script:activeEntryName = $navigationState.EntryName
         $script:currentRelativePath = $navigationState.RelativePath
+        $script:selectedRelativePath = $navigationState.SelectedRelativePath
         $title.Text = $navigationState.EntryName
         $window.Title = $navigationState.EntryName
         $backButton.IsEnabled = $navigationState.BackEnabled

@@ -37,8 +37,8 @@ while preserving the approved behavior and security boundaries.
 - Machine configuration selects the Launcher Layout: `TabbedList` is the
     customer-requested default showing Menu Folders as tabs, the active
     description above them, and Launch Items as compact rows; `Grid` remains
-    selectable for the tile presentation.
-- Deterministic nonblank captures validate both layouts; independent re-review
+    selectable for the tile presentation.- `TabbedList` tab selection keeps the tab strip visible: a tab highlights and
+  opens in place, and only a Menu Folder list row moves the strip deeper.- Deterministic nonblank captures validate both layouts; independent re-review
     approved the change with no remaining Blocker or Major findings.
 - `CR-013` lets a caller relocate the menu for one invocation through
     `ManagedRoot` and `PersonalRoot` parameters on the read commands, while

@@ -171,7 +171,8 @@ $configuration.HealthFindings |
 [machine configuration example](examples/LaunchTree.json) to the machine
 configuration path, edit it, and run this inspection again. `LauncherLayout`
 defaults to `TabbedList`, which shows Menu Folder tabs, visible descriptions,
-and compact Launch Item rows. Set it to `Grid` for the tile presentation.
+and compact Launch Item rows. Selecting a tab keeps the tab strip visible and
+opens that folder in place. Set it to `Grid` for the tile presentation.
 
 To read menu content from another location for a single command, pass
 `-ManagedRoot` and `-PersonalRoot` instead of editing the machine

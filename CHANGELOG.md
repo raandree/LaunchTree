@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Keep the `TabbedList` tab strip visible when a Menu Folder tab is selected;
+  a tab now highlights and opens its Launch Items in place instead of replacing
+  the tab strip with that folder's children, and a Menu Folder below the
+  selected tab appears as a list row that moves the tab strip one level deeper
 - Reject a parameter that the selected `-Command` of the single-file
   `LaunchTree.ps1` does not accept instead of silently discarding it, so a
   misapplied path no longer runs the command against the default location

@@ -8,6 +8,8 @@
 > - 2026-07-29: Menu Folders whose subtree holds no Launch Item are hidden
 >   instead of shown with an empty state.
 > - 2026-07-29: The tabbed list layout omits the sort selector and search box.
+> - 2026-07-29: Selecting a tab keeps the tab strip visible instead of
+>   navigating into the tab; only a Menu Folder row moves the strip deeper.
 
 ## Purpose
 
@@ -45,7 +47,9 @@ supported DPI settings, and right-click has no effect inside the WPF window.
 - Use the tabbed list as the default Launcher layout and allow machine
   configuration to select the responsive grid. In the tabbed list layout,
   Menu Folders are tabs, the active description appears above the tabs, and
-  Launch Items appear as compact rows.
+  Launch Items appear as compact rows. Selecting a tab keeps the whole tab
+  strip visible and highlights the selected tab; a Menu Folder below the
+  selected tab appears as a row that moves the tab strip one level deeper.
 - Provide global type-to-search across all configured entries in the grid
   layout. The tabbed list layout navigates through tabs instead.
 - Follow Windows light, dark, and high-contrast settings.

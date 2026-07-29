@@ -143,6 +143,15 @@ release remains gated by external environment evidence.
   selected `-Command` cannot use instead of discarding it silently, which is
   what made `-Path` look like it relocated the menu. Full suite green: 167
   passed, 0 failed.
+- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
+  click. Selecting a tab previously navigated into it, which rebuilt the strip
+  from that folder's children and hid every sibling. The Launcher now tracks a
+  tab-strip owner and a selected tab separately: `SelectTab` highlights a tab
+  and shows its Launch Items in place, a Menu Folder below the selected tab
+  appears as a list row, and only that row moves the strip one level deeper.
+  `Back` first returns to the owning tab, then leaves the level. Full suite
+  green: 171 passed, 1 intentional skip, 0 failed; PSScriptAnalyzer clean; both
+  layout captures byte-identical to the baseline first-run frames.
 
 ## Stable capabilities
 

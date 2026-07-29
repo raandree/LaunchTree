@@ -35,8 +35,10 @@ Optional UTF-8 `description.txt` files provide Menu Folder tooltips.
 
 Set `LauncherLayout` in the machine configuration to choose the presentation.
 `TabbedList` is the default: Menu Folders become tabs, the active description
-sits above them, and Launch Items render as compact rows. Select `Grid` for the
-tile presentation.
+sits above them, and Launch Items render as compact rows. Selecting a tab keeps
+the tab strip visible and opens that folder in place; a Menu Folder below the
+selected tab appears as a row that moves the tab strip one level deeper. Select
+`Grid` for the tile presentation.
 
 ### Tabbed list (default)
 
