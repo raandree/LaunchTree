@@ -143,7 +143,7 @@
 
     $header = [System.Windows.Controls.Grid]::new()
     $header.Background = [System.Windows.Media.Brushes]::Transparent
-    $header.Margin = [System.Windows.Thickness]::new(6, 3, 6, 3)
+    $header.Margin = [System.Windows.Thickness]::new(6, 2, 6, 2)
     $header.ToolTip = 'Drag to move the window'
     for ($columnIndex = 0; $columnIndex -lt 5; $columnIndex++) {
         [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
@@ -532,7 +532,7 @@
              TargetType="TabControl">
     <Setter Property="Background" Value="$( $surfaceBrush.Color.ToString() )" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="20,0,12,0" />
+    <Setter Property="Padding" Value="14,0,10,0" />
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="TabControl">
@@ -561,7 +561,7 @@
     <Setter Property="Foreground" Value="$( $secondaryBrush.Color.ToString() )" />
     <Setter Property="FontSize" Value="13" />
     <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="Padding" Value="14,11,14,9" />
+    <Setter Property="Padding" Value="12,7,12,5" />
     <Setter Property="FocusVisualStyle" Value="{x:Null}" />
     <Setter Property="Template">
         <Setter.Value>

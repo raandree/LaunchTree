@@ -142,7 +142,8 @@ release remains gated by external environment evidence.
   configuration file. The single-file script now also rejects a parameter the
   selected `-Command` cannot use instead of discarding it silently, which is
   what made `-Path` look like it relocated the menu. Full suite green: 167
-  passed, 0 failed.- 2026-07-29: Replaced the tall Launcher header with a single compact line
+  passed, 0 failed.
+- 2026-07-29: Replaced the tall Launcher header with a single compact line
   holding Back, the title, the active description, and Close, and dropped the
   breadcrumb line in favor of a title tooltip. The header is now the drag
   handle: pressing it calls
@@ -154,7 +155,10 @@ release remains gated by external environment evidence.
   close. The capture tool's pixel-diversity guard was sampling on a 25x20 grid
   and dropped to 7 colors once the chrome shrank, so it now samples 60x48 and
   requires 20 (`TabbedList`) and 30 (`Grid`) colors, which the current frames
-  clear at 43 and 124.- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
+  clear at 43 and 124. A follow-up pass trimmed the header margin to `6,2` and
+  the tab padding to `12,7,12,5`, measured on the capture as a 32 DIU header
+  over a 34 DIU tab strip, down from about 116 DIU of stacked chrome.
+- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
   click. Selecting a tab previously navigated into it, which rebuilt the strip
   from that folder's children and hid every sibling. The Launcher now tracks a
   tab-strip owner and a selected tab separately: `SelectTab` highlights a tab
