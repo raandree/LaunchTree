@@ -40,6 +40,7 @@ Describe 'Write-LaunchTreeEvent' -Tag 'Unit' {
             Times           = 1
             Exactly         = $true
             ParameterFilter = {
+                $LogName -eq 'LaunchTree' -and
                 $SourceName -eq 'LaunchTree' -and
                 $EventId -eq 1201 -and
                 $EntryType -eq [Diagnostics.EventLogEntryType]::Error -and

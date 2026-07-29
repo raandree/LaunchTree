@@ -277,6 +277,12 @@ All supported PowerShell editions must write through
 `New-EventLog` or `Write-EventLog` cmdlets. Registration remains elevated;
 Launcher writes and health reads remain standard-user operations.
 
+A runtime write must verify that the configured source is registered for the
+configured log and must skip the write otherwise. Runtime code must never
+register an event source implicitly, because an elevated write to an unknown
+source binds that source to the `Application` log and permanently blocks
+registration of the dedicated log.
+
 Reconciliation must validate the final descriptor with an access check for the
 Interactive Users SID before committing Start Entries. It then launches the
 packaged probe through the selected Launcher Host using the elevated account's

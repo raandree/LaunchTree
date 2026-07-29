@@ -86,6 +86,28 @@ verify standard-user read/write manually from a non-elevated session.
 
 Event records are diagnostic input, not security-audit evidence.
 
+### Source is owned by another log
+
+Reconciliation fails with `Event source 'LaunchTree' is owned by log
+'Application'` when the source is already registered for a different classic
+log. Windows binds a source name to exactly one log, so the dedicated log
+cannot be created while the stray registration exists.
+
+```powershell
+[Diagnostics.EventLog]::LogNameFromSourceName('LaunchTree', '.')
+```
+
+When the reported log is not `LaunchTree` and no other product owns the name,
+remove the stray source from an elevated session and rerun Reconciliation:
+
+```powershell
+[Diagnostics.EventLog]::DeleteEventSource('LaunchTree')
+Update-LaunchTree -Confirm:$false
+```
+
+Deleting the source keeps the records already written to the other log. Set a
+different `Diagnostics.SourceName` instead when another product owns the name.
+
 ## Single-file script problems
 
 The generated `LaunchTree.ps1` behaves like the module once it is dot-sourced.

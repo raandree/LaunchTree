@@ -35,7 +35,11 @@ function Register-LaunchTreeEventLog {
         $registeredLog = [Diagnostics.EventLog]::LogNameFromSourceName($sourceName, '.')
         if ($registeredLog -ne $logName) {
             throw [System.InvalidOperationException]::new(
-                "Event source '$sourceName' is owned by log '$registeredLog'."
+                "Event source '$sourceName' is owned by log '$registeredLog'. " +
+                'Remove the stray source from an elevated session with ' +
+                "[Diagnostics.EventLog]::DeleteEventSource('$sourceName') when " +
+                'no other product owns it, or configure a different ' +
+                'Diagnostics.SourceName.'
             )
         }
     } else {

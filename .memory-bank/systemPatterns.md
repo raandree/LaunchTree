@@ -53,6 +53,14 @@ reports the `StandardUserEventAccessUnverified` finding. Real standard-user
 verification still needs a de-elevation path through the unelevated shell or
 Task Scheduler.
 
+Windows binds an event source name to exactly one classic log, and
+`System.Diagnostics.EventLog.WriteEntry` registers an unknown source in the
+`Application` log when the caller is elevated. Runtime code therefore never
+writes without first resolving the source through
+`[Diagnostics.EventLog]::LogNameFromSourceName` and comparing it to the
+configured log; a mismatch skips the write instead of registering anything, so
+only elevated Reconciliation can create the dedicated log and source.
+
 ## Delivery
 
 Two delivery forms share one source. The Sampler module under

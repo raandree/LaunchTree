@@ -40,4 +40,7 @@ Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline
 linked-token probe is best-effort and non-fatal. The single-file script delivery
-needs the same external matrix coverage as the module.
+needs the same external matrix coverage as the module. The development machine
+still has the stray `LaunchTree` source bound to the `Application` log; remove
+it with `[Diagnostics.EventLog]::DeleteEventSource('LaunchTree')` from an
+elevated session before rerunning Reconciliation there.

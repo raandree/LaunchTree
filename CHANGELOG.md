@@ -52,6 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix diagnostic writes registering the `LaunchTree` event source in the
+  `Application` log when an elevated session wrote an event before
+  Reconciliation had created the dedicated log, which then failed permanently
+  with "Event source 'LaunchTree' is owned by log 'Application'"; runtime writes
+  now verify the registration first and skip the write instead of creating a
+  source, and the registration conflict reports how to remove a stray source
 - Fix elevated Reconciliation aborting with "Could not start the standard-user
   probe process" when the de-elevated Event Log probe cannot launch (an
   interactive elevated admin whose linked token is only `Identification`

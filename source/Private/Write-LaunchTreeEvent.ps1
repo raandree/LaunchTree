@@ -51,6 +51,7 @@ function Write-LaunchTreeEvent {
             Error { [Diagnostics.EventLogEntryType]::Error }
         }
         $writeParameters = @{
+            LogName    = [string] $Configuration.Diagnostics.LogName
             SourceName = [string] $Configuration.Diagnostics.SourceName
             Message    = $payload | ConvertTo-Json -Depth 4 -Compress
             EntryType  = $entryType

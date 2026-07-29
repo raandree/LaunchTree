@@ -88,6 +88,17 @@ release remains gated by external environment evidence.
   because that script reconciles only through an installed or built module),
   a README pointer, and a troubleshooting section for the script-path failure
   modes. `tools/Test-Documentation.ps1` passed.
+- 2026-07-29: Fixed the `Event source 'LaunchTree' is owned by log
+  'Application'` Reconciliation failure. `[Diagnostics.EventLog]::WriteEntry`
+  auto-registers an unknown source in the `Application` log when the caller is
+  elevated, so an elevated run that emitted a diagnostic event before the
+  dedicated log existed (an elevated test run writing configuration finding
+  `1001`) bound the source to `Application` and blocked registration forever.
+  `Invoke-LaunchTreeEventLogWrite` now takes `LogName` and verifies the
+  registration through `LogNameFromSourceName` before writing;
+  `Write-LaunchTreeEvent` still swallows the failure as a non-fatal diagnostic
+  loss, and `Register-LaunchTreeEventLog` reports the `DeleteEventSource`
+  remediation. Full suite green: 145 passed, 0 failed.
 
 ## Stable capabilities
 
