@@ -2,8 +2,12 @@
 
 > Status: SIGNED OFF
 > Interview conducted: 2026-07-28
-> Override log: 2026-07-29 - customer requirement makes `TabbedList` the
-> default Launcher layout; `Grid` remains available by configuration.
+> Override log:
+> - 2026-07-29: `TabbedList` is the default Launcher layout; `Grid` remains
+>   available by configuration.
+> - 2026-07-29: Menu Folders whose subtree holds no Launch Item are hidden
+>   instead of shown with an empty state.
+> - 2026-07-29: The tabbed list layout omits the sort selector and search box.
 
 ## Purpose
 
@@ -42,12 +46,14 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   configuration to select the responsive grid. In the tabbed list layout,
   Menu Folders are tabs, the active description appears above the tabs, and
   Launch Items appear as compact rows.
-- Provide global type-to-search across all configured entries.
+- Provide global type-to-search across all configured entries in the grid
+  layout. The tabbed list layout navigates through tabs instead.
 - Follow Windows light, dark, and high-contrast settings.
 - Place the window near the Start button, fit it to content within screen
   bounds, permit resizing, and scroll when necessary.
 - Support keyboard navigation, touch interaction, and visible keyboard focus.
-- Allow users to select locale-aware name ascending or name descending sort.
+- Allow users to select locale-aware name ascending or name descending sort in
+  the grid layout. The tabbed list layout follows the configured order.
 - Close after a successful launch by default, with a persisted option to keep
   the window open.
 - Expose structured PowerShell commands to reconcile entries, show a launcher,
@@ -179,11 +185,12 @@ strip, and presents Launch Items as compact rows. `Grid` presents Menu Folders
 and Launch Items together in a responsive grid using stable item dimensions.
 Both layouts use the selected name order. Menu Folder activation replaces
 the current view in the same window. Back and breadcrumb navigation restore
-parent context. Empty Menu Folders remain visible and open to an explicit empty
-state.
+parent context. A folder whose subtree contains no launchable item is not
+displayed at all.
 
-Search covers every configured entry and shows enough path and source context
-to distinguish duplicate names. Right-click events are consumed throughout
+Search covers every configured entry in the grid layout and shows enough path
+and source context to distinguish duplicate names. The tabbed list layout has
+no search box or sort selector. Right-click events are consumed throughout
 the WPF content surface and never activate an item or open a context menu.
 Windows may still show its normal context menu for the native Start shortcut.
 
@@ -221,8 +228,9 @@ launches are not audited.
 
 ## Edge cases
 
-- Empty folders remain visible and navigable.
-- A folder made empty by skipped invalid items uses the same empty state.
+- Folders whose subtree holds no launchable item are hidden.
+- A folder left without launchable content by skipped invalid items or by the
+  depth limit is hidden the same way.
 - Traversal stops at the configured depth and reports deeper content as a
   health finding.
 - Junctions, symbolic links, mount points, and other directory reparse points

@@ -38,9 +38,10 @@ remain visible as separate objects and expose their Content Source.
 
 Every directory at or below an Entry Root must be a Menu Folder. Traversal must
 ignore directory reparse points, stop at the configured maximum depth, and emit
-a Health Finding for excluded deeper content. On Windows PowerShell 5.1,
-content beyond the host's effective path-length limit must be excluded with a
-Health Finding rather than disappearing silently.
+a Health Finding for excluded deeper content. A Menu Folder whose subtree
+contains no visible Launch Item must be omitted from the Content Snapshot. On
+Windows PowerShell 5.1, content beyond the host's effective path-length limit
+must be excluded with a Health Finding rather than disappearing silently.
 
 ### FR-006 Read Menu Folder descriptions
 
@@ -79,24 +80,27 @@ sessions for one account, must have independent Launcher processes.
 ### FR-011 Navigate in one window
 
 Activating a Menu Folder must replace the visible content in the same window.
-Back and breadcrumb controls must restore parent context. Empty Menu Folders
-must open an explicit empty state. `TabbedList` is the default Launcher
-layout: the current Menu Folder and its child Menu Folders must be tabs, the
-active description must appear above the tabs, and Launch Items must appear as
-compact list rows. Machine configuration may select `Grid` for the tile
-presentation.
+Back and breadcrumb controls must restore parent context. A Menu Folder whose
+subtree contains no Launch Item must not be displayed. `TabbedList` is the
+default Launcher layout: the current Menu Folder and its child Menu Folders
+must be tabs, the active description must appear above the tabs, and Launch
+Items must appear as compact list rows. Machine configuration may select
+`Grid` for the tile presentation.
 
 ### FR-012 Search all Entry Roots
 
-Type-to-search must search all configured Entry Roots. Results must include
-enough relative path and Content Source context to distinguish equal names.
+The `Grid` layout must provide type-to-search across all configured Entry
+Roots. Results must include enough relative path and Content Source context to
+distinguish equal names. `TabbedList` navigates through tabs and provides no
+search box.
 
 ### FR-013 Sort by localized name
 
 The Launcher must support locale-aware, case-insensitive `NameAscending` and
-`NameDescending` ordering. `TabbedList` must independently sort Menu Folder
-tabs and Launch Item rows. `Grid` must sort Menu Folders and Launch Items
-together.
+`NameDescending` ordering. `Grid` must sort Menu Folders and Launch Items
+together and offer a sort selector. `TabbedList` must sort Menu Folder tabs and
+Launch Item rows independently, following the configured order without a
+selector.
 
 ### FR-014 Follow Windows presentation settings
 
@@ -265,4 +269,5 @@ content.
 | AS-015 | Configuration uses an unsupported future schema version | Reconciliation refuses mutation and the Launcher shows an incompatible-configuration error |
 | AS-016 | Configuration and diagnostic commands run before any user preference file exists | Both commands return structured, redacted objects and create no files |
 | AS-017 | Touch press-and-hold occurs on each Launcher object type | No activation or context menu occurs |
-| AS-018 | Machine configuration omits `LauncherLayout` for an Entry Root with descriptions, nested Menu Folders, and Launch Items | The Launcher shows descriptions above Menu Folder tabs and renders Launch Items as compact rows; selecting `Grid` restores the tile presentation |
+| AS-018 | Machine configuration omits `LauncherLayout` for an Entry Root with descriptions, nested Menu Folders, and Launch Items | The Launcher shows descriptions above Menu Folder tabs and renders Launch Items as compact rows with no sort selector or search box; selecting `Grid` restores the tile presentation |
+| AS-019 | An Entry Root contains an empty Menu Folder, a Menu Folder holding only empty Menu Folders, and a Menu Folder whose only Launch Item is nested two levels deep | Only the Menu Folder with nested content and its populated ancestors are displayed |

@@ -211,6 +211,9 @@
     [void] $sortBox.Items.Add('Name Z-A')
     $sortBox.SelectedIndex = if ($Configuration.SortOrder -eq 'NameDescending') { 1 } else { 0 }
     $sortBox.ToolTip = 'Sort order'
+    if ($useTabbedListLayout) {
+        $sortBox.Visibility = [System.Windows.Visibility]::Collapsed
+    }
     [System.Windows.Controls.Grid]::SetColumn($sortBox, 2)
     [void] $header.Children.Add($sortBox)
 
@@ -238,6 +241,9 @@
         $searchBorder,
         $(if ($useTabbedListLayout) { 2 } else { 1 })
     )
+    if ($useTabbedListLayout) {
+        $searchBorder.Visibility = [System.Windows.Visibility]::Collapsed
+    }
     [void] $rootGrid.Children.Add($searchBorder)
 
     $searchGrid = [System.Windows.Controls.Grid]::new()
@@ -658,7 +664,6 @@
     $script:activeConfiguration = $Configuration
     $script:activeSnapshot = $Snapshot
     $script:activeEntryName = $EntryName
-    $script:isRenderingFolderTabs = $false
 
     $renderItems = {
         $interactionStopwatch = [Diagnostics.Stopwatch]::StartNew()
@@ -667,19 +672,18 @@
         $script:iconJobs.Clear()
 
         $searchText = $searchBox.Text.Trim()
-        $isSearching = -not [string]::IsNullOrWhiteSpace($searchText)
+        $isSearching = -not $useTabbedListLayout -and
+            -not [string]::IsNullOrWhiteSpace($searchText)
         if ($useTabbedListLayout) {
             $contentParameters = @{
                 Snapshot            = $script:activeSnapshot
                 EntryName           = $script:activeEntryName
                 CurrentRelativePath = $script:currentRelativePath
-                SearchText          = $searchText
-                Descending          = $sortBox.SelectedIndex -eq 1
+                Descending          = $script:activeConfiguration.SortOrder -eq 'NameDescending'
             }
             $tabbedContent = Get-LaunchTreeTabbedListContent @contentParameters
             $candidateItems = @($tabbedContent.LaunchItems)
             $menuFolders = @($tabbedContent.MenuFolders)
-            $menuFolderTabs = @($tabbedContent.MenuFolderTabs)
 
             $descriptionText.Text = $tabbedContent.Description
             $descriptionText.Visibility = if ([string]::IsNullOrWhiteSpace(
@@ -701,46 +705,40 @@
                 $script:activeEntryName
             }
 
-            $script:isRenderingFolderTabs = $true
             $folderTabs.Items.Clear()
             $currentTab = [System.Windows.Controls.TabItem]::new()
             $currentTab.Header = $tabbedContent.CurrentName
             $currentTab.Style = $tabItemStyle
             $currentTab.IsSelected = $true
             [void] $folderTabs.Items.Add($currentTab)
-            foreach ($menuFolderTab in $menuFolderTabs) {
-                $menuFolder = $menuFolderTab.Item
-                if ($isSearching -and
-                    $menuFolder.EntryName -eq $script:activeEntryName -and
-                    $menuFolder.RelativePath -eq $script:currentRelativePath) {
-                    continue
-                }
+            foreach ($menuFolder in $menuFolders) {
                 $folderTab = [System.Windows.Controls.TabItem]::new()
-                if ($isSearching) {
-                    $tabHeader = [System.Windows.Controls.StackPanel]::new()
-                    $tabName = [System.Windows.Controls.TextBlock]::new()
-                    $tabName.Text = $menuFolderTab.Header
-                    $tabContext = [System.Windows.Controls.TextBlock]::new()
-                    $tabContext.Text = $menuFolderTab.Context
-                    $tabContext.FontSize = 10
-                    $tabContext.Opacity = 0.76
-                    $tabContext.MaxWidth = 220
-                    $tabContext.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-                    [void] $tabHeader.Children.Add($tabName)
-                    [void] $tabHeader.Children.Add($tabContext)
-                    $folderTab.Header = $tabHeader
-                } else {
-                    $folderTab.Header = $menuFolderTab.Header
-                }
+                $folderTab.Header = $menuFolder.Name
                 $folderTab.Style = $tabItemStyle
                 $folderTab.Tag = $menuFolder
                 if (-not [string]::IsNullOrWhiteSpace($menuFolder.Description)) {
                     $folderTab.ToolTip = $menuFolder.Description
                 }
+                $folderTab.Add_PreviewMouseLeftButtonUp({
+                    param($eventSource, $eventArguments)
+                    $eventArguments.Handled = $true
+                    & $navigateToFolder $eventSource.Tag
+                })
+                $folderTab.Add_PreviewKeyDown({
+                    param($eventSource, $eventArguments)
+                    if ($eventArguments.Key -in @(
+                        [System.Windows.Input.Key]::Enter,
+                        [System.Windows.Input.Key]::Space
+                    )) {
+                        $eventArguments.Handled = $true
+                        & $navigateToFolder $eventSource.Tag
+                    }
+                })
                 [void] $folderTabs.Items.Add($folderTab)
             }
             $folderTabs.SelectedItem = $currentTab
-            $script:isRenderingFolderTabs = $false
+            $folderTabs.UpdateLayout()
+            [void] $currentTab.BringIntoView()
         } else {
             $candidateItems = if ($isSearching) {
                 @($script:activeSnapshot.Objects | Where-Object {
@@ -815,14 +813,7 @@
                 $detail.Opacity = 0.72
                 $detail.Margin = [System.Windows.Thickness]::new(0, 2, 0, 0)
                 $detail.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-                $detail.Text = if ($isSearching) {
-                    $location = if ($item.ParentRelativePath) {
-                        '{0} › {1}' -f $item.EntryName, $item.ParentRelativePath
-                    } else {
-                        $item.EntryName
-                    }
-                    '{0} | {1}' -f $location, $item.ContentSource
-                } elseif (-not [string]::IsNullOrWhiteSpace($item.Description)) {
+                $detail.Text = if (-not [string]::IsNullOrWhiteSpace($item.Description)) {
                     $item.Description
                 } else {
                     $item.ContentSource
@@ -969,9 +960,7 @@
 
         if ($candidateItems.Count -eq 0) {
             $emptyText = [System.Windows.Controls.TextBlock]::new()
-            $emptyText.Text = if ($isSearching -and $menuFolders.Count -gt 0) {
-                'Matching folders are shown as tabs'
-            } elseif ($isSearching) {
+            $emptyText.Text = if ($isSearching) {
                 'No matching items'
             } elseif ($useTabbedListLayout -and $menuFolders.Count -gt 0) {
                 'Select a folder tab'
@@ -1137,12 +1126,10 @@
             & $renderItems
         }
     })
-    $folderTabs.Add_SelectionChanged({
-        if (-not $useTabbedListLayout -or $script:isRenderingFolderTabs) {
-            return
-        }
-        $selectedTab = $folderTabs.SelectedItem
-        if (-not $selectedTab -or -not $selectedTab.Tag) {
+    $navigateToFolder = {
+        param($Folder)
+
+        if (-not $Folder) {
             return
         }
 
@@ -1150,7 +1137,7 @@
             Action              = 'SelectFolder'
             EntryName           = $script:activeEntryName
             CurrentRelativePath = $script:currentRelativePath
-            Folder              = $selectedTab.Tag
+            Folder              = $Folder
         }
         $navigationState = Get-LaunchTreeNavigationState @navigationParameters
         $script:activeEntryName = $navigationState.EntryName
@@ -1158,13 +1145,8 @@
         $title.Text = $navigationState.EntryName
         $window.Title = $navigationState.EntryName
         $backButton.IsEnabled = $navigationState.BackEnabled
-        if ($navigationState.ClearSearch -and
-            -not [string]::IsNullOrWhiteSpace($searchBox.Text)) {
-            $searchBox.Text = ''
-        } else {
-            & $renderItems
-        }
-    })
+        & $renderItems
+    }
     $closeButton.Add_Click({ $window.Close() })
     $sortBox.Add_SelectionChanged({ & $renderItems })
     $searchBox.Add_TextChanged({ & $renderItems })

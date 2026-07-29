@@ -88,7 +88,6 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
         $result.MenuFolders.Name | Should -Be @('Operations', 'Tools')
         $result.LaunchItems.Name | Should -Be @('Portal')
         $result.VisibleCount | Should -Be 3
-        $result.IsSearching | Should -BeFalse
     }
 
     It 'Should expose nested Menu Folders as tabs and the active Menu Folder description' {
@@ -109,56 +108,20 @@ Describe 'Get-LaunchTreeTabbedListContent' -Tag 'Unit' {
         $result.LaunchItems.Name | Should -Be @('Dashboard')
     }
 
-    It 'Should independently sort matching tabs and rows across Entry Roots during FR-012 search' {
+    It 'Should independently sort FR-013 tabs and rows in descending name order' {
         $result = InModuleScope -ModuleName $moduleName -Parameters @{
             TestSnapshot = $script:snapshot
         } {
             $parameters = @{
-                Snapshot  = $TestSnapshot
-                EntryName = 'Entry A'
-                SearchText = 't'
+                Snapshot   = $TestSnapshot
+                EntryName  = 'Entry A'
                 Descending = $true
             }
             Get-LaunchTreeTabbedListContent @parameters
         }
 
         $result.MenuFolders.Name | Should -Be @('Tools', 'Operations')
-        $result.LaunchItems.Name | Should -Be @('Portal B', 'Portal')
-        $result.VisibleCount | Should -Be 4
-        $result.IsSearching | Should -BeTrue
-    }
-
-    It 'Should give duplicate FR-012 search tabs distinct visible context' {
-        $duplicateSnapshot = [PSCustomObject] @{
-            EntryRoots = $script:snapshot.EntryRoots
-            Objects    = @(
-                $script:snapshot.Objects
-                [PSCustomObject] @{
-                    Kind               = 'MenuFolder'
-                    Name               = 'Tools'
-                    Description        = 'Other tools'
-                    RelativePath       = 'Catalog\Tools'
-                    ParentRelativePath = 'Catalog'
-                    EntryName          = 'Entry B'
-                    ContentSource      = 'Personal'
-                }
-            )
-        }
-
-        $result = InModuleScope -ModuleName $moduleName -Parameters @{
-            TestSnapshot = $duplicateSnapshot
-        } {
-            $parameters = @{
-                Snapshot  = $TestSnapshot
-                EntryName = 'Entry A'
-                SearchText = 'Tools'
-            }
-            Get-LaunchTreeTabbedListContent @parameters
-        }
-
-        $toolsTabs = @($result.MenuFolderTabs | Where-Object Header -eq 'Tools')
-        $toolsTabs | Should -HaveCount 2
-        $toolsTabs.Context | Should -Contain 'Entry A > Tools | Managed'
-        $toolsTabs.Context | Should -Contain 'Entry B > Catalog\Tools | Personal'
+        $result.LaunchItems.Name | Should -Be @('Portal')
+        $result.VisibleCount | Should -Be 3
     }
 }

@@ -126,6 +126,12 @@ release remains gated by external environment evidence.
   content and lays tabs out in one scrollable row, the window themes its
   scrollbars, and the capture fixture gained Menu Folders so the checked-in
   screenshot exercises tab overflow.
+- 2026-07-29: Hid Menu Folders whose subtree holds no Launch Item, removed the
+  sort selector and search box from the tabbed layout, and fixed tab
+  navigation. A live UI Automation click proved the old handler entered the
+  wrong folder because it rebuilt the tab collection from shared selection
+  state; each tab now carries its own folder and navigates from its own click,
+  verified by clicking `Canon Utilities` and reading back its four subfolders.
 
 ## Stable capabilities
 

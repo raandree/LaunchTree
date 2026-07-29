@@ -129,6 +129,28 @@ function Get-LaunchTreeContentSnapshot {
         }
     }
 
+    # A Menu Folder is shown only when a Launch Item exists somewhere beneath it.
+    $foldersWithLaunchItem = [Collections.Generic.HashSet[string]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+    foreach ($contentObject in $mergedObjects) {
+        if ($contentObject.Kind -ne 'LaunchItem') {
+            continue
+        }
+
+        $ancestorPath = [string] $contentObject.ParentRelativePath
+        while (-not [string]::IsNullOrEmpty($ancestorPath)) {
+            [void] $foldersWithLaunchItem.Add(
+                ('{0}|{1}' -f $contentObject.EntryName, $ancestorPath)
+            )
+            $ancestorPath = [IO.Path]::GetDirectoryName($ancestorPath)
+        }
+    }
+    $visibleObjects = @($mergedObjects | Where-Object {
+        $_.Kind -ne 'MenuFolder' -or
+        $foldersWithLaunchItem.Contains(('{0}|{1}' -f $_.EntryName, $_.RelativePath))
+    })
+
     foreach ($finding in $healthFindings) {
         $eventParameters = @{
             Configuration = $Configuration
@@ -142,7 +164,7 @@ function Get-LaunchTreeContentSnapshot {
         PSTypeName     = 'LaunchTree.ContentSnapshot'
         CreatedAtUtc   = [DateTime]::UtcNow
         EntryRoots     = [object[]] @($entryRoots | Sort-Object -Property Name -Descending:$descending)
-        Objects        = [object[]] @($mergedObjects | Sort-Object -Property Name -Descending:$descending)
+        Objects        = [object[]] @($visibleObjects | Sort-Object -Property Name -Descending:$descending)
         HealthFindings = [object[]] $healthFindings
     }
 }

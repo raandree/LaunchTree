@@ -105,6 +105,8 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
             $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
             $levelTwo = New-Item -Path (Join-Path $entry.FullName 'LevelTwo') -ItemType Directory
             $levelThree = New-Item -Path (Join-Path $levelTwo.FullName 'LevelThree') -ItemType Directory
+            @('[InternetShortcut]', 'URL=https://leveltwo.example') |
+                Set-Content -LiteralPath (Join-Path $levelTwo.FullName 'Level two.url') -Encoding ASCII
             @('[InternetShortcut]', 'URL=https://excluded.example') |
                 Set-Content -LiteralPath (Join-Path $levelThree.FullName 'Excluded.url') -Encoding ASCII
             @('[InternetShortcut]', 'URL=https://visible.example') |
@@ -151,6 +153,8 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
         It 'Should keep a Menu Folder usable when description metadata is oversized' {
             $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
             $folder = New-Item -Path (Join-Path $entry.FullName 'Large description') -ItemType Directory
+            @('[InternetShortcut]', 'URL=https://described.example') |
+                Set-Content -LiteralPath (Join-Path $folder.FullName 'Described.url') -Encoding ASCII
             ('x' * 70000) |
                 Set-Content -LiteralPath (Join-Path $folder.FullName 'description.txt') -Encoding UTF8
 
@@ -164,6 +168,32 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
             ($result.Objects | Where-Object Name -eq 'Large description').Description |
                 Should -BeNullOrEmpty
             $result.HealthFindings.Code | Should -Contain 'DescriptionUnavailable'
+        }
+    }
+
+    Context 'When a Menu Folder subtree contains no Launch Item' {
+        It 'Should hide empty Menu Folders and keep folders whose only content is nested' {
+            $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
+            $null = New-Item -Path (Join-Path $entry.FullName 'Empty folder') -ItemType Directory
+            $emptyParent = New-Item -Path (Join-Path $entry.FullName 'Empty parent') -ItemType Directory
+            $null = New-Item -Path (Join-Path $emptyParent.FullName 'Empty child') -ItemType Directory
+            $nested = New-Item -Path (Join-Path $entry.FullName 'Nested') -ItemType Directory
+            $deep = New-Item -Path (Join-Path $nested.FullName 'Deep') -ItemType Directory
+            @('[InternetShortcut]', 'URL=https://deep.example') |
+                Set-Content -LiteralPath (Join-Path $deep.FullName 'Deep link.url') -Encoding ASCII
+
+            $result = InModuleScope -ModuleName $moduleName -Parameters @{
+                TestConfiguration = $script:testConfiguration
+            } {
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
+            }
+
+            $result.Objects.Name | Should -Not -Contain 'Empty folder'
+            $result.Objects.Name | Should -Not -Contain 'Empty parent'
+            $result.Objects.Name | Should -Not -Contain 'Empty child'
+            $result.Objects.Name | Should -Contain 'Nested'
+            $result.Objects.Name | Should -Contain 'Deep'
+            $result.Objects.Name | Should -Contain 'Deep link'
         }
     }
 }
