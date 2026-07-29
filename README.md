@@ -16,6 +16,11 @@ Launcher. The [setup script](tools/Initialize-QuickStart.ps1) writes a default
 machine configuration, creates a sample Entry Root of built-in Windows Launch
 Items, and reconciles its Start Entry when run elevated.
 
+The build also produces `output\LaunchTree.ps1`, a generated self-contained
+script for machines where installing a module is impractical. Dot-source it to
+load every command, or use `-Command` to run one operation. See
+[single-file script delivery](docs/deployment.md#single-file-script-delivery).
+
 ## Content model
 
 The default Managed Root is:

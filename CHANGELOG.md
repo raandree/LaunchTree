@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   PSScriptAnalyzer coverage for private helpers
 - Document how to open the Launcher with `Show-LaunchTree`, how to import the
   built module without installing it, and how to resolve the related failures
+- Document the single-file `LaunchTree.ps1` delivery in the getting-started
+  guide, the README, and the troubleshooting guide, covering dot-sourcing,
+  `-Command` dispatch, the setup-script `-SkipReconciliation` path, and the
+  script-path failure modes
 - Document PSGallery, GPO, and file-copy deployment plus operational
   troubleshooting and example machine configuration
 

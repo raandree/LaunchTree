@@ -80,6 +80,14 @@ release remains gated by external environment evidence.
   module reachable: 45 commands loaded, Reconciliation added 1 Start Entry
   targeting the script with `-Command "Show"`, health `Healthy`. Module delivery
   and behavior unchanged; full suite 143 passed, 0 failed, 1 intentional skip.
+- 2026-07-29: Closed the operator-documentation gap for the single-file
+  delivery. `docs/deployment.md` already covered it; the quick start, README,
+  and troubleshooting guide did not. Added a `Use the single-file script`
+  section to `docs/getting-started.md` (stable path copy, dot-sourcing,
+  `-Command` dispatch, and `Initialize-QuickStart.ps1 -SkipReconciliation`
+  because that script reconciles only through an installed or built module),
+  a README pointer, and a troubleshooting section for the script-path failure
+  modes. `tools/Test-Documentation.ps1` passed.
 
 ## Stable capabilities
 

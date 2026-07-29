@@ -31,6 +31,16 @@ The versioned module is written below:
 output\module\LaunchTree\<version>
 ```
 
+The same build also writes a self-contained script that needs no installed
+module:
+
+```text
+output\LaunchTree.ps1
+```
+
+Continue with the module below, or follow
+[Use the single-file script](#use-the-single-file-script) instead.
+
 To try the commands before installing anything, import the built manifest
 directly in the current session:
 
@@ -66,6 +76,47 @@ Import-Module (Join-Path $modulePath 'LaunchTree.psd1') -Force
 
 For managed deployment or a package from another location, follow the
 [deployment guide](deployment.md) instead of the copy example above.
+
+## Use the single-file script
+
+Skip this section when you installed the module above.
+
+`output\LaunchTree.ps1` carries the complete LaunchTree logic. Reconciliation
+performed by the script points its Start Entries at the script file, so copy it
+to a stable machine-wide path first:
+
+```powershell
+$scriptRoot = Join-Path $env:ProgramFiles 'LaunchTree'
+New-Item -ItemType Directory -Path $scriptRoot -Force | Out-Null
+Copy-Item -Path .\output\LaunchTree.ps1 -Destination $scriptRoot -Force
+```
+
+Dot-source it in the elevated session to expose the same commands the rest of
+this guide uses:
+
+```powershell
+. 'C:\Program Files\LaunchTree\LaunchTree.ps1'
+```
+
+You can also run one operation without loading the commands:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command Update -Force
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command Test
+```
+
+The setup script below reconciles through the installed or built module, not
+through dot-sourced commands. Run it with `-SkipReconciliation` and reconcile
+from the script so the Start Entries point at the script file:
+
+```powershell
+.\tools\Initialize-QuickStart.ps1 -SkipReconciliation
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command Update -Force
+```
+
+Every later section then applies unchanged. The
+[deployment guide](deployment.md) covers the move, rename, and application
+control rules for this delivery.
 
 ## Run the setup script
 

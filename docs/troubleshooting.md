@@ -25,7 +25,8 @@ Show-LaunchTree -EntryName 'LaunchTree Demo'
 
 - `The term 'Show-LaunchTree' is not recognized` means the module is neither
   installed below a `$env:PSModulePath` directory nor imported. Import the
-  installed or built `LaunchTree.psd1` manifest first.
+  installed or built `LaunchTree.psd1` manifest first, or dot-source
+  `LaunchTree.ps1` when you use the single-file script.
 - A prompt for `EntryId` means the default parameter set was selected. Use
   `-EntryName` until Reconciliation has written Generated State.
 - `Show-LaunchTree requires an STA PowerShell host` means the session is MTA.
@@ -63,7 +64,8 @@ Control.
 
 - Run `$ExecutionContext.SessionState.LanguageMode` in the selected Launcher
   Host.
-- Allow the built module path and the selected `powershell.exe` or `pwsh.exe`.
+- Allow the built module path or the single-file script path, and the selected
+  `powershell.exe` or `pwsh.exe`.
 - Use `Test-LaunchTree` to distinguish policy and platform findings.
 
 ## Event Log access
@@ -83,6 +85,22 @@ failing. The dedicated log and Interactive Users access are still registered;
 verify standard-user read/write manually from a non-elevated session.
 
 Event records are diagnostic input, not security-audit evidence.
+
+## Single-file script problems
+
+The generated `LaunchTree.ps1` behaves like the module once it is dot-sourced.
+
+- `The term 'Update-LaunchTree' is not recognized` after running
+  `.\LaunchTree.ps1` means the script was executed instead of dot-sourced. Use
+  `. .\LaunchTree.ps1`, or pass `-Command Update`.
+- Start Entries stop working after the script is moved or renamed, because they
+  still point at the previous script path. Run `-Command Update -Force` again
+  from the new location.
+- Reconciliation through the module points Start Entries at the module, and
+  Reconciliation through the script points them at the script. Use the delivery
+  you intend to keep.
+- Do not edit the script. It is generated from the module source by
+  `tools\Build-LaunchTreeScript.ps1` and is overwritten by every build.
 
 ## Collect a Support Bundle
 
