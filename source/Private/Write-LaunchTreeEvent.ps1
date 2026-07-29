@@ -32,10 +32,10 @@ function Write-LaunchTreeEvent {
     )
 
     try {
-        $module = $ExecutionContext.SessionState.Module
+        $runtime = Get-LaunchTreeRuntimeContext
         $payload = [ordered] @{
             EventSchemaVersion = 1
-            ModuleVersion      = $module.Version.ToString()
+            ModuleVersion      = $runtime.Version
             Operation          = $Operation
             Message            = ConvertTo-LaunchTreeRedactedText -InputObject $Message
             Path               = if ($Path) {

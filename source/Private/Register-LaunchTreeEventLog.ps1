@@ -70,5 +70,23 @@ function Register-LaunchTreeEventLog {
         Configuration    = $Configuration
         LauncherHostPath = $launcherHostPath
     }
-    $null = Invoke-LaunchTreeStandardUserEventProbe @probeParameters
+    $probeResult = Invoke-LaunchTreeStandardUserEventProbe @probeParameters
+    if (-not $probeResult.Verified) {
+        Write-Warning (
+            'The dedicated Event Log and its Interactive Users access were ' +
+            'registered, but standard-user read/write access could not be ' +
+            "verified: $($probeResult.Reason) This is expected on an interactive " +
+            'elevated session; verify manually as a standard user or check ' +
+            'Test-LaunchTree.'
+        )
+        $eventParameters = @{
+            Configuration = $Configuration
+            EventId       = 1603
+            Level         = 'Warning'
+            Operation     = 'EventLogProbe'
+            Message       = $probeResult.Reason
+        }
+        $null = Write-LaunchTreeEvent @eventParameters
+    }
+    $probeResult
 }

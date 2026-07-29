@@ -52,6 +52,34 @@ release remains gated by external environment evidence.
   locally because the agent session is not elevated.
 - 2026-07-28: Renamed the sample Entry Root to `LaunchTree Demo` because
   `Windows tools` collides with the built-in Windows Tools Start menu entry.
+- 2026-07-28: Reproduced the OI-009 elevated standard-user Event Log probe on a
+  UAC-split interactive admin session; it fails. `Initialize-QuickStart.ps1`
+  reports `StartEntryAction=Failed` because `[LaunchTree.UnelevatedProcess]::Run`
+  calls `CreateProcessWithTokenW` with the UAC-linked token, which returns as an
+  `Identification`-level impersonation token and is rejected with
+  `ERROR_ACCESS_DENIED` (5). Raising it needs `SeTcbPrivilege` (SYSTEM only), so
+  the technique cannot work from an interactive elevated admin. Defect, not
+  environment.
+- 2026-07-28: Fixed the defect (option 1, best-effort probe).
+  `Invoke-LaunchTreeStandardUserEventProbe` now returns a structured
+  `LaunchTree.EventProbeResult` through a mockable
+  `Invoke-LaunchTreeUnelevatedProcess` seam instead of throwing;
+  `Register-LaunchTreeEventLog` warns and emits event `1603` without aborting;
+  `Update-LaunchTree` persists `StandardUserEventProbeVerified` and surfaces the
+  probe on its result; `Test-LaunchTree` raises the
+  `StandardUserEventAccessUnverified` Warning finding. QuickStart now returns
+  `StartEntryAction=Reconciled`, `StartEntryCount=1`, and `Degraded` health.
+  Full suite green: 136 passed, 0 failed, 1 intentional skip.
+- 2026-07-28: Added a second delivery form: `output/LaunchTree.ps1`, a generated
+  self-contained script holding all 45 functions. New private
+  `Get-LaunchTreeRuntimeContext` abstracts ModuleBase/version/launcher/probe
+  paths so one source serves both hosts; the probe body moved to
+  `Invoke-LaunchTreeEventLogAccessProbe` and the packaged probe script is now a
+  thin wrapper. `tools/Build-LaunchTreeScript.ps1` plus the
+  `Build_Single_File_Script` task generate it during `build`. Verified with no
+  module reachable: 45 commands loaded, Reconciliation added 1 Start Entry
+  targeting the script with `-Command "Show"`, health `Healthy`. Module delivery
+  and behavior unchanged; full suite 143 passed, 0 failed, 1 intentional skip.
 
 ## Stable capabilities
 

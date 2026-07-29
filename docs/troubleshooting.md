@@ -75,6 +75,13 @@ Users read/write without clear rights. If event writes fail:
 - inspect `CustomSD` under the dedicated Event Log registry key
 - rerun elevated Reconciliation to execute the nonce write/read probe
 
+The write/read probe launches a de-elevated process from the elevated session.
+On an interactive elevated admin the linked standard-user token is only
+`Identification` level, so the probe cannot start and Reconciliation reports the
+`StandardUserEventAccessUnverified` Health Finding (event `1603`) instead of
+failing. The dedicated log and Interactive Users access are still registered;
+verify standard-user read/write manually from a non-elevated session.
+
 Event records are diagnostic input, not security-audit evidence.
 
 ## Collect a Support Bundle

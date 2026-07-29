@@ -203,6 +203,7 @@ Initial event IDs are:
 | `1503` | Warning | Working-set budget exceeded |
 | `1601` | Error | Support Bundle export failed |
 | `1602` | Information | Event log write/read access probe |
+| `1603` | Warning | Standard-user event-log access probe not verified |
 
 Every event must include event schema version, module version, operation,
 redacted source path when relevant, error category, and error code. Events must

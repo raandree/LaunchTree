@@ -120,6 +120,19 @@ function Test-LaunchTree {
                 [void] $findings.Add((New-LaunchTreeHealthFinding @findingParameters))
             }
         }
+
+        if ($generatedState.PSObject.Properties['StandardUserEventProbeVerified'] -and
+            -not $generatedState.StandardUserEventProbeVerified) {
+            $findingParameters = @{
+                Code     = 'StandardUserEventAccessUnverified'
+                Severity = 'Warning'
+                Message  = 'Standard-user Event Log read/write access was not ' +
+                    'verified during the last Reconciliation. Verify manually as ' +
+                    'a standard user.'
+                Path     = $GeneratedStatePath
+            }
+            [void] $findings.Add((New-LaunchTreeHealthFinding @findingParameters))
+        }
     }
 
     $diagnosticCount = 0

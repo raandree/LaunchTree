@@ -38,6 +38,41 @@ it uses instead of relying on a variable from an earlier block, and a
 multistatement block runs inside `& { $ErrorActionPreference = 'Stop'; ... }`
 so the first failure stops the block instead of cascading.
 
+## Constraints
+
+The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
+`Invoke-LaunchTreeStandardUserEventProbe`) launches a de-elevated process with
+`CreateProcessWithTokenW` and the UAC-linked token. From an interactive elevated
+admin the linked token is `Identification`-level, which that API rejects
+(`ERROR_ACCESS_DENIED`); a usable `Impersonation`-level linked token requires
+`SeTcbPrivilege`, held only by SYSTEM. The probe is therefore best-effort: it
+returns a structured `LaunchTree.EventProbeResult` (never throws), Reconciliation
+still registers the log and Interactive Users access,
+`Register-LaunchTreeEventLog` warns and emits event `1603`, and `Test-LaunchTree`
+reports the `StandardUserEventAccessUnverified` finding. Real standard-user
+verification still needs a de-elevation path through the unelevated shell or
+Task Scheduler.
+
+## Delivery
+
+Two delivery forms share one source. The Sampler module under
+`output/module/LaunchTree/<version>` stays the recommended form and is
+unchanged. `output/LaunchTree.ps1` is a generated self-contained script for
+hosts where installing a module is impractical.
+
+The script is generated, never hand-maintained, so it cannot drift:
+`tools/Build-LaunchTreeScript.ps1` concatenates every `source/Private` and
+`source/Public` function, parse-checks the result, and the
+`Build_Single_File_Script` task runs it during `build`.
+
+Host-dependent values resolve through the private
+`Get-LaunchTreeRuntimeContext`, which returns the module base, version, launcher
+path, and probe path when running as a module, and the script's own path plus a
+`-Command` token when running standalone. Consumers never read
+`$ExecutionContext.SessionState.Module` directly, so module behavior is
+identical while the script targets itself for Start Entries and the
+standard-user probe.
+
 ## Decisions
 
 ### Decision 1: Use the canonical Memory Bank base

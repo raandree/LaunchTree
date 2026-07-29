@@ -36,6 +36,8 @@ source: repository evidence
 - Design structure check: signed-off status and required headings present.
 - `tools/Test-Documentation.ps1`: Memory Bank, specifications, links, issue
   records, and signed design pass.
+- Single-file script: generated during `build`, parse-checked by the generator,
+  and verified with no reachable module (45 commands, Reconciliation, health).
 - Full detached Sampler workflow: 131 tests pass under PowerShell 7.
 - Full detached Sampler workflow: 131 tests pass under Windows PowerShell 5.1
   with one intentional host-dependent skip.

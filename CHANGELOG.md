@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a generated single-file `LaunchTree.ps1` delivery that contains the whole
+  module logic, runs without installing a module, supports dot-sourcing and
+  `-Command` dispatch, and points its Start Entries at the script itself; the
+  module delivery is unchanged
 - Add a setup script that writes a default machine configuration, creates a
   sample Entry Root of built-in Windows Launch Items, and reconciles its Start
   Entry for a faster first run
@@ -44,6 +48,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix elevated Reconciliation aborting with "Could not start the standard-user
+  probe process" when the de-elevated Event Log probe cannot launch (an
+  interactive elevated admin whose linked token is only `Identification`
+  level); the probe now returns an unverified result, emits warning event
+  `1603`, and surfaces a `StandardUserEventAccessUnverified` Health Finding
+  while still registering the log and its Interactive Users access
 - Fix the getting-started Entry Root sample so it resolves the effective
   configuration itself, stops at the first error, and releases the shell COM
   object even when shortcut creation fails

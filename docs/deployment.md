@@ -31,6 +31,49 @@ The repository verifies this lifecycle with:
 pwsh -NoProfile -STA -File .\tools\Test-OfflineLifecycle.ps1
 ```
 
+## Single-file script delivery
+
+The same build also produces a self-contained script that needs no installed
+module:
+
+```text
+output\LaunchTree.ps1
+```
+
+It is generated from the module source by `tools\Build-LaunchTreeScript.ps1`
+and contains every private and public function, so it cannot drift from the
+module. Do not edit it; edit the module source and rebuild. The module delivery
+is unchanged and remains the recommended option.
+
+Use the script when installing a module is impractical, for example a locked
+workstation, a one-off recovery, or a scripted bootstrap. Copy it to a stable
+machine-wide path first, because Reconciliation points its Start Entries at the
+script file itself:
+
+```text
+C:\Program Files\LaunchTree\LaunchTree.ps1
+```
+
+Dot-source it to load the commands, then use them normally:
+
+```powershell
+. 'C:\Program Files\LaunchTree\LaunchTree.ps1'
+Update-LaunchTree -Confirm:$false
+Test-LaunchTree
+```
+
+Or run one operation without loading the commands:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command Update -Force
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command Show -EntryName 'LaunchTree Demo'
+```
+
+Moving or renaming the script after Reconciliation invalidates the owned Start
+Entries. Run Reconciliation again from the new location, and allow the script
+path through AppLocker or Windows Defender Application Control just as you would
+the built module.
+
 ## File-copy installation
 
 1. Copy the built version directory to a module path, for example:

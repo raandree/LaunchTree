@@ -160,6 +160,23 @@ update the summary table.
 - History: 2026-07-28 - Implemented Interactive Users SDDL validation and a
   linked standard-user token nonce write/read probe; external elevated matrix
   execution remains required for closure.
+- History: 2026-07-28 - Reproduced the probe on a UAC-split interactive elevated
+  admin (Windows client): it fails. `CreateProcessWithTokenW` is fed the
+  `TokenLinkedToken`, which returns as an `Identification`-level impersonation
+  token and is rejected with `ERROR_ACCESS_DENIED` (5), surfacing through
+  `Initialize-QuickStart.ps1` as `StartEntryAction=Failed`. `DuplicateTokenEx`
+  to a primary token also fails (`ERROR_BAD_IMPERSONATION_LEVEL`, 1346) because
+  the level cannot be raised without `SeTcbPrivilege` (SYSTEM only). The linked-
+  token de-elevation technique is therefore unusable from an interactive admin;
+  redesign the probe (unelevated shell or Task Scheduler) and make it a Health
+  Finding rather than a fatal Reconciliation error.
+- History: 2026-07-28 - Implemented the best-effort fix:
+  `Invoke-LaunchTreeStandardUserEventProbe` returns a structured result via a
+  mockable `Invoke-LaunchTreeUnelevatedProcess` seam, `Register-LaunchTreeEventLog`
+  warns and emits event `1603` without aborting, and `Test-LaunchTree` raises the
+  `StandardUserEventAccessUnverified` finding. QuickStart now reconciles the Start
+  Entry and reports `Degraded`. A real de-elevated standard-user write/read path
+  and the external elevated matrix remain required for closure.
 
 ### OI-010: Implement Generated State migration before schema version 2
 

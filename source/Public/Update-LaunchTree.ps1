@@ -81,10 +81,9 @@ function Update-LaunchTree {
         )
     }
 
-    $moduleBase = $ExecutionContext.SessionState.Module.ModuleBase
-    $bootstrapPath = Join-Path -Path $moduleBase -ChildPath (
-        'Scripts\Start-LaunchTreeLauncher.ps1'
-    )
+    $runtime = Get-LaunchTreeRuntimeContext
+    $moduleBase = $runtime.RootPath
+    $bootstrapPath = $runtime.LauncherPath
     if (-not (Test-Path -LiteralPath $bootstrapPath -PathType Leaf)) {
         throw [System.IO.FileNotFoundException]::new(
             'The packaged Launcher bootstrap is missing.',
@@ -95,8 +94,9 @@ function Update-LaunchTree {
     $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost (
         $configuration.LauncherHost
     )
+    $eventProbe = $null
     if (-not $SkipEventLogRegistration) {
-        Register-LaunchTreeEventLog -Configuration $configuration
+        $eventProbe = Register-LaunchTreeEventLog -Configuration $configuration
     }
 
     $previousState = Import-LaunchTreeGeneratedState -LiteralPath $GeneratedStatePath
@@ -147,6 +147,7 @@ function Update-LaunchTree {
             ShortcutPath      = $normalizedShortcut
             LauncherHostPath  = $launcherHostPath
             BootstrapPath     = $bootstrapPath
+            LauncherCommand   = [string] $runtime.LauncherCommand
             ConfigurationPath = [IO.Path]::GetFullPath($ConfigurationPath)
             Description       = [string] $entryRoot.Description
         }
@@ -196,11 +197,12 @@ function Update-LaunchTree {
     }
 
     $result = [PSCustomObject] @{
-        PSTypeName = 'LaunchTree.ReconciliationResult'
-        Succeeded  = $true
-        Added      = [string[]] $added
-        Updated    = [string[]] $updated
-        Removed    = [string[]] $removed
+        PSTypeName             = 'LaunchTree.ReconciliationResult'
+        Succeeded              = $true
+        Added                  = [string[]] $added
+        Updated                = [string[]] $updated
+        Removed                = [string[]] $removed
+        StandardUserEventProbe = $eventProbe
     }
 
     $changeCount = $added.Count + $updated.Count + $removed.Count
@@ -246,20 +248,26 @@ function Update-LaunchTree {
                 EntryId           = [guid] $entry.EntryId
                 ConfigurationPath = [IO.Path]::GetFullPath($ConfigurationPath)
                 WorkingDirectory  = $moduleBase
+                CommandName       = $runtime.LauncherCommand
                 Description       = $entry.Description
             }
             New-LaunchTreeStartEntry @shortcutParameters
             $entry | Add-Member -NotePropertyName StagedShortcut -NotePropertyValue $stagedShortcut
         }
 
-        $module = $ExecutionContext.SessionState.Module
+        $probeVerified = if ($null -ne $eventProbe) {
+            [bool] $eventProbe.Verified
+        } else {
+            $true
+        }
         $newState = [ordered] @{
-            SchemaVersion       = 1
-            ModuleVersion       = $module.Version.ToString()
-            ConfigurationPath   = [IO.Path]::GetFullPath($ConfigurationPath)
-            ManagedRoot         = [IO.Path]::GetFullPath($configuration.ManagedRoot)
-            LastReconciledAtUtc = [DateTime]::UtcNow.ToString('o')
-            StartEntries        = @($desiredEntries | Select-Object (
+            SchemaVersion                  = 1
+            ModuleVersion                  = $runtime.Version
+            ConfigurationPath              = [IO.Path]::GetFullPath($ConfigurationPath)
+            ManagedRoot                    = [IO.Path]::GetFullPath($configuration.ManagedRoot)
+            LastReconciledAtUtc            = [DateTime]::UtcNow.ToString('o')
+            StandardUserEventProbeVerified = $probeVerified
+            StartEntries                   = @($desiredEntries | Select-Object (
                 'EntryId', 'Name', 'EntryRootPath', 'ShortcutPath', 'DefinitionHash'
             ))
         }

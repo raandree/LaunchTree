@@ -30,26 +30,43 @@ function New-LaunchTreeStartEntry {
         [string] $WorkingDirectory,
 
         [Parameter()]
+        [AllowNull()]
+        [string] $CommandName,
+
+        [Parameter()]
         [AllowEmptyString()]
         [string] $Description
     )
 
-    $argumentParts = @(
-        '-NoLogo'
-        '-NoProfile'
-        '-NonInteractive'
-        '-WindowStyle'
-        'Hidden'
-        '-ExecutionPolicy'
-        'Bypass'
-        '-STA'
-        '-File'
-        (ConvertTo-LaunchTreeCommandLineArgument -Value $BootstrapPath)
-        '-EntryId'
-        (ConvertTo-LaunchTreeCommandLineArgument -Value $EntryId.ToString())
-        '-ConfigurationPath'
-        (ConvertTo-LaunchTreeCommandLineArgument -Value $ConfigurationPath)
-    )
+    $argumentParts = [System.Collections.Generic.List[string]]::new()
+    foreach ($part in @(
+            '-NoLogo'
+            '-NoProfile'
+            '-NonInteractive'
+            '-WindowStyle'
+            'Hidden'
+            '-ExecutionPolicy'
+            'Bypass'
+            '-STA'
+            '-File'
+            (ConvertTo-LaunchTreeCommandLineArgument -Value $BootstrapPath)
+        )) {
+        [void] $argumentParts.Add($part)
+    }
+    if ($CommandName) {
+        [void] $argumentParts.Add('-Command')
+        [void] $argumentParts.Add(
+            (ConvertTo-LaunchTreeCommandLineArgument -Value $CommandName)
+        )
+    }
+    foreach ($part in @(
+            '-EntryId'
+            (ConvertTo-LaunchTreeCommandLineArgument -Value $EntryId.ToString())
+            '-ConfigurationPath'
+            (ConvertTo-LaunchTreeCommandLineArgument -Value $ConfigurationPath)
+        )) {
+        [void] $argumentParts.Add($part)
+    }
 
     $shell = $null
     $shortcut = $null
