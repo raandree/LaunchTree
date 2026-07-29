@@ -47,9 +47,9 @@ while preserving the approved behavior and security boundaries.
 - `CR-013` lets a caller relocate the menu for one invocation through
     `ManagedRoot` and `PersonalRoot` parameters on the read commands, while
     persistent relocation still belongs in the machine configuration.
-- The Launcher header is one compact line (Back, title, Close) that doubles as
-  the window drag handle; the current path is the title tooltip and the
-  `TabbedList` description sits on its own line above the tab strip.
+- The Launcher header is one compact line (Back, title, active description,
+  Close) that doubles as the window drag handle; the current path is the title
+  tooltip and the full description is the description tooltip.
 - A dragged window position is remembered and restored on the next activation,
   clamped to the virtual screen; only a first run without stored coordinates
   opens near the Start button.

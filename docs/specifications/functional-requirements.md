@@ -82,12 +82,14 @@ sessions for one account, must have independent Launcher processes.
 
 Activating a Menu Folder must replace the visible content in the same window.
 The Back control must restore parent context. The window header must be one
-compact line holding the Back control, the current Entry Root title, and the
-Close control; the title must expose the current path as its tooltip. A Menu
-Folder whose subtree contains no Launch Item must not be displayed.
+compact line holding the Back control, the current Entry Root title, the
+selected description, and the Close control; the title must expose the current
+path as its tooltip. A Menu Folder whose subtree contains no Launch Item must
+not be displayed.
 `TabbedList` is the
 default Launcher layout: the owning Menu Folder and its child Menu Folders
-must be tabs, the selected tab's description must appear above the tabs, and
+must be tabs, the selected tab's description must appear in the header above
+the tabs, and
 the selected tab's Launch Items must appear as compact list rows. The owning
 Menu Folder must keep its own tab only while it holds a Launch Item directly
 or no child Menu Folder tab can replace it; when that tab is hidden, the first

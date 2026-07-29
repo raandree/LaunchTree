@@ -51,9 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reduce the Launcher header to a single compact line holding Back, the title,
-  and Close; the breadcrumb line is gone and the current path is now the title
-  tooltip, and the active `TabbedList` description moved to its own slim line
-  above the tab strip
+  the active description, and Close; the breadcrumb and the separate description
+  line are gone, and the current path is now the title tooltip
 - Hide the `TabbedList` tab of the Entry Root or Menu Folder that the tab strip
   belongs to while it holds no Launch Item of its own, and select its first
   child Menu Folder tab instead, so opening a folder that only groups

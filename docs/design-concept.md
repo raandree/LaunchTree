@@ -48,7 +48,8 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   compact single-line header that also acts as the drag handle.
 - Use the tabbed list as the default Launcher layout and allow machine
   configuration to select the responsive grid. In the tabbed list layout,
-  Menu Folders are tabs, the active description appears above the tabs, and
+  Menu Folders are tabs, the active description appears in the header above the
+  tabs, and
   Launch Items appear as compact rows. Selecting a tab keeps the whole tab
   strip visible and highlights the selected tab; a Menu Folder below the
   selected tab appears as a row that moves the tab strip one level deeper.
@@ -187,7 +188,8 @@ reconciled transactionally.
 
 The Launcher provides two Windows-inspired layouts selected by machine
 configuration. `TabbedList` is the default and presents the current Menu Folder
-and its child Menu Folders as tabs, shows the active description above the tab
+and its child Menu Folders as tabs, shows the active description in the header
+above the tab
 strip, and presents Launch Items as compact rows. `Grid` presents Menu Folders
 and Launch Items together in a responsive grid using stable item dimensions.
 Both layouts use the selected name order. Menu Folder activation replaces

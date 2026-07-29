@@ -134,34 +134,31 @@
     $window.Content = $rootBorder
 
     $rootGrid = [System.Windows.Controls.Grid]::new()
-    for ($rowIndex = 0; $rowIndex -lt 6; $rowIndex++) {
+    for ($rowIndex = 0; $rowIndex -lt 5; $rowIndex++) {
         [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
         $rootGrid.RowDefinitions[$rowIndex].Height = [System.Windows.GridLength]::Auto
     }
-    $rootGrid.RowDefinitions[4].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    $rootGrid.RowDefinitions[3].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
     $rootBorder.Child = $rootGrid
 
     $header = [System.Windows.Controls.Grid]::new()
     $header.Background = [System.Windows.Media.Brushes]::Transparent
-    $header.Margin = [System.Windows.Thickness]::new(8, 6, 8, 6)
+    $header.Margin = [System.Windows.Thickness]::new(6, 3, 6, 3)
     $header.ToolTip = 'Drag to move the window'
-    [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
-    $header.ColumnDefinitions[0].Width = [System.Windows.GridLength]::Auto
-    [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
-    $header.ColumnDefinitions[1].Width = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
-    [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
-    $header.ColumnDefinitions[2].Width = [System.Windows.GridLength]::Auto
-    [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
-    $header.ColumnDefinitions[3].Width = [System.Windows.GridLength]::Auto
+    for ($columnIndex = 0; $columnIndex -lt 5; $columnIndex++) {
+        [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
+        $header.ColumnDefinitions[$columnIndex].Width = [System.Windows.GridLength]::Auto
+    }
+    $header.ColumnDefinitions[2].Width = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
     [System.Windows.Controls.Grid]::SetRow($header, 0)
     [void] $rootGrid.Children.Add($header)
 
     $backButton = [System.Windows.Controls.Button]::new()
     $backButton.Content = [char] 0xE72B
     $backButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $backButton.FontSize = 14
-    $backButton.Width = 32
-    $backButton.Height = 32
+    $backButton.FontSize = 13
+    $backButton.Width = 28
+    $backButton.Height = 28
     $backButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $backButton.ToolTip = 'Back'
     $backButton.IsEnabled = $false
@@ -171,32 +168,27 @@
     $title = [System.Windows.Controls.TextBlock]::new()
     $title.Text = $EntryName
     $title.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe UI Variable Text Semibold')
-    $title.FontSize = 14
+    $title.FontSize = 13
     $title.Foreground = $foregroundBrush
     $title.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $title.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    $title.Margin = [System.Windows.Thickness]::new(8, 0, 8, 0)
+    $title.Margin = [System.Windows.Thickness]::new(6, 0, 0, 0)
     [System.Windows.Controls.Grid]::SetColumn($title, 1)
     [void] $header.Children.Add($title)
 
     $descriptionText = [System.Windows.Controls.TextBlock]::new()
     $descriptionText.Foreground = $secondaryBrush
     $descriptionText.FontSize = 12
-    $descriptionText.Margin = if ($useTabbedListLayout) {
-        [System.Windows.Thickness]::new(24, 0, 24, 10)
-    } else {
-        [System.Windows.Thickness]::new(20, 0, 20, 10)
-    }
-    $descriptionText.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $descriptionText.Margin = [System.Windows.Thickness]::new(10, 0, 8, 0)
+    $descriptionText.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $descriptionText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    $descriptionText.MaxHeight = 42
     $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
-    [System.Windows.Controls.Grid]::SetRow($descriptionText, 1)
-    [void] $rootGrid.Children.Add($descriptionText)
+    [System.Windows.Controls.Grid]::SetColumn($descriptionText, 2)
+    [void] $header.Children.Add($descriptionText)
 
     $sortBox = [System.Windows.Controls.ComboBox]::new()
     $sortBox.Width = 132
-    $sortBox.Height = 30
+    $sortBox.Height = 28
     $sortBox.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $sortBox.Margin = [System.Windows.Thickness]::new(8, 0, 8, 0)
     [void] $sortBox.Items.Add('Name A-Z')
@@ -206,18 +198,18 @@
     if ($useTabbedListLayout) {
         $sortBox.Visibility = [System.Windows.Visibility]::Collapsed
     }
-    [System.Windows.Controls.Grid]::SetColumn($sortBox, 2)
+    [System.Windows.Controls.Grid]::SetColumn($sortBox, 3)
     [void] $header.Children.Add($sortBox)
 
     $closeButton = [System.Windows.Controls.Button]::new()
     $closeButton.Content = [char] 0xE8BB
     $closeButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $closeButton.FontSize = 12
-    $closeButton.Width = 32
-    $closeButton.Height = 32
+    $closeButton.FontSize = 11
+    $closeButton.Width = 28
+    $closeButton.Height = 28
     $closeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $closeButton.ToolTip = 'Close'
-    [System.Windows.Controls.Grid]::SetColumn($closeButton, 3)
+    [System.Windows.Controls.Grid]::SetColumn($closeButton, 4)
     [void] $header.Children.Add($closeButton)
 
     $searchBorder = [System.Windows.Controls.Border]::new()
@@ -230,7 +222,7 @@
     $searchBorder.BorderBrush = $borderBrush
     $searchBorder.BorderThickness = [System.Windows.Thickness]::new(1)
     $searchBorder.CornerRadius = [System.Windows.CornerRadius]::new(6)
-    [System.Windows.Controls.Grid]::SetRow($searchBorder, 3)
+    [System.Windows.Controls.Grid]::SetRow($searchBorder, 2)
     if ($useTabbedListLayout) {
         $searchBorder.Visibility = [System.Windows.Visibility]::Collapsed
     }
@@ -269,7 +261,7 @@
     } else {
         [System.Windows.Visibility]::Collapsed
     }
-    [System.Windows.Controls.Grid]::SetRow($folderTabs, 2)
+    [System.Windows.Controls.Grid]::SetRow($folderTabs, 1)
     [void] $rootGrid.Children.Add($folderTabs)
 
     $scrollViewer = [System.Windows.Controls.ScrollViewer]::new()
@@ -280,7 +272,7 @@
     } else {
         [System.Windows.Thickness]::new(14, 0, 14, 8)
     }
-    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 4)
+    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 3)
     [void] $rootGrid.Children.Add($scrollViewer)
     if ($useTabbedListLayout) {
         $itemsPanel = [System.Windows.Controls.StackPanel]::new()
@@ -304,7 +296,7 @@
     $statusText.Foreground = $secondaryBrush
     $statusText.FontSize = 12
     $statusText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    [System.Windows.Controls.Grid]::SetRow($statusText, 5)
+    [System.Windows.Controls.Grid]::SetRow($statusText, 4)
     [void] $rootGrid.Children.Add($statusText)
 
     $buttonStyleXaml = @"

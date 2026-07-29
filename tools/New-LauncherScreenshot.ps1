@@ -149,14 +149,14 @@ try {
         }
 
         $colors = [Collections.Generic.HashSet[int]]::new()
-        $stepX = [Math]::Max(1, [int] ($bitmap.Width / 25))
-        $stepY = [Math]::Max(1, [int] ($bitmap.Height / 20))
+        $stepX = [Math]::Max(1, [int] ($bitmap.Width / 60))
+        $stepY = [Math]::Max(1, [int] ($bitmap.Height / 48))
         for ($x = 0; $x -lt $bitmap.Width; $x += $stepX) {
             for ($y = 0; $y -lt $bitmap.Height; $y += $stepY) {
                 [void] $colors.Add($bitmap.GetPixel($x, $y).ToArgb())
             }
         }
-        $minimumSampleColors = if ($LauncherLayout -eq 'TabbedList') { 8 } else { 12 }
+        $minimumSampleColors = if ($LauncherLayout -eq 'TabbedList') { 20 } else { 30 }
         if ($colors.Count -lt $minimumSampleColors) {
             throw "Launcher capture has insufficient pixel diversity: $($colors.Count)."
         }
