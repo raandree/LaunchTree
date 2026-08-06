@@ -1,0 +1,11 @@
+# Code owners for LaunchTree.
+#
+# GitHub requests a review from the owner of the last pattern that matches a
+# changed file. Review is only enforced when the branch protection rule for
+# `main` has "Require review from Code Owners" enabled.
+#
+# Reference:
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in this repository.
+*   @raandree

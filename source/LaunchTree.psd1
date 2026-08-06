@@ -27,7 +27,7 @@ Author = 'LaunchTree contributors'
 CompanyName = 'LaunchTree contributors'
 
 # Copyright statement for this module
-Copyright = '(c) LaunchTree contributors. All rights reserved.'
+Copyright = '(c) 2026 Raimund Andree. Licensed under the MIT License.'
 
 # Description of the functionality provided by this module
 Description = 'Displays recursive Windows Start menu content in a configurable WPF launcher.'
@@ -106,10 +106,10 @@ PrivateData = @{
         Tags = @('StartMenu', 'Launcher', 'WPF', 'Windows')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/raandree/LaunchTree/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/raandree/LaunchTree'
 
         # A URL to an icon representing this module.
         # IconUri = ''

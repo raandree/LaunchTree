@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add the repository governance files required for a public release: an MIT
+  `LICENSE`, a `SECURITY.md` policy that documents private vulnerability
+  reporting and the intended security boundaries, a `CONTRIBUTING.md`
+  development guide, and a `CODEOWNERS` default owner; the module manifest now
+  states the MIT copyright and publishes `LicenseUri` and `ProjectUri`
 - Add drag-to-move for the Launcher window: pressing and dragging the header
   moves the window, and the resulting position is remembered and restored on the
   next activation, clamped to the virtual screen so it stays reachable on any

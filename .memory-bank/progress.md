@@ -181,6 +181,19 @@ release remains gated by external environment evidence.
   builds are clean with 0 errors and 0 warnings. A live capture of the reported
   Entry Root shows the `Node.js` and `Pandoc` tabs with `Node.js` selected and
   no `x1` tab.
+- 2026-08-06: Prepared the repository for a public release. A disclosure audit
+  covering all 126 tracked files, all 34 commits on every reference, and all 13
+  distinct historical screenshot blobs found no personally identifiable
+  information in file content, no secrets, and no customer or agency reference;
+  placeholders are `Contoso`, `example.test`, and `company.local`, and every
+  screenshot is generated from a temporary fixture rather than a real Start
+  menu. The only personal data is the author identity in commit metadata, which
+  the owner accepted as public. Added the MIT `LICENSE`, a `SECURITY.md` that
+  states the reporting path and derives its security model and out-of-scope
+  list from the signed Design Concept, a `CONTRIBUTING.md` describing the
+  Sampler loop and the record obligations, and a `CODEOWNERS` default owner.
+  Replaced the manifest copyright, whose "All rights reserved" wording
+  contradicted the new license, and published `LicenseUri` and `ProjectUri`.
 
 ## Stable capabilities
 

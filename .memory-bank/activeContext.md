@@ -55,6 +55,12 @@ while preserving the approved behavior and security boundaries.
   opens near the Start button.
 - `TabbedList` sizes the window width to its tab strip instead of scrolling the
   tabs, and shows no item count.
+- The repository is licensed under MIT and carries the governance files a public
+  release needs: `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and `CODEOWNERS`.
+  A disclosure audit of every tracked file, the full commit history, and every
+  historical screenshot blob found no personally identifiable information in
+  content, no secrets, and no customer or agency reference; the author identity
+  in commit metadata is accepted as public by the owner.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline
