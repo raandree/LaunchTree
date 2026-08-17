@@ -31,8 +31,7 @@ Launch Item, otherwise the first sorted child tab replaces it.
 `docs/getting-started.md` is the canonical first-run operator path. It remains
 task-oriented and links to deployment and specifications for advanced or
 normative details instead of duplicating those contracts.
-
-`tools/Initialize-QuickStart.ps1` is the scripted fast path for that guide. It
+`tools/Initialize-QuickStart.ps1` is the scripted fast path for that guide: it
 creates only administrator-authored inputs, keeps existing files unless forced,
 and leaves Reconciliation to `Update-LaunchTree`, so the public command surface
 in `ADR-0007` stays unchanged.
@@ -48,16 +47,16 @@ Root resolution has one owner, `Get-LaunchTreeConfiguration`; commands forward
 the `CR-013` `ManagedRoot` and `PersonalRoot` overrides to it. An invalid
 override throws instead of falling back, and `Update-LaunchTree` refuses them
 because an activated Start Entry re-resolves its root from the configuration.
+
 The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
 `Invoke-LaunchTreeStandardUserEventProbe`) launches a de-elevated process with
 `CreateProcessWithTokenW` and the UAC-linked token. From an interactive elevated
-admin that linked token is `Identification`-level, which the API rejects
+admin that token is `Identification`-level, which the API rejects
 (`ERROR_ACCESS_DENIED`); an `Impersonation`-level token needs `SeTcbPrivilege`,
-held only by SYSTEM. The probe is therefore best-effort: it returns a structured
-`LaunchTree.EventProbeResult` and never throws, Reconciliation still registers
-the log and Interactive Users access, `Register-LaunchTreeEventLog` warns and
-emits event `1603`, and `Test-LaunchTree` reports
-`StandardUserEventAccessUnverified`. Real verification still needs a
+held only by SYSTEM. The probe is therefore best-effort and never throws:
+Reconciliation still registers the log and Interactive Users access,
+`Register-LaunchTreeEventLog` warns and emits event `1603`, and `Test-LaunchTree`
+reports `StandardUserEventAccessUnverified`. Real verification still needs a
 de-elevation path through the unelevated shell or Task Scheduler.
 
 Windows binds an event source name to exactly one classic log, and
@@ -78,12 +77,13 @@ and `source/Public` functions and parse-checks the result.
 
 `-Variant Full` embeds every function; the `Build_Single_File_Script` task runs
 it during `build`. `-Variant Minimal` emits the Launcher-only
-`output/LaunchTree.Minimal.ps1` through `Build_Minimal_Single_File_Script`. Its
-content is derived, not curated: an AST call-graph traversal from
-`Show-LaunchTree` selects what to embed, and a post-generation guard scans every
-non-comment token for an omitted function name, so a name reached only through a
-string still fails the build. Its parameters are exactly `-Command Show`,
-`-EntryName`, and `-ManagedRoot`.
+`output/LaunchTree.Minimal.ps1` through `Build_Minimal_Single_File_Script`, with
+parameters `-Command Show`, `-EntryName`, and `-ManagedRoot`. Its content is
+derived, not curated: an AST call-graph traversal from `Show-LaunchTree` selects
+what to embed, a guard scans every non-comment token for an omitted function
+name so a name reached only through a string still fails the build, and a
+token-stream comparison proves the comment and blank-line strip that follows
+changed nothing but comments and whitespace.
 
 Host-dependent values resolve through the private
 `Get-LaunchTreeRuntimeContext`, which returns the module base, version, launcher

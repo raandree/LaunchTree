@@ -56,6 +56,16 @@ Describe 'Build-LaunchTreeScript' -Tag 'Unit' {
         $script:content | Should -Match '\[string\] \$PersonalRoot'
     }
 
+    It 'Should keep the comment-based help of every embedded function' {
+        $tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            $script:outputPath, [ref] $tokens, [ref] $null
+        )
+
+        @($tokens | Where-Object { $_.Kind -eq 'Comment' }).Count |
+            Should -BeGreaterThan 1
+    }
+
     It 'Should reject a parameter the selected command does not support' {
         $unsupported = @{
             Command = 'GetConfiguration'
@@ -207,5 +217,45 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
         $context.HostKind | Should -Be 'Script'
         $context.Version | Should -Be '9.9.9'
         $context.LauncherPath | Should -Be $script:minimalPath
+    }
+
+    It 'Should strip every comment except the requires statement' {
+        $tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            $script:minimalPath, [ref] $tokens, [ref] $null
+        )
+        $comments = @(
+            $tokens |
+                Where-Object { $_.Kind -eq 'Comment' -and $_.Text -notmatch '^\s*#requires' }
+        )
+
+        $comments | Should -BeNullOrEmpty
+        $script:minimalContent | Should -Match '#Requires -Version 5\.1'
+    }
+
+    It 'Should keep every blank line that belongs to a multi-line string' {
+        $tokens = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            $script:minimalPath, [ref] $tokens, [ref] $null
+        )
+        $protectedLine = [System.Collections.Generic.HashSet[int]]::new()
+        foreach ($token in $tokens) {
+            if ($token.Kind -notin @('NewLine', 'LineContinuation', 'Comment') -and
+                $token.Extent.EndLineNumber -gt $token.Extent.StartLineNumber) {
+                $token.Extent.StartLineNumber..$token.Extent.EndLineNumber |
+                    ForEach-Object { $null = $protectedLine.Add($_) }
+            }
+        }
+
+        $lines = $script:minimalContent -split "\r?\n"
+        $strayBlank = @(
+            1..$lines.Count |
+                Where-Object { $lines[$_ - 1].Trim() -eq '' } |
+                Where-Object { -not $protectedLine.Contains($_) }
+        )
+
+        # The trailing newline leaves one empty final line.
+        $strayBlank.Count | Should -BeLessOrEqual 1
+        $script:minimalResult.LineCount | Should -BeLessThan 3600
     }
 }

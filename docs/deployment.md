@@ -83,8 +83,9 @@ output\LaunchTree.Minimal.ps1
 ```
 
 The generator derives it from the `Show-LaunchTree` call graph, so it embeds
-only the functions that opening an Entry Root needs and is markedly smaller than
-the full script. It accepts only the parameters that call needs:
+only the functions that opening an Entry Root needs, and it then removes every
+comment and the blank lines they leave behind. What remains is the code that
+call executes. It accepts only the parameters that call needs:
 
 ```powershell
 & 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command Show `

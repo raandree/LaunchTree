@@ -127,6 +127,109 @@ function Get-LaunchTreeFunctionClosure {
     , ([string[]] $closure)
 }
 
+function Get-LaunchTreeTokenSignature {
+    <#
+        .SYNOPSIS
+            Returns the code-bearing token stream used to prove two scripts are
+            semantically identical.
+
+        .PARAMETER Content
+            Specifies the script text to tokenize.
+    #>
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string] $Content
+    )
+
+    $contentTokens = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseInput(
+        $Content, [ref] $contentTokens, [ref] $null
+    )
+
+    , [string[]] @(
+        $contentTokens |
+            Where-Object { $_.Kind -notin @('Comment', 'NewLine') } |
+            ForEach-Object { '{0}:{1}' -f $_.Kind, $_.Text }
+    )
+}
+
+function ConvertTo-LaunchTreeCompactScript {
+    <#
+        .SYNOPSIS
+            Returns the script text without its comments or their blank lines.
+
+        .DESCRIPTION
+            Deletes every comment except a #Requires statement, then drops
+            whitespace-only lines that no multi-line string owns. The caller
+            verifies the result against the original token signature.
+
+        .PARAMETER Content
+            Specifies the generated script text to reduce.
+    #>
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Content
+    )
+
+    $contentTokens = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseInput(
+        $Content, [ref] $contentTokens, [ref] $null
+    )
+
+    $builder = [System.Text.StringBuilder]::new($Content)
+    $removable = @(
+        $contentTokens |
+            Where-Object { $_.Kind -eq 'Comment' -and $_.Text -notmatch '^\s*#requires' } |
+            Sort-Object -Property { $_.Extent.StartOffset } -Descending
+    )
+    foreach ($token in $removable) {
+        $null = $builder.Remove(
+            $token.Extent.StartOffset,
+            $token.Extent.EndOffset - $token.Extent.StartOffset
+        )
+    }
+
+    $reduced = $builder.ToString()
+
+    $reducedTokens = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseInput(
+        $reduced, [ref] $reducedTokens, [ref] $null
+    )
+
+    # A here-string owns its blank lines; dropping one would change its value.
+    $protectedLine = [System.Collections.Generic.HashSet[int]]::new()
+    foreach ($token in $reducedTokens) {
+        if ($token.Kind -notin @('NewLine', 'LineContinuation', 'Comment') -and
+            $token.Extent.EndLineNumber -gt $token.Extent.StartLineNumber) {
+            for (
+                $line = $token.Extent.StartLineNumber
+                $line -le $token.Extent.EndLineNumber
+                $line++
+            ) {
+                $null = $protectedLine.Add($line)
+            }
+        }
+    }
+
+    $reducedLines = $reduced -split "\r?\n"
+    $keptLines = @(
+        for ($index = 0; $index -lt $reducedLines.Count; $index++) {
+            if ($reducedLines[$index].Trim() -ne '' -or
+                $protectedLine.Contains($index + 1)) {
+                $reducedLines[$index]
+            }
+        }
+    )
+
+    ($keptLines -join "`r`n") + "`r`n"
+}
+
 if (-not $PSBoundParameters.ContainsKey('OutputPath')) {
     $outputFileName = if ($Variant -eq 'Minimal') {
         'LaunchTree.Minimal.ps1'
@@ -482,6 +585,29 @@ if ($omittedReferences.Count -gt 0) {
     )
 }
 
+if ($Variant -eq 'Minimal') {
+    $originalSignature = Get-LaunchTreeTokenSignature -Content $content
+    $content = ConvertTo-LaunchTreeCompactScript -Content $content
+    $reducedSignature = Get-LaunchTreeTokenSignature -Content $content
+
+    if (Compare-Object -ReferenceObject $originalSignature `
+            -DifferenceObject $reducedSignature -SyncWindow 0) {
+        throw [System.InvalidOperationException]::new(
+            'Comment removal changed the generated script beyond its comments.'
+        )
+    }
+
+    $parseErrors = $null
+    $null = [System.Management.Automation.Language.Parser]::ParseInput(
+        $content, [ref] $null, [ref] $parseErrors
+    )
+    if ($parseErrors.Count -gt 0) {
+        throw [System.InvalidOperationException]::new(
+            "Comment removal broke the generated script: $($parseErrors[0].Message)"
+        )
+    }
+}
+
 if ($PSCmdlet.ShouldProcess($OutputPath, 'Write single-file LaunchTree script')) {
     $outputDirectory = Split-Path -Path $OutputPath -Parent
     $null = New-Item -Path $outputDirectory -ItemType Directory -Force
@@ -495,4 +621,5 @@ if ($PSCmdlet.ShouldProcess($OutputPath, 'Write single-file LaunchTree script'))
     FunctionCount = $functionFiles.Count
     PublicCommand = $publicNames
     Bytes         = $content.Length
+    LineCount     = ($content -split "\r?\n").Count
 }

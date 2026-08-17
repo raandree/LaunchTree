@@ -8,7 +8,10 @@ task Build_Single_File_Script {
         -Version $ModuleVersion
 
     Write-Build DarkGray "`tGenerated single-file script '$($result.Path)'."
-    Write-Build DarkGray "`tEmbedded $($result.FunctionCount) functions, $($result.Bytes) bytes."
+    Write-Build DarkGray (
+        "`tEmbedded $($result.FunctionCount) functions, " +
+        "$($result.LineCount) lines, $($result.Bytes) bytes."
+    )
 }
 
 task Build_Minimal_Single_File_Script {
@@ -21,5 +24,8 @@ task Build_Minimal_Single_File_Script {
         -Version $ModuleVersion -Variant Minimal
 
     Write-Build DarkGray "`tGenerated minimal single-file script '$($result.Path)'."
-    Write-Build DarkGray "`tEmbedded $($result.FunctionCount) functions, $($result.Bytes) bytes."
+    Write-Build DarkGray (
+        "`tEmbedded $($result.FunctionCount) functions, " +
+        "$($result.LineCount) lines, $($result.Bytes) bytes."
+    )
 }

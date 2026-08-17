@@ -73,31 +73,31 @@ release remains gated by external environment evidence.
 - 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
-  embeds the AST call-graph closure of `Show-LaunchTree` and exposes only
-  `-Command Show`, `-EntryName`, and `-ManagedRoot`. A post-generation guard
+  embeds the AST call-graph closure of `Show-LaunchTree`, exposes only
+  `-Command Show`, `-EntryName`, and `-ManagedRoot`, and then strips comments
+  and orphaned blank lines under a token-stream equivalence gate. A second guard
   scans non-comment tokens for omitted function names so a string-only reference
-  cannot ship broken. New `Build_Minimal_Single_File_Script` task, wired into the
-  `build` workflow. Result: 48 functions / 223,189 bytes stays unchanged;
-  `output/LaunchTree.Minimal.ps1` is 31 functions / 162,995 bytes (-27%). A
-  headless STA capture of `-EntryName Programs -ManagedRoot D:\temp\` rendered
-  the real Launcher with icons and tabs.
+  cannot ship broken. New `Build_Minimal_Single_File_Script` task in the `build`
+  workflow. The full script stays at 48 functions / 223,189 bytes;
+  `LaunchTree.Minimal.ps1` is 31 functions / 3,582 lines / 156,146 bytes, down
+  from 4,025 lines. Two headless STA captures of
+  `-EntryName Programs -ManagedRoot D:\temp\` produced byte-identical frames
+  before and after the strip. 3,582 lines is the floor: 3,925 of the original
+  4,025 lines were function bodies, and `Show-LaunchTreeWindow` alone is 1,427
+  because both Launcher Layouts interleave through `$useTabbedListLayout`.
 - 2026-07-29: Fixed the `Event source 'LaunchTree' is owned by log
   'Application'` Reconciliation failure. `[Diagnostics.EventLog]::WriteEntry`
   auto-registers an unknown source in the `Application` log when the caller is
   elevated, so an elevated run that emitted a diagnostic event before the
-  dedicated log existed (an elevated test run writing configuration finding
-  `1001`) bound the source to `Application` and blocked registration forever.
-  `Invoke-LaunchTreeEventLogWrite` now takes `LogName` and verifies the
-  registration through `LogNameFromSourceName` before writing;
-  `Write-LaunchTreeEvent` still swallows the failure as a non-fatal diagnostic
-  loss, and `Register-LaunchTreeEventLog` reports the `DeleteEventSource`
-  remediation. Full suite green: 145 passed, 0 failed.
+  dedicated log existed bound the source to `Application` and blocked
+  registration forever. `Invoke-LaunchTreeEventLogWrite` now takes `LogName` and
+  verifies the registration through `LogNameFromSourceName` before writing, and
+  `Register-LaunchTreeEventLog` reports the `DeleteEventSource` remediation.
 - 2026-07-29: Restyled the Launcher sort selector. The `ComboBox` still used the
   Windows system theme template, so it rendered as a light-gray classic control
   inside the dark Fluent window. `Show-LaunchTreeWindow` now applies a parsed
   XAML `Style` that themes the closed control, chevron, hover, open, and
-  keyboard focus states, and the drop-down list. Verified by rendering the
-  Launcher and the open popup; full suite green: 145 passed, 0 failed.
+  keyboard focus states, and the drop-down list.
 - 2026-07-29: Added the machine-selectable Launcher Layout contract. `Grid`
   remains the default; `TabbedList` presents Menu Folders as tabs, the active
   description above them, and Launch Items as compact rows. Added tested
