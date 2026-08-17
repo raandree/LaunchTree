@@ -56,7 +56,13 @@ param(
 
     [Parameter()]
     [ValidateSet('Full', 'Minimal')]
-    [string] $Variant = 'Full'
+    [string] $Variant = 'Full',
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $MinimalOverridePath = (
+        Join-Path -Path $PSScriptRoot -ChildPath 'MinimalVariant'
+    )
 )
 
 $ErrorActionPreference = 'Stop'
@@ -270,9 +276,40 @@ if ($functionFiles.Count -eq 0) {
 $moduleFunctionNames = @($functionFiles.BaseName)
 
 if ($Variant -eq 'Minimal') {
-    $includedNames = Get-LaunchTreeFunctionClosure -FunctionFile $functionFiles `
+    $overrideFiles = @(
+        Get-ChildItem -LiteralPath $MinimalOverridePath -Filter '*.ps1' -File |
+            Sort-Object -Property Name
+    )
+    if ($overrideFiles.Count -eq 0) {
+        throw [System.IO.FileNotFoundException]::new(
+            'No Minimal variant overrides were found.',
+            $MinimalOverridePath
+        )
+    }
+
+    $overrideNames = @($overrideFiles.BaseName)
+    $unmatchedOverrides = @(
+        $overrideNames | Where-Object { $_ -notin $moduleFunctionNames } | Sort-Object
+    )
+    if ($unmatchedOverrides.Count -gt 0) {
+        throw [System.InvalidOperationException]::new(
+            'These Minimal overrides replace no module function: ' +
+            "$($unmatchedOverrides -join ', ')."
+        )
+    }
+
+    # Traversing the overridden graph drops whatever only the replaced bodies reached.
+    $candidateFiles = @(
+        @($functionFiles | Where-Object { $_.BaseName -notin $overrideNames }) +
+        $overrideFiles
+    )
+    $includedNames = Get-LaunchTreeFunctionClosure -FunctionFile $candidateFiles `
         -EntryPoint $minimalEntryPoint
-    $functionFiles = @($functionFiles | Where-Object { $_.BaseName -in $includedNames })
+    $functionFiles = @(
+        $candidateFiles |
+            Where-Object { $_.BaseName -in $includedNames } |
+            Sort-Object -Property BaseName
+    )
 }
 
 $publicNames = @(
@@ -425,11 +462,12 @@ $minimalHeader = @'
     .DESCRIPTION
         Contains only the LaunchTree logic that Show-LaunchTree needs, so it is
         markedly smaller than the full single-file script. Reconciliation,
-        health checks, diagnostics, Support Bundle export, removal, and the
-        Event Log probe are not part of this delivery; use the full script or
-        the module for those. This file is generated from the module source by
-        tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the module
-        source instead of this script.
+        health checks, diagnostics, Support Bundle export, removal, the Event
+        Log, and every JSON file are not part of this delivery, so machine
+        configuration and user preferences fall back to built-in defaults and
+        the roots come from parameters. This file is generated from the module
+        source by tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the
+        module source instead of this script.
 
     .PARAMETER Command
         Specifies the operation to run. Only Show is supported. Omit it and
@@ -462,11 +500,6 @@ param(
     [string] $ManagedRoot
 )
 
-$script:LaunchTreeStandalonePath = if ($PSCommandPath) {
-    $PSCommandPath
-} else {
-    $MyInvocation.MyCommand.Path
-}
 $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 '@
 

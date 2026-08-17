@@ -33,8 +33,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Launcher: the build derives it from the `Show-LaunchTree` call graph, so it
   embeds only the functions that call needs and exposes only `-Command Show`,
   `-EntryName`, and `-ManagedRoot`; comments and the blank lines they leave are
-  removed under a token-equivalence check, and the full single-file script keeps
-  its comment-based help and is otherwise unchanged
+  removed under a token-equivalence check, the Event Log and every JSON reader
+  are replaced by overrides under `tools/MinimalVariant`, and the full
+  single-file script keeps its comment-based help and is otherwise unchanged
 - Add a setup script that writes a default machine configuration, creates a
   sample Entry Root of built-in Windows Launch Items, and reconciles its Start
   Entry for a faster first run

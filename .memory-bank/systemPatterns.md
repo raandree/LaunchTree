@@ -12,34 +12,31 @@ source: repository evidence
 Accepted: machine-wide native Start shortcuts open one session-local WPF
 launcher process. A managed directory tree supplies entry roots; a roaming
 per-user tree augments matching roots. The launcher reads snapshots, delegates
-item invocation to Windows Shell, manages only generated state and caches, and
-receives opaque Entry IDs across the Start Entry process boundary.
-Reconciliation is transactional, and a dedicated event log is explicitly
-writable by standard interactive users.
+invocation to Windows Shell, manages only generated state and caches, and takes
+opaque Entry IDs across the process boundary. Reconciliation is transactional,
+and a dedicated event log is writable by standard interactive users.
 
 Implementation adds a current-user named-pipe activation channel, bounded
 versioned icon cache, presentation-only preference file, structured Health
-Findings, diagnostics, WPF/offline validation, and tested layout helpers.
-Runtime artifacts have no external dependency; themed XAML and content-sized
+Findings, diagnostics, WPF/offline validation, and tested layout helpers. No
+runtime artifact has an external dependency; themed XAML and content-sized
 scrollbar strips are invariants. `TabbedList` omits `Grid` search and sort,
-separates the tab-strip owner from the selected tab, and descends only through a
-Menu Folder row; an owning Menu Folder keeps a tab only while it holds a direct
-Launch Item, otherwise the first sorted child tab replaces it.
+separates tab-strip owner from selected tab, descends only through a Menu
+Folder row, and keeps an owning tab only while it holds a direct Launch Item.
 
 ## Documentation
 
-`docs/getting-started.md` is the canonical first-run operator path. It remains
-task-oriented and links to deployment and specifications for advanced or
-normative details instead of duplicating those contracts.
-`tools/Initialize-QuickStart.ps1` is the scripted fast path for that guide: it
-creates only administrator-authored inputs, keeps existing files unless forced,
-and leaves Reconciliation to `Update-LaunchTree`, so the public command surface
-in `ADR-0007` stays unchanged.
+`docs/getting-started.md` is the canonical first-run operator path. It stays
+task-oriented and links to deployment and specifications instead of duplicating
+those contracts. `tools/Initialize-QuickStart.ps1` is the scripted fast path for
+that guide: it creates only administrator-authored inputs, keeps existing files
+unless forced, and leaves Reconciliation to `Update-LaunchTree`, so the public
+command surface in `ADR-0007` stays unchanged.
 
 Every documented sample block must run standalone: it resolves the values it
 uses instead of relying on an earlier block, and a multistatement block runs
 inside `& { $ErrorActionPreference = 'Stop'; ... }` so the first failure stops
-the block instead of cascading.
+the block.
 
 ## Constraints
 
@@ -79,11 +76,13 @@ and `source/Public` functions and parse-checks the result.
 it during `build`. `-Variant Minimal` emits the Launcher-only
 `output/LaunchTree.Minimal.ps1` through `Build_Minimal_Single_File_Script`, with
 parameters `-Command Show`, `-EntryName`, and `-ManagedRoot`. Its content is
-derived, not curated: an AST call-graph traversal from `Show-LaunchTree` selects
-what to embed, a guard scans every non-comment token for an omitted function
-name so a name reached only through a string still fails the build, and a
-token-stream comparison proves the comment and blank-line strip that follows
-changed nothing but comments and whitespace.
+derived, not curated: files in `tools/MinimalVariant` replace same-named module
+functions to drop the Event Log and every JSON reader, an AST call-graph
+traversal from `Show-LaunchTree` over the overridden graph selects what to
+embed, a guard scans every non-comment token for an omitted function name, and a
+token-stream comparison proves the comment strip changed nothing else. An
+override matching no module function fails the build, and a test compares the
+configuration object of both deliveries against drift.
 
 Host-dependent values resolve through the private
 `Get-LaunchTreeRuntimeContext`, which returns the module base, version, launcher

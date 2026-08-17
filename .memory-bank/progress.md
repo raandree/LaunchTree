@@ -74,17 +74,18 @@ release remains gated by external environment evidence.
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
   embeds the AST call-graph closure of `Show-LaunchTree`, exposes only
-  `-Command Show`, `-EntryName`, and `-ManagedRoot`, and then strips comments
-  and orphaned blank lines under a token-stream equivalence gate. A second guard
-  scans non-comment tokens for omitted function names so a string-only reference
-  cannot ship broken. New `Build_Minimal_Single_File_Script` task in the `build`
-  workflow. The full script stays at 48 functions / 223,189 bytes;
-  `LaunchTree.Minimal.ps1` is 31 functions / 3,582 lines / 156,146 bytes, down
-  from 4,025 lines. Two headless STA captures of
-  `-EntryName Programs -ManagedRoot D:\temp\` produced byte-identical frames
-  before and after the strip. 3,582 lines is the floor: 3,925 of the original
-  4,025 lines were function bodies, and `Show-LaunchTreeWindow` alone is 1,427
-  because both Launcher Layouts interleave through `$useTabbedListLayout`.
+  `-Command Show`, `-EntryName`, and `-ManagedRoot`, and strips comments and
+  orphaned blank lines under a token-stream equivalence gate. On customer
+  request the Event Log and every JSON reader then came out through overrides in
+  `tools/MinimalVariant`, which replace same-named module functions before the
+  traversal runs so whatever only the replaced bodies reached drops out by
+  itself. Result: the full script stays at 48 functions / 5,686 lines;
+  `LaunchTree.Minimal.ps1` is 24 functions / 2,695 lines / 118,750 bytes, down
+  from 5,686 / 223,197. Every headless STA capture of
+  `-EntryName Programs -ManagedRoot D:\temp\` across all three reductions
+  produced a byte-identical 86,994-byte frame. Cost of the JSON removal: no
+  machine configuration, so only defaults and command-line roots, and no
+  preference file, so window geometry and sort order are no longer remembered.
 - 2026-07-29: Fixed the `Event source 'LaunchTree' is owned by log
   'Application'` Reconciliation failure. `[Diagnostics.EventLog]::WriteEntry`
   auto-registers an unknown source in the `Application` log when the caller is

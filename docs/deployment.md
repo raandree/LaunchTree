@@ -96,6 +96,20 @@ Reconciliation, health checks, diagnostics, Support Bundle export, removal, and
 the Event Log probe are not part of this delivery. Deploy the full script or the
 module when a machine needs Start Entries or diagnostics.
 
+The delivery also carries no Event Log writer and reads no JSON, which has three
+consequences an operator must plan for:
+
+- The machine configuration file is never read. `ManagedRoot` and `PersonalRoot`
+  come from the command line, and every other setting stays at its default, so
+  the Launcher Layout is always `TabbedList`.
+- The user preference file is neither read nor written, so window position,
+  size, and sort order are not remembered between sessions.
+- Nothing is written to the Windows Event Log.
+
+The replaced implementations live in `tools/MinimalVariant`. A unit test
+compares the configuration object of both deliveries so the reduced one cannot
+drift from the module contract.
+
 ## File-copy installation
 
 1. Copy the built version directory to a module path, for example:

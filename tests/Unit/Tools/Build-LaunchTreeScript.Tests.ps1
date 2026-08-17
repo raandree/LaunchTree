@@ -3,16 +3,14 @@ BeforeAll {
     $script:generatorPath = Join-Path -Path $script:repositoryRoot `
         -ChildPath 'tools\Build-LaunchTreeScript.ps1'
     $script:sourcePath = Join-Path -Path $script:repositoryRoot -ChildPath 'source'
+
+    $script:outputPath = Join-Path -Path $TestDrive -ChildPath 'LaunchTree.ps1'
+    $script:result = & $script:generatorPath -SourcePath $script:sourcePath `
+        -OutputPath $script:outputPath -Version '9.9.9'
+    $script:content = Get-Content -LiteralPath $script:outputPath -Raw
 }
 
 Describe 'Build-LaunchTreeScript' -Tag 'Unit' {
-    BeforeAll {
-        $script:outputPath = Join-Path -Path $TestDrive -ChildPath 'LaunchTree.ps1'
-        $script:result = & $script:generatorPath -SourcePath $script:sourcePath `
-            -OutputPath $script:outputPath -Version '9.9.9'
-        $script:content = Get-Content -LiteralPath $script:outputPath -Raw
-    }
-
     It 'Should generate a parsable single-file script' {
         $script:outputPath | Should -Exist
 
@@ -129,7 +127,7 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
             'Show-LaunchTreeWindow'
             'Get-LaunchTreeConfiguration'
             'Get-LaunchTreeContentSnapshot'
-            'Get-LaunchTreeRuntimeContext'
+            'Initialize-LaunchTreeWpf'
             'Invoke-LaunchTreeLaunchItem'
         )
 
@@ -159,6 +157,29 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
             Get-ChildItem -Path (Join-Path $script:sourcePath 'Public') -Filter '*.ps1' -File
         )
         $script:minimalResult.FunctionCount | Should -BeLessThan $allFunctions.Count
+    }
+
+    It 'Should carry no Event Log implementation' {
+        foreach ($commandName in 'Invoke-LaunchTreeEventLogWrite',
+            'ConvertTo-LaunchTreeRedactedText') {
+            $script:minimalContent | Should -Not -Match "function $commandName\b"
+        }
+
+        foreach ($stubName in 'Write-LaunchTreeEvent',
+            'Write-LaunchTreeHealthFindingEvent', 'Write-LaunchTreePerformanceEvent') {
+            $script:minimalContent | Should -Match "function $stubName \{ \}"
+        }
+
+        $script:minimalContent | Should -Not -Match '\[Diagnostics\.EventLog\]'
+    }
+
+    It 'Should read no JSON' {
+        foreach ($commandName in 'Import-LaunchTreeJson',
+            'Import-LaunchTreeGeneratedState') {
+            $script:minimalContent | Should -Not -Match "function $commandName\b"
+        }
+
+        $script:minimalContent | Should -Not -Match 'ConvertTo-Json'
     }
 
     It 'Should invoke no LaunchTree command it does not embed' {
@@ -205,19 +226,32 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
         @($validateSet.PositionalArguments.Value) | Should -Be @('Show')
     }
 
-    It 'Should resolve a standalone runtime context without an imported module' {
+    It 'Should stamp the requested version' {
+        $script:minimalContent | Should -Match "LaunchTreeStandaloneVersion = '9\.9\.9'"
+    }
+
+    It 'Should return the same configuration shape as the module command' {
         $probe = {
-            param($ScriptPath)
+            param($ScriptPath, $Root)
             . $ScriptPath
-            Get-LaunchTreeRuntimeContext
+            $configuration = Get-LaunchTreeConfiguration -ManagedRoot $Root `
+                -ConfigurationPath (Join-Path $Root 'absent.json') `
+                -PreferencePath (Join-Path $Root 'absent.preferences.json')
+            [PSCustomObject] @{
+                PropertyName = @($configuration.PSObject.Properties.Name | Sort-Object)
+                ManagedRoot  = $configuration.ManagedRoot
+                IsValid      = $configuration.IsValid
+            }
         }
 
-        $context = & $probe $script:minimalPath
+        $full = & $probe $script:outputPath $TestDrive
+        $minimal = & $probe $script:minimalPath $TestDrive
 
-        $context.HostKind | Should -Be 'Script'
-        $context.Version | Should -Be '9.9.9'
-        $context.LauncherPath | Should -Be $script:minimalPath
+        $minimal.PropertyName | Should -Be $full.PropertyName
+        $minimal.ManagedRoot | Should -Be $full.ManagedRoot
+        $minimal.IsValid | Should -BeTrue
     }
+
 
     It 'Should strip every comment except the requires statement' {
         $tokens = $null
@@ -256,6 +290,6 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
 
         # The trailing newline leaves one empty final line.
         $strayBlank.Count | Should -BeLessOrEqual 1
-        $script:minimalResult.LineCount | Should -BeLessThan 3600
+        $script:minimalResult.LineCount | Should -BeLessThan 3000
     }
 }
