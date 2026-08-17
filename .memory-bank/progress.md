@@ -28,40 +28,31 @@ release remains gated by external environment evidence.
   across the module, commands, paths, Event Log identity, type names, tests,
   specifications, and Memory Bank while the module is still unreleased.
 - 2026-07-28: Added `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware
-  setup script that writes a default machine configuration, creates a sample
-  `LaunchTree Demo` Entry Root of always-present Windows Launch Items (renamed
-  from `Windows tools`, which collides with the built-in Start menu entry), and
-  runs Reconciliation. It imports an installed or built module, reports
+  setup script that writes a default machine configuration, creates the sample
+  `LaunchTree Demo` Entry Root of always-present Windows Launch Items, and runs
+  Reconciliation. It imports an installed or built module, reports
   `NotElevated`/`ModuleUnavailable` instead of failing, and accepts
-  `-SkipReconciliation`; the elevated success path is unverified locally
-  because the agent session is not elevated.
-- 2026-07-28: Reproduced the OI-009 elevated standard-user Event Log probe on a
-  UAC-split interactive admin session; it fails.
-  `[LaunchTree.UnelevatedProcess]::Run` calls `CreateProcessWithTokenW` with the
-  UAC-linked token, which returns as an `Identification`-level impersonation
-  token and is rejected with `ERROR_ACCESS_DENIED` (5). Raising it needs
-  `SeTcbPrivilege` (SYSTEM only), so the technique cannot work from an
-  interactive elevated admin. Defect, not environment.
-- 2026-07-28: Fixed the defect (option 1, best-effort probe).
-  `Invoke-LaunchTreeStandardUserEventProbe` now returns a structured
+  `-SkipReconciliation`.
+- 2026-07-28: Closed OI-009. `[LaunchTree.UnelevatedProcess]::Run` calls
+  `CreateProcessWithTokenW` with the UAC-linked token, which returns as an
+  `Identification`-level impersonation token and is rejected with
+  `ERROR_ACCESS_DENIED` (5); raising it needs `SeTcbPrivilege` (SYSTEM only), so
+  the standard-user Event Log probe cannot work from an interactive elevated
+  admin. Fixed as a best-effort probe:
+  `Invoke-LaunchTreeStandardUserEventProbe` returns a structured
   `LaunchTree.EventProbeResult` through a mockable
-  `Invoke-LaunchTreeUnelevatedProcess` seam instead of throwing;
-  `Register-LaunchTreeEventLog` warns and emits event `1603` without aborting;
-  `Update-LaunchTree` persists `StandardUserEventProbeVerified` and surfaces the
-  probe on its result; `Test-LaunchTree` raises the
-  `StandardUserEventAccessUnverified` Warning finding. QuickStart now returns
-  `StartEntryAction=Reconciled`, `StartEntryCount=1`, and `Degraded` health.
-  Full suite green: 136 passed, 0 failed, 1 intentional skip.
+  `Invoke-LaunchTreeUnelevatedProcess` seam instead of throwing,
+  `Register-LaunchTreeEventLog` warns and emits event `1603` without aborting,
+  `Update-LaunchTree` persists `StandardUserEventProbeVerified`, and
+  `Test-LaunchTree` raises the `StandardUserEventAccessUnverified` Warning
+  finding. Full suite green: 136 passed, 0 failed, 1 intentional skip.
 - 2026-07-28: Added a second delivery form: `output/LaunchTree.ps1`, a generated
   self-contained script holding all 45 functions. New private
   `Get-LaunchTreeRuntimeContext` abstracts ModuleBase/version/launcher/probe
-  paths so one source serves both hosts; the probe body moved to
-  `Invoke-LaunchTreeEventLogAccessProbe` and the packaged probe script is now a
-  thin wrapper. `tools/Build-LaunchTreeScript.ps1` plus the
-  `Build_Single_File_Script` task generate it during `build`. Verified with no
-  module reachable: 45 commands loaded, Reconciliation added 1 Start Entry
-  targeting the script with `-Command "Show"`, health `Healthy`. Module delivery
-  and behavior unchanged; full suite 143 passed, 0 failed, 1 intentional skip.
+  paths so one source serves both hosts, and `tools/Build-LaunchTreeScript.ps1`
+  plus the `Build_Single_File_Script` task generate it during `build`. Verified
+  with no module reachable: 45 commands loaded, Reconciliation added 1 Start
+  Entry, health `Healthy`; suite 143 passed, 0 failed, 1 intentional skip.
 - 2026-07-29: Closed the operator-documentation gap for the single-file
   delivery. `docs/deployment.md` already covered it; the quick start, README,
   and troubleshooting guide did not. Added a `Use the single-file script`
@@ -182,6 +173,11 @@ release remains gated by external environment evidence.
   Added the MIT `LICENSE`, a `SECURITY.md` derived from the signed Design
   Concept, a `CONTRIBUTING.md`, and a `CODEOWNERS` default owner, and replaced
   the contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
+- 2026-08-17: Made `.memory-bank/promptHistory.md` local-only. Rewrote all 38
+  commits on `main` with `git filter-branch --index-filter` to drop it, kept the
+  working copy, and ignored it. Every SHA on `main` changed; `origin/main` and
+  the local `refs/original/refs/heads/main` backup still carry the old blobs
+  until the owner force-pushes and drops that ref.
 
 ## Stable capabilities
 

@@ -20,3 +20,6 @@
 *.psproj
 *.sln
 markdownissues.txt
+
+# Local-only Memory Bank interaction log
+/.memory-bank/promptHistory.md
