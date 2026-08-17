@@ -21,35 +21,27 @@ release remains gated by external environment evidence.
   glossary, and nine issues; implemented all seven public commands; passed both
   editions with 131 tests and an independent `APPROVE`.
 - 2026-07-28: Added and validated the canonical operator getting-started path
-  from module installation through first Launcher use and cleanup.
+  from module installation through first Launcher use and cleanup, including
+  `Show-LaunchTree` console use, direct import of the built module, and the
+  recognized/EntryId/STA failures no operator document had covered.
 - 2026-07-28: Renamed the product from `StartMenuFolders` to `LaunchTree`
   across the module, commands, paths, Event Log identity, type names, tests,
   specifications, and Memory Bank while the module is still unreleased.
 - 2026-07-28: Added `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware
-  setup script that writes a default machine configuration and a sample Entry
-  Root of always-present Windows Launch Items; the generated configuration is
-  valid with zero Health Findings.
-- 2026-07-28: Made the getting-started Entry Root sample self-contained and
-  fail-fast after it failed with a cascading null-variable error; the extracted
-  block was executed against a redirected `ProgramData` fixture.
-- 2026-07-28: Documented `Show-LaunchTree` console use, direct import of the
-  built module, and the recognized/EntryId/STA failures that were previously
-  absent from every operator document.
-- 2026-07-28: Extended the setup script to run Reconciliation so the sample
-  Entry Root reaches the Windows Start menu; it imports an installed or built
-  module, reports `NotElevated`/`ModuleUnavailable` instead of failing, and
-  accepts `-SkipReconciliation`. The elevated success path is unverified
-  locally because the agent session is not elevated.
-- 2026-07-28: Renamed the sample Entry Root to `LaunchTree Demo` because
-  `Windows tools` collides with the built-in Windows Tools Start menu entry.
+  setup script that writes a default machine configuration, creates a sample
+  `LaunchTree Demo` Entry Root of always-present Windows Launch Items (renamed
+  from `Windows tools`, which collides with the built-in Start menu entry), and
+  runs Reconciliation. It imports an installed or built module, reports
+  `NotElevated`/`ModuleUnavailable` instead of failing, and accepts
+  `-SkipReconciliation`; the elevated success path is unverified locally
+  because the agent session is not elevated.
 - 2026-07-28: Reproduced the OI-009 elevated standard-user Event Log probe on a
-  UAC-split interactive admin session; it fails. `Initialize-QuickStart.ps1`
-  reports `StartEntryAction=Failed` because `[LaunchTree.UnelevatedProcess]::Run`
-  calls `CreateProcessWithTokenW` with the UAC-linked token, which returns as an
-  `Identification`-level impersonation token and is rejected with
-  `ERROR_ACCESS_DENIED` (5). Raising it needs `SeTcbPrivilege` (SYSTEM only), so
-  the technique cannot work from an interactive elevated admin. Defect, not
-  environment.
+  UAC-split interactive admin session; it fails.
+  `[LaunchTree.UnelevatedProcess]::Run` calls `CreateProcessWithTokenW` with the
+  UAC-linked token, which returns as an `Identification`-level impersonation
+  token and is rejected with `ERROR_ACCESS_DENIED` (5). Raising it needs
+  `SeTcbPrivilege` (SYSTEM only), so the technique cannot work from an
+  interactive elevated admin. Defect, not environment.
 - 2026-07-28: Fixed the defect (option 1, best-effort probe).
   `Invoke-LaunchTreeStandardUserEventProbe` now returns a structured
   `LaunchTree.EventProbeResult` through a mockable
@@ -78,6 +70,17 @@ release remains gated by external environment evidence.
   because that script reconciles only through an installed or built module),
   a README pointer, and a troubleshooting section for the script-path failure
   modes. `tools/Test-Documentation.ps1` passed.
+- 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
+  large by adding a second generated artifact instead of shrinking the first.
+  `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
+  embeds the AST call-graph closure of `Show-LaunchTree` and exposes only
+  `-Command Show`, `-EntryName`, and `-ManagedRoot`. A post-generation guard
+  scans non-comment tokens for omitted function names so a string-only reference
+  cannot ship broken. New `Build_Minimal_Single_File_Script` task, wired into the
+  `build` workflow. Result: 48 functions / 223,189 bytes stays unchanged;
+  `output/LaunchTree.Minimal.ps1` is 31 functions / 162,995 bytes (-27%). A
+  headless STA capture of `-EntryName Programs -ManagedRoot D:\temp\` rendered
+  the real Launcher with icons and tabs.
 - 2026-07-29: Fixed the `Event source 'LaunchTree' is owned by log
   'Application'` Reconciliation failure. `[Diagnostics.EventLog]::WriteEntry`
   auto-registers an unknown source in the `Application` log when the caller is
@@ -101,8 +104,8 @@ release remains gated by external environment evidence.
   projection, navigation, duplicate-search context, and icon-timer helpers;
   paired high-contrast states; hardened deterministic captures; rendered both
   layouts; and passed 159 tests in PowerShell 7 plus 159 tests with one
-  intentional skip in Windows PowerShell 5.1. Independent re-review approved
-  with no Blocker or Major findings.
+  intentional skip in Windows PowerShell 5.1, with an independent re-review
+  approval and no Blocker or Major findings.
 - 2026-07-29: Made `TabbedList` the default Launcher Layout on customer
   request; `Grid` stays selectable through `LauncherLayout`. Updated the
   signed design override log, `CR-005`, `FR-011`, `FR-013`, `AS-018`, the
@@ -130,44 +133,34 @@ release remains gated by external environment evidence.
   of falling back to an unintended root. `Update-LaunchTree` is deliberately
   excluded because an activated Start Entry re-resolves the root from the
   configuration file. The single-file script now also rejects a parameter the
-  selected `-Command` cannot use instead of discarding it silently, which is
-  what made `-Path` look like it relocated the menu. Full suite green: 167
-  passed, 0 failed.
+  selected `-Command` cannot use instead of discarding it silently.
 - 2026-07-29: Replaced the tall Launcher header with a single compact line
   holding Back, the title, the active description, and Close, and dropped the
   breadcrumb line in favor of a title tooltip. The header is now the drag
-  handle: pressing it calls
-  `DragMove`, and `ContentRendered` restores a remembered `Window.Left`/`Top`
-  clamped to the virtual screen instead of always reopening near the Start
-  button. `CR-006` already required storing those coordinates; the Launcher had
-  never read them back. Verified end to end by seeding a preference at 200,150,
-  opening the Launcher, and reading 200,150 back from the preference file on
-  close. The capture tool's pixel-diversity guard was sampling on a 25x20 grid
-  and dropped to 7 colors once the chrome shrank, so it now samples 60x48 and
-  requires 20 (`TabbedList`) and 30 (`Grid`) colors, which the current frames
-  clear at 43 and 124. A follow-up pass trimmed the header margin to `6,2` and
-  the tab padding to `12,7,12,5`, measured on the capture as a 32 DIU header
-  over a 34 DIU tab strip, down from about 116 DIU of stacked chrome.
+  handle: pressing it calls `DragMove`, and `ContentRendered` restores a
+  remembered `Window.Left`/`Top` clamped to the virtual screen instead of always
+  reopening near the Start button. `CR-006` already required storing those
+  coordinates; the Launcher had never read them back. Verified by seeding a
+  preference at 200,150 and reading it back on close. The capture tool's
+  pixel-diversity guard now samples 60x48 and requires 20 (`TabbedList`) and 30
+  (`Grid`) colors. A follow-up pass measured a 32 DIU header over a 34 DIU tab
+  strip, down from about 116 DIU of stacked chrome.
 - 2026-07-29: Made the `TabbedList` window width follow its tab strip and
-  removed the item count from that layout. Summing `TabItem.DesiredSize` and
-  reading `ScrollViewer.ExtentWidth` once both under-measured by roughly one
-  tab, because the extent is exact only after the strip remeasures at the new
-  width. The fit now seeds from the extent and then grows by the reported
+  removed the item count from that layout. Summing `TabItem.DesiredSize` or
+  reading `ScrollViewer.ExtentWidth` once both under-measure by roughly one tab,
+  because the extent is exact only after the strip remeasures at the new width.
+  The fit seeds from the extent and grows by the reported
   `ExtentWidth - ViewportWidth` overflow until the strip stops scrolling,
   bounded by 80 percent of the work area and floored at the width the user last
-  chose. An automatic fit is tracked separately from that floor so it is never
-  persisted as a user dimension. Measured: 4 short tabs stay at the 680 DIU
-  default, 7 long tabs reach 1329 device pixels, and the 8-tab capture fixture
-  reaches 1204 with every tab visible and no horizontal scrollbar.
+  chose; an automatic fit is tracked separately so it is never persisted as a
+  user dimension.
 - 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
   click. Selecting a tab previously navigated into it, which rebuilt the strip
   from that folder's children and hid every sibling. The Launcher now tracks a
   tab-strip owner and a selected tab separately: `SelectTab` highlights a tab
   and shows its Launch Items in place, a Menu Folder below the selected tab
   appears as a list row, and only that row moves the strip one level deeper.
-  `Back` first returns to the owning tab, then leaves the level. Full suite
-  green: 171 passed, 1 intentional skip, 0 failed; PSScriptAnalyzer clean; both
-  layout captures byte-identical to the baseline first-run frames.
+  `Back` first returns to the owning tab, then leaves the level.
 - 2026-07-29: Stopped the `TabbedList` strip from opening on an empty tab. The
   Content Snapshot already hid Menu Folders with no Launch Item beneath them,
   but the strip always rendered a tab for its own Entry Root or Menu Folder, so
@@ -177,23 +170,17 @@ release remains gated by external environment evidence.
   holds no Launch Item of its own; the owning tab survives only when no child
   tab can replace it, so a wholly empty Entry Root still renders. Added `AS-020`
   and extended `FR-011`. Full workflows under PowerShell 7 and Windows
-  PowerShell 5.1 are green: 173 passed, 1 intentional skip, 0 failed in each;
-  builds are clean with 0 errors and 0 warnings. A live capture of the reported
-  Entry Root shows the `Node.js` and `Pandoc` tabs with `Node.js` selected and
-  no `x1` tab.
+  PowerShell 5.1 are green: 173 passed, 1 intentional skip, 0 failed in each.
 - 2026-08-06: Prepared the repository for a public release. A disclosure audit
   covering all 126 tracked files, all 34 commits on every reference, and all 13
   distinct historical screenshot blobs found no personally identifiable
   information in file content, no secrets, and no customer or agency reference;
   placeholders are `Contoso`, `example.test`, and `company.local`, and every
-  screenshot is generated from a temporary fixture rather than a real Start
-  menu. The only personal data is the author identity in commit metadata, which
-  the owner accepted as public. Added the MIT `LICENSE`, a `SECURITY.md` that
-  states the reporting path and derives its security model and out-of-scope
-  list from the signed Design Concept, a `CONTRIBUTING.md` describing the
-  Sampler loop and the record obligations, and a `CODEOWNERS` default owner.
-  Replaced the manifest copyright, whose "All rights reserved" wording
-  contradicted the new license, and published `LicenseUri` and `ProjectUri`.
+  screenshot is generated from a temporary fixture. The only personal data is
+  the author identity in commit metadata, which the owner accepted as public.
+  Added the MIT `LICENSE`, a `SECURITY.md` derived from the signed Design
+  Concept, a `CONTRIBUTING.md`, and a `CODEOWNERS` default owner, and replaced
+  the contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
 
 ## Stable capabilities
 

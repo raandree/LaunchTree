@@ -16,7 +16,9 @@ Items, and reconciles its Start Entry when run elevated.
 
 The build also produces `output\LaunchTree.ps1`, a generated self-contained
 script for machines where installing a module is impractical. Dot-source it to
-load every command, or use `-Command` to run one operation. See
+load every command, or use `-Command` to run one operation. It also produces
+`output\LaunchTree.Minimal.ps1`, a much smaller script that only opens the
+Launcher. See
 [single-file script delivery](docs/deployment.md#single-file-script-delivery).
 
 ## Content model

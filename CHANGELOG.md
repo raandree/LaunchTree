@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   module logic, runs without installing a module, supports dot-sourcing and
   `-Command` dispatch, and points its Start Entries at the script itself; the
   module delivery is unchanged
+- Add a generated `LaunchTree.Minimal.ps1` delivery for hosts that only open the
+  Launcher: the build derives it from the `Show-LaunchTree` call graph, so it
+  embeds only the functions that call needs and exposes only `-Command Show`,
+  `-EntryName`, and `-ManagedRoot`; the full single-file script is unchanged
 - Add a setup script that writes a default machine configuration, creates a
   sample Entry Root of built-in Windows Launch Items, and reconciles its Start
   Entry for a faster first run

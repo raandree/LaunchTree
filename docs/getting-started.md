@@ -118,6 +118,14 @@ Every later section then applies unchanged. The
 [deployment guide](deployment.md) covers the move, rename, and application
 control rules for this delivery.
 
+When a machine only needs to open the Launcher, deploy
+`output\LaunchTree.Minimal.ps1` instead. It is a much smaller script that
+supports one call and no Reconciliation:
+
+```powershell
+.\output\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot 'D:\temp\' -EntryName 'Programs'
+```
+
 ## Run the setup script
 
 The setup script writes a default machine configuration, creates one sample

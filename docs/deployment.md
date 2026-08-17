@@ -74,6 +74,27 @@ Entries. Run Reconciliation again from the new location, and allow the script
 path through AppLocker or Windows Defender Application Control just as you would
 the built module.
 
+### Minimal single-file script
+
+The build also produces a Launcher-only script for hosts that never reconcile:
+
+```text
+output\LaunchTree.Minimal.ps1
+```
+
+The generator derives it from the `Show-LaunchTree` call graph, so it embeds
+only the functions that opening an Entry Root needs and is markedly smaller than
+the full script. It accepts only the parameters that call needs:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command Show `
+    -ManagedRoot 'D:\temp\' -EntryName 'Programs'
+```
+
+Reconciliation, health checks, diagnostics, Support Bundle export, removal, and
+the Event Log probe are not part of this delivery. Deploy the full script or the
+module when a machine needs Start Entries or diagnostics.
+
 ## File-copy installation
 
 1. Copy the built version directory to a module path, for example:

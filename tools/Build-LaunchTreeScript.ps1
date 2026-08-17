@@ -3,25 +3,39 @@
         Generates the single-file LaunchTree script from the module source.
 
     .DESCRIPTION
-        Concatenates every private and public function in the module source
-        into one self-contained script that exposes the same logic without
+        Concatenates the private and public functions in the module source into
+        one self-contained script that exposes the same logic without
         installing a module. The script is generated rather than maintained by
         hand so the single-file delivery cannot drift from the module.
+
+        The Full variant embeds every function and exposes every command. The
+        Minimal variant embeds only the functions Show-LaunchTree reaches and
+        exposes only the parameters that opening an Entry Root needs.
 
     .PARAMETER SourcePath
         Specifies the module source directory to read functions from.
 
     .PARAMETER OutputPath
-        Specifies the single-file script to create.
+        Specifies the single-file script to create. Defaults to
+        output\LaunchTree.ps1 or output\LaunchTree.Minimal.ps1 depending on the
+        selected variant.
 
     .PARAMETER Version
         Specifies the version recorded in the generated script. Defaults to the
         built module version when one is available.
 
+    .PARAMETER Variant
+        Specifies which delivery to generate: Full or Minimal.
+
     .EXAMPLE
         .\Build-LaunchTreeScript.ps1
 
         Generates output\LaunchTree.ps1 from the current module source.
+
+    .EXAMPLE
+        .\Build-LaunchTreeScript.ps1 -Variant Minimal
+
+        Generates the Launcher-only output\LaunchTree.Minimal.ps1.
 #>
 [CmdletBinding(SupportsShouldProcess)]
 [OutputType([PSCustomObject])]
@@ -34,17 +48,94 @@ param(
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $OutputPath = (
-        Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) `
-            -ChildPath 'output\LaunchTree.ps1'
-    ),
+    [string] $OutputPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $Version
+    [string] $Version,
+
+    [Parameter()]
+    [ValidateSet('Full', 'Minimal')]
+    [string] $Variant = 'Full'
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Entry point of the Minimal variant; its call graph decides what gets embedded.
+$minimalEntryPoint = 'Show-LaunchTree'
+
+function Get-LaunchTreeFunctionClosure {
+    <#
+        .SYNOPSIS
+            Returns the entry points plus every module function they reach.
+
+        .PARAMETER FunctionFile
+            Specifies the module source function files to analyze.
+
+        .PARAMETER EntryPoint
+            Specifies the function names to start the traversal from.
+    #>
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory)]
+        [System.IO.FileInfo[]] $FunctionFile,
+
+        [Parameter(Mandatory)]
+        [string[]] $EntryPoint
+    )
+
+    $callMap = @{}
+    foreach ($file in $FunctionFile) {
+        $fileAst = [System.Management.Automation.Language.Parser]::ParseFile(
+            $file.FullName, [ref] $null, [ref] $null
+        )
+        $callMap[$file.BaseName] = @(
+            $fileAst.FindAll(
+                {
+                    param($node)
+                    $node -is [System.Management.Automation.Language.CommandAst]
+                },
+                $true
+            ) |
+                ForEach-Object { $_.GetCommandName() } |
+                Where-Object { $_ }
+        )
+    }
+
+    $closure = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
+    $pending = [System.Collections.Generic.Queue[string]]::new()
+    foreach ($name in $EntryPoint) {
+        $pending.Enqueue($name)
+    }
+
+    while ($pending.Count -gt 0) {
+        $name = $pending.Dequeue()
+        if (-not $callMap.ContainsKey($name) -or -not $closure.Add($name)) {
+            continue
+        }
+
+        foreach ($call in $callMap[$name]) {
+            if ($callMap.ContainsKey($call) -and -not $closure.Contains($call)) {
+                $pending.Enqueue($call)
+            }
+        }
+    }
+
+    , ([string[]] $closure)
+}
+
+if (-not $PSBoundParameters.ContainsKey('OutputPath')) {
+    $outputFileName = if ($Variant -eq 'Minimal') {
+        'LaunchTree.Minimal.ps1'
+    } else {
+        'LaunchTree.ps1'
+    }
+    $OutputPath = Join-Path -Path (Split-Path -Path $PSScriptRoot -Parent) `
+        -ChildPath "output\$outputFileName"
+}
 
 if (-not $PSBoundParameters.ContainsKey('Version')) {
     $builtManifest = Get-ChildItem -Path (
@@ -73,14 +164,23 @@ if ($functionFiles.Count -eq 0) {
     )
 }
 
+$moduleFunctionNames = @($functionFiles.BaseName)
+
+if ($Variant -eq 'Minimal') {
+    $includedNames = Get-LaunchTreeFunctionClosure -FunctionFile $functionFiles `
+        -EntryPoint $minimalEntryPoint
+    $functionFiles = @($functionFiles | Where-Object { $_.BaseName -in $includedNames })
+}
+
 $publicNames = @(
     Get-ChildItem -LiteralPath (Join-Path -Path $SourcePath -ChildPath 'Public') `
         -Filter '*.ps1' -File |
         Sort-Object -Property Name |
-        ForEach-Object { $_.BaseName }
+        ForEach-Object { $_.BaseName } |
+        Where-Object { $_ -in $functionFiles.BaseName }
 )
 
-$header = @'
+$fullHeader = @'
 <#
     .SYNOPSIS
         Self-contained LaunchTree delivery that needs no installed module.
@@ -214,9 +314,60 @@ $script:LaunchTreeStandalonePath = if ($PSCommandPath) {
 $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 '@
 
-$header = $header.Replace('__LAUNCHTREE_VERSION__', $Version)
+$minimalHeader = @'
+<#
+    .SYNOPSIS
+        Minimal self-contained LaunchTree delivery that only opens the Launcher.
 
-$footer = @'
+    .DESCRIPTION
+        Contains only the LaunchTree logic that Show-LaunchTree needs, so it is
+        markedly smaller than the full single-file script. Reconciliation,
+        health checks, diagnostics, Support Bundle export, removal, and the
+        Event Log probe are not part of this delivery; use the full script or
+        the module for those. This file is generated from the module source by
+        tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the module
+        source instead of this script.
+
+    .PARAMETER Command
+        Specifies the operation to run. Only Show is supported. Omit it and
+        dot-source the script to load the embedded commands instead.
+
+    .PARAMETER EntryName
+        Specifies the Entry Root to open.
+
+    .PARAMETER ManagedRoot
+        Overrides the Managed Root that supplies Entry Roots.
+
+    .EXAMPLE
+        .\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot D:\temp\ -EntryName Programs
+
+        Opens the Programs Entry Root below the supplied Managed Root.
+#>
+#Requires -Version 5.1
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [ValidateSet('Show')]
+    [string] $Command,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $EntryName,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $ManagedRoot
+)
+
+$script:LaunchTreeStandalonePath = if ($PSCommandPath) {
+    $PSCommandPath
+} else {
+    $MyInvocation.MyCommand.Path
+}
+$script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
+'@
+
+$fullFooter = @'
 
 $script:LaunchTreeCommandMap = @{
     Show                = 'Show-LaunchTree'
@@ -264,6 +415,26 @@ if ($Force -and $targetParameters.ContainsKey('Confirm')) {
 & $targetCommand @splat
 '@
 
+$minimalFooter = @'
+
+if (-not $Command) {
+    return
+}
+
+$splat = @{}
+foreach ($parameterName in @('EntryName', 'ManagedRoot')) {
+    if ($PSBoundParameters.ContainsKey($parameterName)) {
+        $splat[$parameterName] = $PSBoundParameters[$parameterName]
+    }
+}
+
+Show-LaunchTree @splat
+'@
+
+$header = if ($Variant -eq 'Minimal') { $minimalHeader } else { $fullHeader }
+$footer = if ($Variant -eq 'Minimal') { $minimalFooter } else { $fullFooter }
+$header = $header.Replace('__LAUNCHTREE_VERSION__', $Version)
+
 $builder = [System.Text.StringBuilder]::new()
 [void] $builder.AppendLine($header)
 [void] $builder.AppendLine()
@@ -281,14 +452,33 @@ foreach ($functionFile in $functionFiles) {
 
 $content = $builder.ToString()
 
+$tokens = $null
 $parseErrors = $null
 $null = [System.Management.Automation.Language.Parser]::ParseInput(
-    $content, [ref] $null, [ref] $parseErrors
+    $content, [ref] $tokens, [ref] $parseErrors
 )
 if ($parseErrors.Count -gt 0) {
     throw [System.InvalidOperationException]::new(
         "The generated script has $($parseErrors.Count) parse error(s): " +
         ($parseErrors[0].Message)
+    )
+}
+
+# A dropped function may still be reached through a name held in a string, which
+# the call-graph traversal cannot see, so verify the result over the real code.
+$executableText = -join @(
+    $tokens | Where-Object { $_.Kind -ne 'Comment' } | ForEach-Object { "$($_.Text)`n" }
+)
+$omittedReferences = @(
+    $moduleFunctionNames |
+        Where-Object { $_ -notin $functionFiles.BaseName } |
+        Where-Object { $executableText -match "\b$([regex]::Escape($_))\b" } |
+        Sort-Object
+)
+if ($omittedReferences.Count -gt 0) {
+    throw [System.InvalidOperationException]::new(
+        "The generated script references omitted function(s): " +
+        "$($omittedReferences -join ', ')."
     )
 }
 
@@ -300,6 +490,7 @@ if ($PSCmdlet.ShouldProcess($OutputPath, 'Write single-file LaunchTree script'))
 
 [PSCustomObject] @{
     Path          = $OutputPath
+    Variant       = $Variant
     Version       = $Version
     FunctionCount = $functionFiles.Count
     PublicCommand = $publicNames

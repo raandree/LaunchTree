@@ -61,6 +61,10 @@ while preserving the approved behavior and security boundaries.
   historical screenshot blob found no personally identifiable information in
   content, no secrets, and no customer or agency reference; the author identity
   in commit metadata is accepted as public by the owner.
+- The build emits two single-file artifacts. `output/LaunchTree.ps1` is
+  unchanged. `output/LaunchTree.Minimal.ps1` is derived from the
+  `Show-LaunchTree` call graph for hosts that only open the Launcher, and needs
+  the same external matrix coverage as the other two deliveries.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

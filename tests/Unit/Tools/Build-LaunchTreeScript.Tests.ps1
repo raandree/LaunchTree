@@ -89,3 +89,123 @@ Describe 'Build-LaunchTreeScript' -Tag 'Unit' {
         $context.ProbeCommand | Should -Be 'EventLogProbe'
     }
 }
+
+Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
+    BeforeAll {
+        $script:minimalPath = Join-Path -Path $TestDrive -ChildPath 'LaunchTree.Minimal.ps1'
+        $script:minimalResult = & $script:generatorPath -SourcePath $script:sourcePath `
+            -OutputPath $script:minimalPath -Version '9.9.9' -Variant Minimal
+        $script:minimalContent = Get-Content -LiteralPath $script:minimalPath -Raw
+        $script:minimalAst = [System.Management.Automation.Language.Parser]::ParseFile(
+            $script:minimalPath, [ref] $null, [ref] $null
+        )
+    }
+
+    It 'Should generate a parsable minimal script' {
+        $script:minimalPath | Should -Exist
+        $script:minimalResult.Variant | Should -Be 'Minimal'
+
+        $parseErrors = $null
+        $null = [System.Management.Automation.Language.Parser]::ParseFile(
+            $script:minimalPath, [ref] $null, [ref] $parseErrors
+        )
+
+        $parseErrors | Should -BeNullOrEmpty
+    }
+
+    It 'Should embed the functions the Launcher call needs' {
+        $expected = @(
+            'Show-LaunchTree'
+            'Show-LaunchTreeWindow'
+            'Get-LaunchTreeConfiguration'
+            'Get-LaunchTreeContentSnapshot'
+            'Get-LaunchTreeRuntimeContext'
+            'Invoke-LaunchTreeLaunchItem'
+        )
+
+        foreach ($commandName in $expected) {
+            $script:minimalContent | Should -Match "function $commandName\b"
+        }
+    }
+
+    It 'Should omit every function the Launcher call does not need' {
+        $unexpected = @(
+            'Update-LaunchTree'
+            'Test-LaunchTree'
+            'Remove-LaunchTree'
+            'Get-LaunchTreeDiagnostic'
+            'Export-LaunchTreeSupportBundle'
+            'New-LaunchTreeStartEntry'
+            'Register-LaunchTreeEventLog'
+            'Invoke-LaunchTreeEventLogAccessProbe'
+        )
+
+        foreach ($commandName in $unexpected) {
+            $script:minimalContent | Should -Not -Match "function $commandName\b"
+        }
+
+        $allFunctions = @(
+            Get-ChildItem -Path (Join-Path $script:sourcePath 'Private') -Filter '*.ps1' -File
+            Get-ChildItem -Path (Join-Path $script:sourcePath 'Public') -Filter '*.ps1' -File
+        )
+        $script:minimalResult.FunctionCount | Should -BeLessThan $allFunctions.Count
+    }
+
+    It 'Should invoke no LaunchTree command it does not embed' {
+        $defined = @(
+            $script:minimalAst.FindAll(
+                {
+                    param($node)
+                    $node -is [System.Management.Automation.Language.FunctionDefinitionAst]
+                },
+                $true
+            ).Name
+        )
+        $invoked = @(
+            $script:minimalAst.FindAll(
+                {
+                    param($node)
+                    $node -is [System.Management.Automation.Language.CommandAst]
+                },
+                $true
+            ) |
+                ForEach-Object { $_.GetCommandName() } |
+                Where-Object { $_ -like '*-LaunchTree*' } |
+                Sort-Object -Unique
+        )
+
+        $invoked | Should -Not -BeNullOrEmpty
+        @($invoked | Where-Object { $_ -notin $defined }) | Should -BeNullOrEmpty
+    }
+
+    It 'Should expose only the parameters the supported call needs' {
+        $parameterNames = @(
+            $script:minimalAst.ParamBlock.Parameters.Name.VariablePath.UserPath | Sort-Object
+        )
+
+        $parameterNames | Should -Be @('Command', 'EntryName', 'ManagedRoot')
+    }
+
+    It 'Should accept only the Show command' {
+        $commandParameter = $script:minimalAst.ParamBlock.Parameters |
+            Where-Object { $_.Name.VariablePath.UserPath -eq 'Command' }
+        $validateSet = $commandParameter.Attributes |
+            Where-Object { $_.TypeName.FullName -eq 'ValidateSet' }
+
+        @($validateSet.PositionalArguments.Value) | Should -Be @('Show')
+    }
+
+    It 'Should resolve a standalone runtime context without an imported module' {
+        $probe = {
+            param($ScriptPath)
+            . $ScriptPath
+            Get-LaunchTreeRuntimeContext
+        }
+
+        $context = & $probe $script:minimalPath
+
+        $context.HostKind | Should -Be 'Script'
+        $context.Version | Should -Be '9.9.9'
+        $context.LauncherPath | Should -Be $script:minimalPath
+    }
+}
