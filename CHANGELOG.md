@@ -66,6 +66,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Move the selected Menu Folder description out of the window title bar into its
+  own field between the title bar and the navigation strip; the field wraps and
+  grows with the text it shows, collapses when the folder has no description,
+  and stops long descriptions from crowding out the title
 - Present the Launcher's compact top line as a window title bar: the
   application icon and the Entry Root title now sit at its left where the Back
   control used to be, and Back moved to the left of the `TabbedList` tab strip
@@ -109,6 +113,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix internet shortcut (`.url`) Launch Items showing the generic file icon
+  instead of the target site or browser icon; the shell handler that produces
+  that icon only answers on an STA thread, so background icon extraction now
+  runs on a dedicated STA worker instead of a thread-pool thread, and the icon
+  cache key was versioned so entries poisoned by the fallback icon are discarded
+- Fix the Launcher window's top edge rendering about five times thicker than
+  the other three. A borderless resizable window keeps its top resize border
+  inside the visible frame while the other three sit in the invisible drag
+  margin, so the window now applies a `WindowChrome` with no caption height and
+  no glass frame; the client area is flush with all four edges and a four-pixel
+  band still resizes the window
 - Fix the `Grid` layout failing to open a Menu Folder because it assigned the
   current path to a breadcrumb control that no longer exists; both layouts now
   expose the current path through the title tooltip

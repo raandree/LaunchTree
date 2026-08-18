@@ -15,28 +15,23 @@ per-user tree augments matching roots. The launcher reads snapshots, delegates
 invocation to Windows Shell, manages only generated state and caches, and takes
 opaque Entry IDs across the process boundary. Reconciliation is transactional,
 and a dedicated event log is writable by standard interactive users.
-
 Implementation adds a current-user named-pipe activation channel, bounded
 versioned icon cache, presentation-only preference file, structured Health
-Findings, diagnostics, WPF/offline validation, and tested layout helpers. No
-runtime artifact has an external dependency; themed XAML and content-sized
-scrollbar strips are invariants. `TabbedList` omits `Grid` search and sort,
-separates tab-strip owner from selected tab, descends only through a Menu
-Folder row, and keeps an owning tab only while it holds a direct Launch Item.
+Findings, diagnostics, and tested layout helpers. No runtime artifact has an
+external dependency; themed XAML and content-sized scrollbar strips are
+invariants. `TabbedList` omits `Grid` search and sort, separates tab-strip owner
+from selected tab, and keeps an owning tab only while it holds a Launch Item.
 
 ## Documentation
 
 `docs/getting-started.md` is the canonical first-run operator path. It stays
 task-oriented and links to deployment and specifications instead of duplicating
-those contracts. `tools/Initialize-QuickStart.ps1` is the scripted fast path for
-that guide: it creates only administrator-authored inputs, keeps existing files
-unless forced, and leaves Reconciliation to `Update-LaunchTree`, so the public
-command surface in `ADR-0007` stays unchanged.
-
-Every documented sample block must run standalone: it resolves the values it
-uses instead of relying on an earlier block, and a multistatement block runs
-inside `& { $ErrorActionPreference = 'Stop'; ... }` so the first failure stops
-the block.
+those contracts. `tools/Initialize-QuickStart.ps1` is the scripted fast path: it
+creates only administrator-authored inputs, keeps existing files unless forced,
+and leaves Reconciliation to `Update-LaunchTree`. Every documented sample block
+must run standalone: it resolves the values it uses instead of relying on an
+earlier block, and a multistatement block runs inside
+`& { $ErrorActionPreference = 'Stop'; ... }` so the first failure stops it.
 
 ## Constraints
 
@@ -48,59 +43,59 @@ because an activated Start Entry re-resolves its root from the configuration.
 The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
 `Invoke-LaunchTreeStandardUserEventProbe`) launches a de-elevated process with
 `CreateProcessWithTokenW` and the UAC-linked token. From an interactive elevated
-admin that token is `Identification`-level, which the API rejects
-(`ERROR_ACCESS_DENIED`); an `Impersonation`-level token needs `SeTcbPrivilege`,
-held only by SYSTEM. The probe is therefore best-effort and never throws:
-Reconciliation still registers the log and Interactive Users access,
-`Register-LaunchTreeEventLog` warns and emits event `1603`, and `Test-LaunchTree`
-reports `StandardUserEventAccessUnverified`. Real verification still needs a
-de-elevation path through the unelevated shell or Task Scheduler.
+admin that token is `Identification`-level, which the API rejects; raising it
+needs `SeTcbPrivilege`, held only by SYSTEM. The probe is therefore best-effort
+and never throws, and `Test-LaunchTree` reports
+`StandardUserEventAccessUnverified`.
 
 Windows binds an event source name to exactly one classic log, and
 `System.Diagnostics.EventLog.WriteEntry` registers an unknown source in the
 `Application` log when the caller is elevated. Runtime code therefore resolves
-the source through `[Diagnostics.EventLog]::LogNameFromSourceName` before
-writing; a mismatch skips the write instead of registering anything, so only
-elevated Reconciliation can create the dedicated log and source.
+the source through `[Diagnostics.EventLog]::LogNameFromSourceName` first; a
+mismatch skips the write instead of registering anything.
+
+Shell icon extraction runs on the dedicated STA worker owned by
+`LaunchTree.NativeIcon`, never on the thread pool. `IShellItemImageFactory`
+succeeds in any apartment, but the internet shortcut handler answers only in an
+STA and the shell substitutes the generic file icon elsewhere, so an MTA thread
+yields a plausible but wrong image instead of an error. The worker is one
+background STA thread running a WPF `Dispatcher`, which supplies the queue and
+bounds thread count at any scale; every frame is frozen before it crosses back.
+Supplying `-ReferencedAssemblies` replaces the PowerShell 7 default reference
+set, so `Initialize-LaunchTreeWpf` re-adds the `$PSHOME\ref` threading
+assemblies when that folder exists.
 
 ## Delivery
 
 The Sampler module under `output/module/LaunchTree/<version>` stays the
 recommended form and is unchanged. `output/LaunchTree.ps1` is a generated
 self-contained script for hosts where installing a module is impractical. Both
-scripts are generated, never hand-maintained, so they cannot drift:
+scripts are generated, never hand-maintained:
 `tools/Build-LaunchTreeScript.ps1` concatenates the selected `source/Private`
 and `source/Public` functions and parse-checks the result.
 
 `-Variant Full` embeds every function; the `Build_Single_File_Script` task runs
 it during `build`. `-Variant Minimal` emits the Launcher-only
-`output/LaunchTree.Minimal.ps1` through `Build_Minimal_Single_File_Script`, with
-parameters `-Command Show`, `-EntryName`, and `-ManagedRoot`. Its content is
-derived, not curated: files in `tools/MinimalVariant` replace same-named module
-functions to drop the Event Log and every JSON reader, an AST call-graph
-traversal from `Show-LaunchTree` over the overridden graph selects what to
-embed, a guard scans every non-comment token for an omitted function name, and a
-token-stream comparison proves the comment strip changed nothing else. An
-override matching no module function fails the build, and a test compares the
-configuration object of both deliveries against drift.
+`output/LaunchTree.Minimal.ps1`, with parameters `-Command Show`, `-EntryName`,
+and `-ManagedRoot`. Its content is derived, not curated: files in
+`tools/MinimalVariant` replace same-named module functions to drop the Event Log
+and every JSON reader, an AST call-graph traversal from `Show-LaunchTree` over
+the overridden graph selects what to embed, and a token-stream comparison proves
+the comment strip changed nothing.
 
 Host-dependent values resolve through the private
-`Get-LaunchTreeRuntimeContext`, which returns the module base, version, launcher
-path, and probe path when running as a module, and the script's own path plus a
-`-Command` token when running standalone, so module behavior is identical while
-a script targets itself for Start Entries and the standard-user probe.
-
-A binary asset the runtime needs is embedded as base64 in the private function
-that decodes it, never loaded from a path next to the module, because the
-single-file deliveries carry functions only. `source/Assets` holds the editable
-source of truth and a unit test compares it against the embedded copy.
+`Get-LaunchTreeRuntimeContext`: the module base, version, launcher path, and
+probe path as a module, and the script's own path plus a `-Command` token when
+running standalone. A binary asset the runtime needs is embedded as base64 in
+the private function that decodes it, because the single-file deliveries carry
+functions only. `source/Assets` holds the editable source of truth and a unit
+test compares it against the embedded copy.
 
 ## Decisions
 
-- Keep evidence-backed durable context in `.memory-bank` across sessions.
-- Treat `docs/design-concept.md` as a sign-off gate; the native/WPF and
-  deployment boundaries required a requirements interview before implementation.
-## Decision record index
+Durable context stays evidence-backed in `.memory-bank`, and
+`docs/design-concept.md` is a sign-off gate: the native/WPF and deployment
+boundaries required a requirements interview before implementation.
 
 - `ADR-0001`: Native Start Entries open the WPF Launcher.
 - `ADR-0002`: Managed and Personal Content Sources merge by relative path.

@@ -147,11 +147,11 @@
     $window.Content = $rootBorder
 
     $rootGrid = [System.Windows.Controls.Grid]::new()
-    for ($rowIndex = 0; $rowIndex -lt 5; $rowIndex++) {
+    for ($rowIndex = 0; $rowIndex -lt 6; $rowIndex++) {
         [void] $rootGrid.RowDefinitions.Add([System.Windows.Controls.RowDefinition]::new())
         $rootGrid.RowDefinitions[$rowIndex].Height = [System.Windows.GridLength]::Auto
     }
-    $rootGrid.RowDefinitions[3].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
+    $rootGrid.RowDefinitions[4].Height = [System.Windows.GridLength]::new(1, [System.Windows.GridUnitType]::Star)
     $rootBorder.Child = $rootGrid
 
     $header = [System.Windows.Controls.Grid]::new()
@@ -190,12 +190,13 @@
     $descriptionText = [System.Windows.Controls.TextBlock]::new()
     $descriptionText.Foreground = $secondaryBrush
     $descriptionText.FontSize = 12
-    $descriptionText.Margin = [System.Windows.Thickness]::new(10, 0, 8, 0)
-    $descriptionText.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $descriptionText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+    # The row is Auto and the block wraps, so the field grows with its description.
+    $descriptionText.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $descriptionText.MaxHeight = 108
+    $descriptionText.Margin = [System.Windows.Thickness]::new(38, 0, 14, 8)
     $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
-    [System.Windows.Controls.Grid]::SetColumn($descriptionText, 2)
-    [void] $header.Children.Add($descriptionText)
+    [System.Windows.Controls.Grid]::SetRow($descriptionText, 1)
+    [void] $rootGrid.Children.Add($descriptionText)
 
     $sortBox = [System.Windows.Controls.ComboBox]::new()
     $sortBox.Width = 132
@@ -233,7 +234,7 @@
     $searchBorder.BorderBrush = $borderBrush
     $searchBorder.BorderThickness = [System.Windows.Thickness]::new(1)
     $searchBorder.CornerRadius = [System.Windows.CornerRadius]::new(6)
-    [System.Windows.Controls.Grid]::SetRow($searchBorder, 2)
+    [System.Windows.Controls.Grid]::SetRow($searchBorder, 3)
     if ($useTabbedListLayout) {
         $searchBorder.Visibility = [System.Windows.Visibility]::Collapsed
     }
@@ -267,7 +268,7 @@
     $navigationBar.Background = $surfaceBrush
     $navigationBar.BorderBrush = $borderBrush
     $navigationBar.BorderThickness = [System.Windows.Thickness]::new(0, 0, 0, 1)
-    [System.Windows.Controls.Grid]::SetRow($navigationBar, 1)
+    [System.Windows.Controls.Grid]::SetRow($navigationBar, 2)
     [void] $rootGrid.Children.Add($navigationBar)
 
     $navigationGrid = [System.Windows.Controls.Grid]::new()
@@ -316,7 +317,7 @@
     } else {
         [System.Windows.Thickness]::new(14, 0, 14, 8)
     }
-    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 3)
+    [System.Windows.Controls.Grid]::SetRow($scrollViewer, 4)
     [void] $rootGrid.Children.Add($scrollViewer)
     if ($useTabbedListLayout) {
         $itemsPanel = [System.Windows.Controls.StackPanel]::new()
@@ -340,7 +341,7 @@
     $statusText.Foreground = $secondaryBrush
     $statusText.FontSize = 12
     $statusText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    [System.Windows.Controls.Grid]::SetRow($statusText, 4)
+    [System.Windows.Controls.Grid]::SetRow($statusText, 5)
     [void] $rootGrid.Children.Add($statusText)
 
     $buttonStyleXaml = @"
