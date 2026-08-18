@@ -55,6 +55,10 @@ while preserving the approved behavior and security boundaries.
 - The application icon is `source/Assets/LaunchTree.ico`, embedded as base64 in
   `Get-LaunchTreeApplicationIcon` so the single-file deliveries stay
   self-contained; a unit test guards asset and embedding against drift.
+- The window applies a `WindowChrome` with `CaptionHeight` and
+  `GlassFrameThickness` at zero, because a borderless resizable window
+  otherwise keeps its top resize border inside the visible frame and shows a
+  thicker top edge. Client and window rect are now flush on all four sides.
 - A dragged window position is remembered and restored on the next activation,
   clamped to the virtual screen; only a first run without stored coordinates
   opens near the Start button.

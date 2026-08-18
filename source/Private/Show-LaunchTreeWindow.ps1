@@ -104,6 +104,17 @@
     $window.Icon = $applicationIcon
     $window.WindowStyle = [System.Windows.WindowStyle]::None
     $window.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
+
+    # A borderless resizable window keeps its top resize border inside the visible
+    # frame, so without this the top edge is thicker than the other three.
+    $windowChrome = [System.Windows.Shell.WindowChrome]::new()
+    $windowChrome.CaptionHeight = 0
+    $windowChrome.CornerRadius = [System.Windows.CornerRadius]::new(0)
+    $windowChrome.GlassFrameThickness = [System.Windows.Thickness]::new(0)
+    $windowChrome.ResizeBorderThickness = [System.Windows.Thickness]::new(4)
+    $windowChrome.UseAeroCaptionButtons = $false
+    [System.Windows.Shell.WindowChrome]::SetWindowChrome($window, $windowChrome)
+
     $window.ShowInTaskbar = $true
     $window.MinWidth = if ($useTabbedListLayout) { 600 } else { 520 }
     $window.MinHeight = 420
