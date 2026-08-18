@@ -179,6 +179,19 @@ release remains gated by external environment evidence.
   the local `refs/original/refs/heads/main` backup still carry the old blobs
   until the owner force-pushes and drops that ref.
 
+- 2026-08-18: Turned the Launcher's compact top line into a window title bar on
+  customer request. The application icon and the Entry Root title now sit at its
+  left where Back used to be, `Window.Icon` carries the same icon into the
+  taskbar, and Back moved into a new navigation strip at the left of the
+  `TabbedList` tab strip, whose width fit now accounts for it. The icon ships as
+  `source/Assets/LaunchTree.ico` and is embedded as base64 in
+  `Get-LaunchTreeApplicationIcon`, so both single-file deliveries stay
+  self-contained; a unit test compares the embedded bytes against the asset.
+  Also fixed `Grid` folder activation, which assigned to a breadcrumb control
+  removed on 2026-07-29 and therefore threw; both layouts now expose the current
+  path through the title tooltip. Suite green: 189 passed, 0 failed, 1
+  intentional skip, with both layout captures re-rendered.
+
 ## Stable capabilities
 
 - Managed and Personal Content Sources merge into immutable Content Snapshots.

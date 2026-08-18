@@ -81,14 +81,15 @@ sessions for one account, must have independent Launcher processes.
 ### FR-011 Navigate in one window
 
 Activating a Menu Folder must replace the visible content in the same window.
-The Back control must restore parent context. The window header must be one
-compact line holding the Back control, the current Entry Root title, the
+The Back control must restore parent context. The window title bar must be one
+compact line holding the application icon, the current Entry Root title, the
 selected description, and the Close control; the title must expose the current
-path as its tooltip. A Menu Folder whose subtree contains no Launch Item must
-not be displayed.
+path as its tooltip. The Back control must sit at the left of the navigation
+strip directly below the title bar. A Menu Folder whose subtree contains no
+Launch Item must not be displayed.
 `TabbedList` is the
 default Launcher layout: the owning Menu Folder and its child Menu Folders
-must be tabs, the selected tab's description must appear in the header above
+must be tabs, the selected tab's description must appear in the title bar above
 the tabs, and
 the selected tab's Launch Items must appear as compact list rows. The owning
 Menu Folder must keep its own tab only while it holds a Launch Item directly
@@ -123,7 +124,7 @@ The Launcher must follow the user's light, dark, and high-contrast settings. It
 must open near the Start button when no window position is remembered and at
 the remembered position afterwards, stay inside the active work area, fit
 content within screen bounds, permit resizing, permit moving the window by
-dragging its header, and scroll overflow.
+dragging its title bar, and scroll overflow.
 
 ### FR-015 Support keyboard and touch
 

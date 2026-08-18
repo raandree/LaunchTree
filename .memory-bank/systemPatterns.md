@@ -90,6 +90,11 @@ path, and probe path when running as a module, and the script's own path plus a
 `-Command` token when running standalone, so module behavior is identical while
 a script targets itself for Start Entries and the standard-user probe.
 
+A binary asset the runtime needs is embedded as base64 in the private function
+that decodes it, never loaded from a path next to the module, because the
+single-file deliveries carry functions only. `source/Assets` holds the editable
+source of truth and a unit test compares it against the embedded copy.
+
 ## Decisions
 
 - Keep evidence-backed durable context in `.memory-bank` across sessions.

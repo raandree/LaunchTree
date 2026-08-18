@@ -44,12 +44,13 @@ supported DPI settings, and right-click has no effect inside the WPF window.
   own generated shortcuts, configuration state, event source, and caches.
 - Open one WPF process per signed-in user. A later activation reuses the
   existing window and switches it to the requested entry.
-- Navigate nested directories in the same window with a Back affordance in a
-  compact single-line header that also acts as the drag handle.
+- Navigate nested directories in the same window with a Back affordance at the
+  left of the navigation strip, below a compact single-line title bar that
+  carries the application icon, the entry title, and the drag handle.
 - Use the tabbed list as the default Launcher layout and allow machine
   configuration to select the responsive grid. In the tabbed list layout,
-  Menu Folders are tabs, the active description appears in the header above the
-  tabs, and
+  Menu Folders are tabs, the active description appears in the title bar above
+  the tabs, and
   Launch Items appear as compact rows. Selecting a tab keeps the whole tab
   strip visible and highlights the selected tab; a Menu Folder below the
   selected tab appears as a row that moves the tab strip one level deeper. The
@@ -60,7 +61,7 @@ supported DPI settings, and right-click has no effect inside the WPF window.
 - Follow Windows light, dark, and high-contrast settings.
 - Place the window near the Start button on first use and at the remembered
   position afterwards, fit it to content within screen bounds, permit resizing
-  and dragging the header to move it, and scroll when necessary.
+  and dragging the title bar to move it, and scroll when necessary.
 - Support keyboard navigation, touch interaction, and visible keyboard focus.
 - Allow users to select locale-aware name ascending or name descending sort in
   the grid layout. The tabbed list layout follows the configured order.
@@ -190,13 +191,13 @@ reconciled transactionally.
 
 The Launcher provides two Windows-inspired layouts selected by machine
 configuration. `TabbedList` is the default and presents the current Menu Folder
-and its child Menu Folders as tabs, shows the active description in the header
-above the tab
+and its child Menu Folders as tabs, shows the active description in the title
+bar above the tab
 strip, and presents Launch Items as compact rows. `Grid` presents Menu Folders
 and Launch Items together in a responsive grid using stable item dimensions.
 Both layouts use the selected name order. Menu Folder activation replaces
 the current view in the same window. Back navigation restores parent context,
-and the header title exposes the current path as its tooltip. A folder whose
+and the window title exposes the current path as its tooltip. A folder whose
 subtree contains no launchable item is not displayed at all.
 
 Search covers every configured entry in the grid layout and shows enough path

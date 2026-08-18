@@ -98,8 +98,10 @@
         $pressedForegroundColor = $foregroundBrush.Color.ToString()
     }
 
+    $applicationIcon = Get-LaunchTreeApplicationIcon
     $window = [System.Windows.Window]::new()
     $window.Title = $EntryName
+    $window.Icon = $applicationIcon
     $window.WindowStyle = [System.Windows.WindowStyle]::None
     $window.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
     $window.ShowInTaskbar = $true
@@ -153,17 +155,15 @@
     [System.Windows.Controls.Grid]::SetRow($header, 0)
     [void] $rootGrid.Children.Add($header)
 
-    $backButton = [System.Windows.Controls.Button]::new()
-    $backButton.Content = [char] 0xE72B
-    $backButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $backButton.FontSize = 13
-    $backButton.Width = 28
-    $backButton.Height = 28
-    $backButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $backButton.ToolTip = 'Back'
-    $backButton.IsEnabled = $false
-    [System.Windows.Controls.Grid]::SetColumn($backButton, 0)
-    [void] $header.Children.Add($backButton)
+    $titleIcon = [System.Windows.Controls.Image]::new()
+    $titleIcon.Source = $applicationIcon
+    $titleIcon.Width = 16
+    $titleIcon.Height = 16
+    $titleIcon.Stretch = [System.Windows.Media.Stretch]::Uniform
+    $titleIcon.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $titleIcon.Margin = [System.Windows.Thickness]::new(8, 0, 0, 0)
+    [System.Windows.Controls.Grid]::SetColumn($titleIcon, 0)
+    [void] $header.Children.Add($titleIcon)
 
     $title = [System.Windows.Controls.TextBlock]::new()
     $title.Text = $EntryName
@@ -172,7 +172,7 @@
     $title.Foreground = $foregroundBrush
     $title.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $title.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-    $title.Margin = [System.Windows.Thickness]::new(6, 0, 0, 0)
+    $title.Margin = [System.Windows.Thickness]::new(8, 0, 0, 0)
     [System.Windows.Controls.Grid]::SetColumn($title, 1)
     [void] $header.Children.Add($title)
 
@@ -252,17 +252,50 @@
     [void] $searchGrid.Children.Add($searchBox)
     $searchBorder.Child = $searchGrid
 
+    $navigationBar = [System.Windows.Controls.Border]::new()
+    $navigationBar.Background = $surfaceBrush
+    $navigationBar.BorderBrush = $borderBrush
+    $navigationBar.BorderThickness = [System.Windows.Thickness]::new(0, 0, 0, 1)
+    [System.Windows.Controls.Grid]::SetRow($navigationBar, 1)
+    [void] $rootGrid.Children.Add($navigationBar)
+
+    $navigationGrid = [System.Windows.Controls.Grid]::new()
+    [void] $navigationGrid.ColumnDefinitions.Add(
+        [System.Windows.Controls.ColumnDefinition]::new()
+    )
+    $navigationGrid.ColumnDefinitions[0].Width = [System.Windows.GridLength]::Auto
+    [void] $navigationGrid.ColumnDefinitions.Add(
+        [System.Windows.Controls.ColumnDefinition]::new()
+    )
+    $navigationGrid.ColumnDefinitions[1].Width = [System.Windows.GridLength]::new(
+        1,
+        [System.Windows.GridUnitType]::Star
+    )
+    $navigationBar.Child = $navigationGrid
+
+    $backButton = [System.Windows.Controls.Button]::new()
+    $backButton.Content = [char] 0xE72B
+    $backButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
+    $backButton.FontSize = 13
+    $backButton.Width = 28
+    $backButton.Height = 28
+    $backButton.Margin = [System.Windows.Thickness]::new(6, 2, 4, 2)
+    $backButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $backButton.ToolTip = 'Back'
+    $backButton.IsEnabled = $false
+    [System.Windows.Controls.Grid]::SetColumn($backButton, 0)
+    [void] $navigationGrid.Children.Add($backButton)
+
     $folderTabs = [System.Windows.Controls.TabControl]::new()
-    $folderTabs.Background = $surfaceBrush
-    $folderTabs.BorderBrush = $borderBrush
-    $folderTabs.BorderThickness = [System.Windows.Thickness]::new(0, 0, 0, 1)
+    $folderTabs.Background = [System.Windows.Media.Brushes]::Transparent
+    $folderTabs.BorderThickness = [System.Windows.Thickness]::new(0)
     $folderTabs.Visibility = if ($useTabbedListLayout) {
         [System.Windows.Visibility]::Visible
     } else {
         [System.Windows.Visibility]::Collapsed
     }
-    [System.Windows.Controls.Grid]::SetRow($folderTabs, 1)
-    [void] $rootGrid.Children.Add($folderTabs)
+    [System.Windows.Controls.Grid]::SetColumn($folderTabs, 1)
+    [void] $navigationGrid.Children.Add($folderTabs)
 
     $scrollViewer = [System.Windows.Controls.ScrollViewer]::new()
     $scrollViewer.VerticalScrollBarVisibility = [System.Windows.Controls.ScrollBarVisibility]::Auto
@@ -532,13 +565,13 @@
              TargetType="TabControl">
     <Setter Property="Background" Value="$( $surfaceBrush.Color.ToString() )" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="14,0,10,0" />
+    <Setter Property="Padding" Value="4,0,10,0" />
     <Setter Property="Template">
         <Setter.Value>
             <ControlTemplate TargetType="TabControl">
                 <Border Background="{TemplateBinding Background}"
                                 BorderBrush="$( $borderBrush.Color.ToString() )"
-                                BorderThickness="0,0,0,1"
+                                BorderThickness="0"
                                 Padding="{TemplateBinding Padding}">
                     <ScrollViewer x:Name="PART_TabScroll" Focusable="False"
                                                 HorizontalScrollBarVisibility="Auto"
@@ -663,7 +696,8 @@
             $script:baseWindowWidth = $window.ActualWidth
         }
         $chromeWidth = $folderTabs.Padding.Left + $folderTabs.Padding.Right +
-            $rootBorder.BorderThickness.Left + $rootBorder.BorderThickness.Right
+            $rootBorder.BorderThickness.Left + $rootBorder.BorderThickness.Right +
+            $backButton.Width + $backButton.Margin.Left + $backButton.Margin.Right
         $maximumWidth = [System.Windows.SystemParameters]::WorkArea.Width * 0.8
         $folderTabs.UpdateLayout()
         # A zero extent means the strip is not measured yet, as before the window is shown.
@@ -810,6 +844,14 @@
                 })
             }
             $menuFolders = @($candidateItems | Where-Object Kind -eq 'MenuFolder')
+            $title.ToolTip = if ($script:currentRelativePath) {
+                @(
+                    $script:activeEntryName,
+                    $script:currentRelativePath
+                ) -join '  ›  '
+            } else {
+                $script:activeEntryName
+            }
         }
 
         $descending = $sortBox.SelectedIndex -eq 1
@@ -991,10 +1033,6 @@
                 } elseif ($selectedItem.Kind -eq 'MenuFolder') {
                     $script:currentRelativePath = $selectedItem.RelativePath
                     $script:selectedRelativePath = $selectedItem.RelativePath
-                    $breadcrumb.Text = @(
-                        $script:activeEntryName,
-                        $script:currentRelativePath
-                    ) -join '  ›  '
                     $backButton.IsEnabled = $true
                     $searchBox.Text = ''
                     & $renderItems

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a LaunchTree application icon that appears at the left of the Launcher
+  title bar, in the taskbar, and in Alt+Tab; `source/Assets/LaunchTree.ico` is
+  the source of truth and the icon is embedded in the module so the single-file
+  deliveries stay self-contained
 - Add the repository governance files required for a public release: an MIT
   `LICENSE`, a `SECURITY.md` policy that documents private vulnerability
   reporting and the intended security boundaries, a `CONTRIBUTING.md`
@@ -62,6 +66,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Present the Launcher's compact top line as a window title bar: the
+  application icon and the Entry Root title now sit at its left where the Back
+  control used to be, and Back moved to the left of the `TabbedList` tab strip
 - Fit the `TabbedList` window width to the tab strip so the tabs no longer
   scroll horizontally; the width grows to the required size within 80 percent of
   the work area, never shrinks below the width the user chose, and an automatic
@@ -102,6 +109,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix the `Grid` layout failing to open a Menu Folder because it assigned the
+  current path to a breadcrumb control that no longer exists; both layouts now
+  expose the current path through the title tooltip
 - Fix diagnostic writes registering the `LaunchTree` event source in the
   `Application` log when an elevated session wrote an event before
   Reconciliation had created the dedicated log, which then failed permanently

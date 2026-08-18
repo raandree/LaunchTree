@@ -47,9 +47,14 @@ while preserving the approved behavior and security boundaries.
 - `CR-013` lets a caller relocate the menu for one invocation through
     `ManagedRoot` and `PersonalRoot` parameters on the read commands, while
     persistent relocation still belongs in the machine configuration.
-- The Launcher header is one compact line (Back, title, active description,
-  Close) that doubles as the window drag handle; the current path is the title
-  tooltip and the full description is the description tooltip.
+- The Launcher's compact top line is a window title bar (application icon,
+  Entry Root title, active description, Close) that doubles as the window drag
+  handle; the Back control sits at the left of the navigation strip below it,
+  the current path is the title tooltip, and the full description is the
+  description tooltip.
+- The application icon is `source/Assets/LaunchTree.ico`, embedded as base64 in
+  `Get-LaunchTreeApplicationIcon` so the single-file deliveries stay
+  self-contained; a unit test guards asset and embedding against drift.
 - A dragged window position is remembered and restored on the next activation,
   clamped to the virtual screen; only a first run without stored coordinates
   opens near the Start button.
