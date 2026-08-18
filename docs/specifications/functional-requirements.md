@@ -21,7 +21,9 @@ user context.
 ### FR-002 Discover Entry Roots
 
 Every immediate, non-reparse-point child directory of the Managed Root must be
-an Entry Root. Loose files in the Managed Root must not become content.
+an Entry Root. A DFS link must count as an Entry Root, because a Managed Root
+published as a DFS namespace exposes its Entry Roots as DFS reparse points.
+Loose files in the Managed Root must not become content.
 
 ### FR-003 Create Start Entries from managed content
 
@@ -38,11 +40,12 @@ remain visible as separate objects and expose their Content Source.
 ### FR-005 Traverse Menu Folders safely
 
 Every directory at or below an Entry Root must be a Menu Folder. Traversal must
-ignore directory reparse points, stop at the configured maximum depth, and emit
-a Health Finding for excluded deeper content. A Menu Folder whose subtree
-contains no visible Launch Item must be omitted from the Content Snapshot. On
-Windows PowerShell 5.1, content beyond the host's effective path-length limit
-must be excluded with a Health Finding rather than disappearing silently.
+ignore directory reparse points other than DFS links, stop at the configured
+maximum depth, and emit a Health Finding for excluded deeper content. A Menu
+Folder whose subtree contains no visible Launch Item must be omitted from the
+Content Snapshot. On Windows PowerShell 5.1, content beyond the host's effective
+path-length limit must be excluded with a Health Finding rather than
+disappearing silently.
 
 ### FR-006 Read Menu Folder descriptions
 
@@ -294,3 +297,4 @@ content.
 | AS-018 | Machine configuration omits `LauncherLayout` for an Entry Root with descriptions, nested Menu Folders, and Launch Items | The Launcher shows descriptions above Menu Folder tabs and renders Launch Items as compact rows with no sort selector or search box; selecting `Grid` restores the tile presentation |
 | AS-019 | An Entry Root contains an empty Menu Folder, a Menu Folder holding only empty Menu Folders, and a Menu Folder whose only Launch Item is nested two levels deep | Only the Menu Folder with nested content and its populated ancestors are displayed |
 | AS-020 | A `TabbedList` Entry Root holds populated Menu Folders but no Launch Item of its own | The Entry Root has no tab of its own and the first Menu Folder tab is selected with its Launch Items |
+| AS-021 | The Managed Root is a DFS namespace folder whose Entry Roots are DFS links to hidden shares | Every Entry Root is discovered and its content is traversed through the referral |

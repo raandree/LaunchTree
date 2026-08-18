@@ -166,7 +166,9 @@ source indicator rather than replacing one another.
 - A `.lnk` tooltip uses the shortcut Description field when present.
 - Only `.lnk` and `.url` are launchable in version 1.
 - A `.url` is valid only when its URL uses `http` or `https`.
-- Directory reparse points are ignored and never traversed.
+- Directory reparse points are ignored and never traversed. A DFS link is the
+  exception, because a Managed Root published through a DFS namespace reaches
+  its content through DFS reparse points.
 - Default maximum depth is five, counting an entry directory as level 1. The
   machine JSON may set another bounded value.
 - Paths beyond legacy `MAX_PATH` are supported when the operating system is
@@ -246,7 +248,9 @@ launches are not audited.
 - Traversal stops at the configured depth and reports deeper content as a
   health finding.
 - Junctions, symbolic links, mount points, and other directory reparse points
-  are ignored to prevent cycles and root escape.
+  are ignored to prevent cycles and root escape. DFS links are traversed: the
+  file server enforces the boundary behind the referral, and the depth limit
+  still bounds the traversal.
 - Managed and personal duplicates remain visible with source attribution.
 - Locale-aware, case-insensitive comparison governs sorting, filtering, and
   collision diagnostics.

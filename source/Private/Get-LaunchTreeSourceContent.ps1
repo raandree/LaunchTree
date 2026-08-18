@@ -53,7 +53,7 @@ function Get-LaunchTreeSourceContent {
         }
 
         foreach ($directory in @($children | Where-Object { $_.PSIsContainer })) {
-            if (($directory.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            if (-not (Test-LaunchTreeTraversableDirectory -Directory $directory)) {
                 $findingParameters = @{
                     Code     = 'ReparsePointIgnored'
                     Severity = 'Warning'

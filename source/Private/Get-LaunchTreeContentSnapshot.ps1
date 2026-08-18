@@ -23,9 +23,7 @@ function Get-LaunchTreeContentSnapshot {
         try {
             $managedEntries = @(
                 Get-ChildItem -LiteralPath $Configuration.ManagedRoot -Directory -Force -ErrorAction Stop |
-                    Where-Object {
-                        ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0
-                    }
+                    Where-Object { Test-LaunchTreeTraversableDirectory -Directory $_ }
             )
         } catch {
             $errorRecord = $_
@@ -85,7 +83,7 @@ function Get-LaunchTreeContentSnapshot {
 
             if (Test-Path -LiteralPath $personalEntryPath -PathType Container) {
                 $personalEntry = Get-Item -LiteralPath $personalEntryPath -Force
-                if (($personalEntry.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0) {
+                if (Test-LaunchTreeTraversableDirectory -Directory $personalEntry) {
                     $personalFragmentParameters = @{
                         SourceRoot    = $personalEntryPath
                         EntryName     = $managedEntry.Name

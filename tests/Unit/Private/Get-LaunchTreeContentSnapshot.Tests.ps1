@@ -150,6 +150,31 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
             $result.HealthFindings.Code | Should -Contain 'ReparsePointIgnored'
         }
 
+        It 'Should discover an Entry Root and content behind a DFS link' {
+            $target = New-Item -Path (Join-Path $TestDrive 'DfsTarget') -ItemType Directory
+            $folder = New-Item -Path (Join-Path $target.FullName 'Tools') -ItemType Directory
+            @('[InternetShortcut]', 'URL=https://dfs.example') |
+                Set-Content -LiteralPath (Join-Path $folder.FullName 'Behind DFS.url') -Encoding ASCII
+            $linkParameters = @{
+                Path     = Join-Path $managedRoot 'EntryDfs'
+                ItemType = 'Junction'
+                Target   = $target.FullName
+            }
+            $null = New-Item @linkParameters
+
+            $result = InModuleScope -ModuleName $moduleName -Parameters @{
+                TestConfiguration = $script:testConfiguration
+            } {
+                Mock -CommandName Get-LaunchTreeReparseTag -MockWith { [uint32] 0x8000000Al }
+
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
+            }
+
+            $result.EntryRoots.Name | Should -Contain 'EntryDfs'
+            $result.Objects.Name | Should -Contain 'Behind DFS'
+            $result.HealthFindings.Code | Should -Not -Contain 'ReparsePointIgnored'
+        }
+
         It 'Should keep a Menu Folder usable when description metadata is oversized' {
             $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
             $folder = New-Item -Path (Join-Path $entry.FullName 'Large description') -ItemType Directory

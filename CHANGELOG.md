@@ -114,6 +114,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix a Managed Root on a DFS namespace finding no Entry Roots. A DFS link is a
+  directory reparse point, and every reparse point was skipped to prevent cycles
+  and root escape, so Entry Roots published as DFS links were invisible and
+  `Show-LaunchTree` reported `Entry Root '<name>' was not found`. Traversal now
+  reads the reparse tag and admits only `IO_REPARSE_TAG_DFS` and
+  `IO_REPARSE_TAG_DFSR`; junctions, symbolic links, and mount points are still
+  ignored and still reported as Health Findings
 - Fix internet shortcut (`.url`) Launch Items showing the generic file icon
   instead of the target site or browser icon; the shell handler that produces
   that icon only answers on an STA thread, so background icon extraction now

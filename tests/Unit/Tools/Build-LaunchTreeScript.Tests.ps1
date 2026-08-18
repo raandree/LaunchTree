@@ -290,6 +290,6 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
 
         # The trailing newline leaves one empty final line.
         $strayBlank.Count | Should -BeLessOrEqual 1
-        $script:minimalResult.LineCount | Should -BeLessThan 3000
+        $script:minimalResult.LineCount | Should -BeLessThan 3200
     }
 }

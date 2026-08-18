@@ -74,6 +74,10 @@ while preserving the approved behavior and security boundaries.
   unchanged. `output/LaunchTree.Minimal.ps1` is derived from the
   `Show-LaunchTree` call graph for hosts that only open the Launcher, and needs
   the same external matrix coverage as the other two deliveries.
+- A Managed Root on a DFS namespace works: traversal admits the DFS reparse
+  tags and still refuses junctions, symbolic links, and mount points. Hidden
+  (`$`) link targets need no special handling, because the referral is resolved
+  before LaunchTree reads the directory.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

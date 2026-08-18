@@ -15,6 +15,25 @@ Use `Test-LaunchTree` first. Its `Status` is `Healthy`, `Degraded`, or
 Personal-only directories do not create machine-wide Start Entries. The
 Personal Root augments matching managed Entry Roots.
 
+## Managed Root on a DFS namespace
+
+An Entry Root published as a DFS link is a directory reparse point. LaunchTree
+traverses `IO_REPARSE_TAG_DFS` and `IO_REPARSE_TAG_DFSR` and ignores every other
+directory reparse point, so a Managed Root such as
+`\\contoso.com\Namespace\Menus` finds its Entry Roots whether they are plain
+directories or DFS links, and whether a link target is a visible or a hidden
+(`$`) share.
+
+If an Entry Root below a DFS Managed Root is still missing, check in this order:
+
+1. Confirm the referral resolves for the signed-in user:
+   `Get-ChildItem -LiteralPath '\\contoso.com\Namespace\Menus' -Force`.
+2. Confirm the entry is a DFS link and not a junction or mount point. Only DFS
+   tags are traversed; a `ReparsePointIgnored` Health Finding names any
+   directory that was skipped.
+3. Confirm the user has read access on the link target itself. Namespace
+   permissions do not grant access behind the referral.
+
 ## Launcher does not open from PowerShell
 
 `Show-LaunchTree` opens an Entry Root without a Start Entry:

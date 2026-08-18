@@ -97,7 +97,9 @@ selected Launch Item.
 
 Configuration values, paths, JSON, directory traversal, `.url` schemes, cache
 records, and ownership records must be validated before use. Directory reparse
-points must not cross the Managed Root or Personal Root boundary.
+points must not cross the Managed Root or Personal Root boundary. A DFS link is
+exempt, because it is how a namespace publishes the root itself and the file
+server enforces access behind the referral.
 
 ## Reliability and rollback
 

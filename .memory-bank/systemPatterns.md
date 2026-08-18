@@ -29,9 +29,9 @@ task-oriented and links to deployment and specifications instead of duplicating
 those contracts. `tools/Initialize-QuickStart.ps1` is the scripted fast path: it
 creates only administrator-authored inputs, keeps existing files unless forced,
 and leaves Reconciliation to `Update-LaunchTree`. Every documented sample block
-must run standalone: it resolves the values it uses instead of relying on an
-earlier block, and a multistatement block runs inside
-`& { $ErrorActionPreference = 'Stop'; ... }` so the first failure stops it.
+must run standalone: it resolves the values it uses, and a multistatement block
+runs inside `& { $ErrorActionPreference = 'Stop'; ... }` so the first failure
+stops it.
 
 ## Constraints
 
@@ -55,15 +55,13 @@ the source through `[Diagnostics.EventLog]::LogNameFromSourceName` first; a
 mismatch skips the write instead of registering anything.
 
 Shell icon extraction runs on the dedicated STA worker owned by
-`LaunchTree.NativeIcon`, never on the thread pool. `IShellItemImageFactory`
-succeeds in any apartment, but the internet shortcut handler answers only in an
-STA and the shell substitutes the generic file icon elsewhere, so an MTA thread
-yields a plausible but wrong image instead of an error. The worker is one
-background STA thread running a WPF `Dispatcher`, which supplies the queue and
-bounds thread count at any scale; every frame is frozen before it crosses back.
-Supplying `-ReferencedAssemblies` replaces the PowerShell 7 default reference
-set, so `Initialize-LaunchTreeWpf` re-adds the `$PSHOME\ref` threading
-assemblies when that folder exists.
+`LaunchTree.NativeIcon`, never on the thread pool: the internet shortcut handler
+answers only in an STA, and elsewhere the shell substitutes the generic file
+icon instead of failing. The worker is one background STA thread running a WPF
+`Dispatcher`, which supplies the queue and bounds thread count at any scale;
+every frame is frozen before it crosses back. `-ReferencedAssemblies` replaces
+the PowerShell 7 default reference set, so `Initialize-LaunchTreeWpf` re-adds
+the `$PSHOME\ref` threading assemblies when that folder exists.
 
 ## Delivery
 
@@ -74,21 +72,20 @@ scripts are generated, never hand-maintained:
 `tools/Build-LaunchTreeScript.ps1` concatenates the selected `source/Private`
 and `source/Public` functions and parse-checks the result.
 
-`-Variant Full` embeds every function; the `Build_Single_File_Script` task runs
-it during `build`. `-Variant Minimal` emits the Launcher-only
-`output/LaunchTree.Minimal.ps1`, with parameters `-Command Show`, `-EntryName`,
-and `-ManagedRoot`. Its content is derived, not curated: files in
+`-Variant Full` embeds every function during `build`. `-Variant Minimal` emits
+the Launcher-only `output/LaunchTree.Minimal.ps1` with `-Command Show`,
+`-EntryName`, and `-ManagedRoot`. Its content is derived, not curated: files in
 `tools/MinimalVariant` replace same-named module functions to drop the Event Log
-and every JSON reader, an AST call-graph traversal from `Show-LaunchTree` over
-the overridden graph selects what to embed, and a token-stream comparison proves
-the comment strip changed nothing.
+and every JSON reader, an AST call-graph traversal from `Show-LaunchTree`
+selects what to embed, and a token-stream comparison proves the comment strip
+changed nothing.
 
 Host-dependent values resolve through the private
 `Get-LaunchTreeRuntimeContext`: the module base, version, launcher path, and
 probe path as a module, and the script's own path plus a `-Command` token when
 running standalone. A binary asset the runtime needs is embedded as base64 in
 the private function that decodes it, because the single-file deliveries carry
-functions only. `source/Assets` holds the editable source of truth and a unit
+functions only; `source/Assets` holds the editable source of truth and a unit
 test compares it against the embedded copy.
 
 ## Decisions
@@ -96,6 +93,10 @@ test compares it against the embedded copy.
 Durable context stays evidence-backed in `.memory-bank`, and
 `docs/design-concept.md` is a sign-off gate: the native/WPF and deployment
 boundaries required a requirements interview before implementation.
+
+Directory traversal decides on the reparse tag from `FindFirstFileW`, not the
+reparse attribute: `Test-LaunchTreeTraversableDirectory` admits the DFS tags and
+refuses every other tag, so a junction or mount point cannot leave the root.
 
 - `ADR-0001`: Native Start Entries open the WPF Launcher.
 - `ADR-0002`: Managed and Personal Content Sources merge by relative path.
