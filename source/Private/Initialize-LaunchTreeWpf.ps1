@@ -162,10 +162,12 @@ new NamedPipeServerStream(
     $iconSource = @'
 using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 
 namespace LaunchTree
 {
@@ -187,6 +189,9 @@ namespace LaunchTree
 
     public static class NativeIcon
     {
+        private static readonly object workerGate = new object();
+        private static Dispatcher worker;
+
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, PreserveSig = false)]
         private static extern void SHCreateItemFromParsingName(
             string path,
@@ -199,7 +204,47 @@ namespace LaunchTree
 
         public static Task<BitmapSource> GetAsync(string path, int pixelSize)
         {
-            return Task.Run(() => Get(path, pixelSize));
+            // Internet shortcut icons come from a shell handler that only
+            // answers on an STA thread, so a thread-pool thread would yield
+            // the generic file icon instead.
+            TaskCompletionSource<BitmapSource> completion =
+                new TaskCompletionSource<BitmapSource>();
+            EnsureWorker().BeginInvoke(
+                DispatcherPriority.Normal,
+                new Action(delegate ()
+                {
+                    try
+                    {
+                        completion.SetResult(Get(path, pixelSize));
+                    }
+                    catch (Exception error)
+                    {
+                        completion.SetException(error);
+                    }
+                }));
+            return completion.Task;
+        }
+
+        private static Dispatcher EnsureWorker()
+        {
+            lock (workerGate)
+            {
+                if (worker == null)
+                {
+                    TaskCompletionSource<Dispatcher> ready =
+                        new TaskCompletionSource<Dispatcher>();
+                    Thread thread = new Thread(delegate ()
+                    {
+                        ready.SetResult(Dispatcher.CurrentDispatcher);
+                        Dispatcher.Run();
+                    });
+                    thread.IsBackground = true;
+                    thread.SetApartmentState(ApartmentState.STA);
+                    thread.Start();
+                    worker = ready.Task.Result;
+                }
+                return worker;
+            }
         }
 
         public static BitmapSource Get(string path, int pixelSize)
@@ -244,6 +289,18 @@ namespace LaunchTree
             [System.Windows.Window].Assembly.Location
             [System.Windows.Rect].Assembly.Location
         )
+        <#
+            Supplying references replaces the PowerShell 7 default set, which
+            is the only source of the threading types there. Windows
+            PowerShell resolves them from mscorlib and ships no reference
+            folder.
+        #>
+        foreach ($referenceName in @('System.Threading.Thread.dll', 'System.Threading.dll')) {
+            $referencePath = Join-Path -Path $PSHOME -ChildPath "ref\$referenceName"
+            if (Test-Path -LiteralPath $referencePath -PathType Leaf) {
+                $references += $referencePath
+            }
+        }
         Add-Type -TypeDefinition $iconSource -ReferencedAssemblies $references -Language CSharp
     }
 }

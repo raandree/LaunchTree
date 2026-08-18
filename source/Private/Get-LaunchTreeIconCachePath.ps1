@@ -15,8 +15,9 @@ function Get-LaunchTreeIconCachePath {
         [int] $PixelSize
     )
 
+    # Version 2 discards entries poisoned by the pre-STA internet shortcut fallback icon.
     $sourceItem = Get-Item -LiteralPath $SourcePath -Force -ErrorAction Stop
-    $key = '{0}|{1}|{2}|{3}|v1' -f (
+    $key = '{0}|{1}|{2}|{3}|v2' -f (
         [IO.Path]::GetFullPath($sourceItem.FullName).ToUpperInvariant()
     ), $sourceItem.Length, $sourceItem.LastWriteTimeUtc.Ticks, $PixelSize
     $algorithm = [Security.Cryptography.SHA256]::Create()
