@@ -92,13 +92,11 @@ release remains gated by external environment evidence.
   content. The strip was pinned to 44 device-independent pixels while its
   template hosted a horizontal scrollbar, so the 30 Menu Folders under
   `Programs` left about four pixels for labels. The strip now sizes to content
-  and lays tabs out in one scrollable row, and the window themes its scrollbars.
-- 2026-07-29: Hid Menu Folders whose subtree holds no Launch Item, removed the
-  sort selector and search box from the tabbed layout, and fixed tab
-  navigation. A live UI Automation click proved the old handler entered the
-  wrong folder because it rebuilt the tab collection from shared selection
-  state; each tab now carries its own folder and navigates from its own click,
-  verified by clicking `Canon Utilities` and reading back its four subfolders.
+  and lays tabs out in one scrollable row.
+- 2026-07-29: Hid Menu Folders whose subtree holds no Launch Item, and removed
+  the sort selector and search box from the tabbed layout. A live UI Automation
+  click proved the old tab handler entered the wrong folder because it rebuilt
+  the tab collection from shared selection state; each tab now carries its own.
 - 2026-07-29: Added `CR-013` root override parameters on customer request.
   `ManagedRoot` and `PersonalRoot` now override the machine configuration for a
   single call to `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
@@ -176,12 +174,14 @@ release remains gated by external environment evidence.
 - 2026-08-18: Moved the selected description out of the title bar into its own
   field between the title bar and the navigation strip on customer request, who
   supplied three in-house apps as the reference pattern. `rootGrid` gained a
-  sixth row for it, and the block wraps instead of ellipsising so an `Auto` row
-  sizes itself to the text; a 108 DIU cap keeps a long `description.txt` from
-  squeezing the item list, and the full text stays in the tooltip. Captures of
-  the same fixture confirm one line for `Some more items`, three lines for a
-  paragraph with the tab strip pushed down, and no gap at all when the folder
-  has no `description.txt`. `FR-011` follows the field.
+  sixth row for it. A first pass sized the field to its content; the customer
+  rejected that because the tab strip moved whenever a tab carried a different
+  description, so the field now reserves exactly two lines at a 16 DIU line
+  height whether or not the folder has one, truncates a longer text with an
+  ellipsis, and keeps the full text in the tooltip. It is collapsed in `Grid`,
+  which shows no description. Captures of one line, two full lines, an
+  overflowing text, and no `description.txt` all place the tab strip at the same
+  position. `FR-011` follows the field.
 
 ## Stable capabilities
 

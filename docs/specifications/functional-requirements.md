@@ -85,9 +85,12 @@ The Back control must restore parent context. The window title bar must be one
 compact line holding the application icon, the current Entry Root title, and the
 Close control; the title must expose the current path as its tooltip. The
 selected description must appear in its own field between the title bar and the
-navigation strip, wrapping to as many lines as its content needs. The Back
-control must sit at the left of the navigation strip. A Menu Folder whose
-subtree contains no Launch Item must not be displayed.
+navigation strip. That field must always reserve exactly two lines, so the
+navigation strip never moves when the description changes; a description longer
+than two lines must be truncated with an ellipsis and remain readable in full as
+the field's tooltip. The Back control must sit at the left of the navigation
+strip. A Menu Folder whose subtree contains no Launch Item must not be
+displayed.
 `TabbedList` is the
 default Launcher layout: the owning Menu Folder and its child Menu Folders
 must be tabs, the selected tab's description must appear in the description

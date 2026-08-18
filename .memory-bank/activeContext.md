@@ -49,9 +49,9 @@ while preserving the approved behavior and security boundaries.
     persistent relocation still belongs in the machine configuration.
 - The Launcher's compact top line is a window title bar (application icon,
   Entry Root title, Close) that doubles as the window drag handle; the selected
-  description sits in its own wrapping field directly below it, the Back control
-  sits at the left of the navigation strip below that, and the current path is
-  the title tooltip.
+  description sits in a `TabbedList` field directly below it that always
+  reserves two lines, the Back control sits at the left of the navigation strip
+  below that, and the current path is the title tooltip.
 - The application icon is `source/Assets/LaunchTree.ico`, embedded as base64 in
   `Get-LaunchTreeApplicationIcon` so the single-file deliveries stay
   self-contained; a unit test guards asset and embedding against drift.

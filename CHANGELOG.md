@@ -67,9 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Move the selected Menu Folder description out of the window title bar into its
-  own field between the title bar and the navigation strip; the field wraps and
-  grows with the text it shows, collapses when the folder has no description,
-  and stops long descriptions from crowding out the title
+  own `TabbedList` field between the title bar and the navigation strip; the
+  field always reserves two lines so the tab strip stays put whichever tab is
+  selected, and a longer description is truncated with an ellipsis and stays
+  readable in full as the field's tooltip
 - Present the Launcher's compact top line as a window title bar: the
   application icon and the Entry Root title now sit at its left where the Back
   control used to be, and Back moved to the left of the `TabbedList` tab strip

@@ -190,11 +190,20 @@
     $descriptionText = [System.Windows.Controls.TextBlock]::new()
     $descriptionText.Foreground = $secondaryBrush
     $descriptionText.FontSize = 12
-    # The row is Auto and the block wraps, so the field grows with its description.
+    <#
+        The field reserves two lines whether or not the folder has a
+        description, so the tab strip below it never moves.
+    #>
     $descriptionText.TextWrapping = [System.Windows.TextWrapping]::Wrap
-    $descriptionText.MaxHeight = 108
+    $descriptionText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
+    $descriptionText.LineStackingStrategy =
+        [System.Windows.LineStackingStrategy]::BlockLineHeight
+    $descriptionText.LineHeight = 16
+    $descriptionText.Height = 32
     $descriptionText.Margin = [System.Windows.Thickness]::new(38, 0, 14, 8)
-    $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
+    if (-not $useTabbedListLayout) {
+        $descriptionText.Visibility = [System.Windows.Visibility]::Collapsed
+    }
     [System.Windows.Controls.Grid]::SetRow($descriptionText, 1)
     [void] $rootGrid.Children.Add($descriptionText)
 
@@ -757,18 +766,12 @@
             $menuFolders = @($tabbedContent.MenuFolders)
 
             $descriptionText.Text = $tabbedContent.Description
-            $descriptionText.Visibility = if ([string]::IsNullOrWhiteSpace(
+            $descriptionText.ToolTip = if ([string]::IsNullOrWhiteSpace(
                     $tabbedContent.Description
                 )) {
-                [System.Windows.Visibility]::Collapsed
-            } else {
-                [System.Windows.Visibility]::Visible
-            }
-            $descriptionText.ToolTip = if ($descriptionText.Visibility -eq
-                [System.Windows.Visibility]::Visible) {
-                $tabbedContent.Description
-            } else {
                 $null
+            } else {
+                $tabbedContent.Description
             }
             $title.ToolTip = if ($tabbedContent.SelectedRelativePath) {
                 @(
