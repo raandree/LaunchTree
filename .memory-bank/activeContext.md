@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-29
+last-verified: 2026-08-19
 owner: active-agent
 source: current task evidence
 ---
@@ -82,6 +82,10 @@ while preserving the approved behavior and security boundaries.
   shortcut leniently and validate only the fields they consume, because a
   strict whole-file UTF-8 read made a valid Launch Item vanish over a byte in
   `IconFile`. Content fixtures must cover ANSI bytes, not only ASCII.
+- An icon cache entry cannot notice that its icon target changed, because the
+  key covers only the shortcut. `Clear-LaunchTreeCache` is the eighth exported
+  command and the supported recovery; `ADR-0007` carries a dated amendment for
+  the enlarged surface and `FR-034` specifies the behavior.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

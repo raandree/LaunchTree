@@ -370,6 +370,7 @@ param(
         'GetConfiguration',
         'GetDiagnostic',
         'ExportSupportBundle',
+        'ClearCache',
         'Remove',
         'EventLogProbe'
     )]
@@ -512,6 +513,7 @@ $script:LaunchTreeCommandMap = @{
     GetConfiguration    = 'Get-LaunchTreeConfiguration'
     GetDiagnostic       = 'Get-LaunchTreeDiagnostic'
     ExportSupportBundle = 'Export-LaunchTreeSupportBundle'
+    ClearCache          = 'Clear-LaunchTreeCache'
     Remove              = 'Remove-LaunchTree'
 }
 

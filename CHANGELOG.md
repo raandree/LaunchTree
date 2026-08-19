@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `Clear-LaunchTreeCache`, which discards every cached icon in the resolved
+  cache namespace, supports `ShouldProcess`, keeps the namespace directory, and
+  reports the entry count and bytes reclaimed; a cache key covers only the
+  shortcut, so repairing or deploying an icon target could previously not
+  invalidate the stale entry before `Cache.MaximumAgeDays` expired it
 - Add a LaunchTree application icon that appears at the left of the Launcher
   title bar, in the taskbar, and in Alt+Tab; `source/Assets/LaunchTree.ico` is
   the source of truth and the icon is embedded in the module so the single-file

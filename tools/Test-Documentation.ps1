@@ -22,7 +22,7 @@ if (-not $health.Passed) {
 }
 
 $expectedIdentifiers = [ordered] @{
-    FR  = 1..33 | ForEach-Object { 'FR-{0:d3}' -f $_ }
+    FR  = 1..34 | ForEach-Object { 'FR-{0:d3}' -f $_ }
     QR  = 1..22 | ForEach-Object { 'QR-{0:d3}' -f $_ }
     CR  = 1..13 | ForEach-Object { 'CR-{0:d3}' -f $_ }
     AS  = 1..21 | ForEach-Object { 'AS-{0:d3}' -f $_ }

@@ -2,7 +2,7 @@
 id: ADR-0007
 status: accepted
 date: 2026-07-28
-last-verified: 2026-07-28
+last-verified: 2026-08-19
 owner: developer-and-release-owner
 source: functional specification
 ---
@@ -25,10 +25,21 @@ Export exactly these version 1 commands:
 - `Show-LaunchTree`
 - `Get-LaunchTreeDiagnostic`
 - `Export-LaunchTreeSupportBundle`
+- `Clear-LaunchTreeCache`
 - `Remove-LaunchTree`
 
 State-changing commands support `ShouldProcess`. No exported command modifies
 source content.
+
+## Amendments
+
+- 2026-08-19: Added `Clear-LaunchTreeCache` on explicit user request. A cache
+  key identifies the shortcut, not the icon it points at, so a repaired icon
+  target could not invalidate its entry before `Cache.MaximumAgeDays` expired
+  it and the only workaround was `Remove-LaunchTree`, which also deletes Start
+  Entries and the event registration. The command is maintenance over
+  module-owned disposable state, so the read-mostly, no-content-editing intent
+  of this decision is unchanged. Specified by `FR-034`.
 
 ## Consequences
 

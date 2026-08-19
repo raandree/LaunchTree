@@ -24,28 +24,23 @@ release remains gated by external environment evidence.
   installation through first Launcher use and cleanup, including the
   recognized/EntryId/STA failures no operator document had covered; added
   `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware setup script that
-  writes a default machine configuration, creates the `LaunchTree Demo` Entry
-  Root, runs Reconciliation, and reports `NotElevated`/`ModuleUnavailable`
-  instead of failing; and renamed the product from `StartMenuFolders` to
-  `LaunchTree` across module, commands, paths, Event Log identity, type names,
-  tests, specifications, and Memory Bank while still unreleased.
+  reports `NotElevated`/`ModuleUnavailable` instead of failing; and renamed the
+  product from `StartMenuFolders` to `LaunchTree` across module, commands,
+  paths, Event Log identity, type names, tests, specifications, and Memory Bank
+  while still unreleased.
 - 2026-07-28: Closed OI-009. `CreateProcessWithTokenW` with the UAC-linked
   token fails from an interactive elevated admin because that token is only
   `Identification`-level and raising it needs `SeTcbPrivilege`, so the
   standard-user Event Log probe cannot work there. It is now best-effort:
   `Invoke-LaunchTreeStandardUserEventProbe` returns a structured result through
-  a mockable seam, `Register-LaunchTreeEventLog` warns and emits event `1603`
-  without aborting, and `Test-LaunchTree` raises
-  `StandardUserEventAccessUnverified`.
+  a mockable seam, `Register-LaunchTreeEventLog` warns and emits `1603` without
+  aborting, and `Test-LaunchTree` raises `StandardUserEventAccessUnverified`.
 - 2026-07-28: Added a second delivery form: `output/LaunchTree.ps1`, a generated
   self-contained script holding all 45 functions. New private
   `Get-LaunchTreeRuntimeContext` abstracts ModuleBase/version/launcher/probe
   paths so one source serves both hosts. Verified with no module reachable: 45
-  commands loaded, Reconciliation added 1 Start Entry, health `Healthy`.
-- 2026-07-29: Closed the operator-documentation gap for the single-file
-  delivery: a `Use the single-file script` section in
-  `docs/getting-started.md`, a README pointer, and a troubleshooting section
-  for the script-path failure modes.
+  commands loaded, Reconciliation added 1 Start Entry, health `Healthy`. Its
+  operator documentation followed on 2026-07-29.
 - 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
@@ -63,65 +58,25 @@ release remains gated by external environment evidence.
   `Invoke-LaunchTreeEventLogWrite` now takes `LogName` and verifies the
   registration through `LogNameFromSourceName` before writing, and
   `Register-LaunchTreeEventLog` reports the `DeleteEventSource` remediation.
-- 2026-07-29: Restyled the Launcher sort selector. The `ComboBox` still used the
-  Windows system theme template, so it rendered as a light-gray classic control
-  inside the dark Fluent window. `Show-LaunchTreeWindow` now applies a parsed
-  XAML `Style` that themes every state and the drop-down list.
-- 2026-07-29: Added the machine-selectable Launcher Layout contract. `Grid`
-  remains the default; `TabbedList` presents Menu Folders as tabs, the active
-  description above them, and Launch Items as compact rows. Added tested
-  projection, navigation, duplicate-search context, and icon-timer helpers;
-  paired high-contrast states; hardened deterministic captures; and passed 159
-  tests in both editions with an independent re-review approval.
-- 2026-07-29: Made `TabbedList` the default Launcher Layout on customer
-  request; `Grid` stays selectable through `LauncherLayout`. Updated the signed
-  design override log, `CR-005`, `FR-011`, `FR-013`, `AS-018`, the example
-  configuration, and operator docs, and renamed the Grid screenshot to
-  `launcher-grid.png`.
-- 2026-07-29: Fixed the `TabbedList` tab strip rendering blank against real
-  content. The strip was pinned to 44 device-independent pixels while its
-  template hosted a horizontal scrollbar, so the 30 Menu Folders under
-  `Programs` left about four pixels for labels. The strip now sizes to content
-  and lays tabs out in one scrollable row.
-- 2026-07-29: Hid Menu Folders whose subtree holds no Launch Item, and removed
-  the sort selector and search box from the tabbed layout. A live UI Automation
-  click proved the old tab handler entered the wrong folder because it rebuilt
-  the tab collection from shared selection state; each tab now carries its own.
-- 2026-07-29: Added `CR-013` root override parameters on customer request.
-  `ManagedRoot` and `PersonalRoot` now override the machine configuration for a
-  single call to `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
-  `Test-LaunchTree`, and `Export-LaunchTreeSupportBundle`; an override is
-  environment-expanded and must be absolute, and a relative value throws instead
-  of falling back. `Update-LaunchTree` is excluded because an activated Start
-  Entry re-resolves the root from the configuration file.
-- 2026-07-29: Replaced the tall Launcher header with a single compact line
-  holding Back, the title, the active description, and Close, and dropped the
-  breadcrumb line in favor of a title tooltip. The header is now the drag
-  handle: pressing it calls `DragMove`, and `ContentRendered` restores a
-  remembered `Window.Left`/`Top` clamped to the virtual screen instead of always
-  reopening near the Start button. `CR-006` already required storing those
-  coordinates; the Launcher had never read them back.
-- 2026-07-29: Made the `TabbedList` window width follow its tab strip and
-  removed the item count from that layout. Summing `TabItem.DesiredSize` or
-  reading `ScrollViewer.ExtentWidth` once both under-measure by roughly one tab,
-  because the extent is exact only after the strip remeasures at the new width.
-  The fit seeds from the extent and grows by the reported overflow until the
-  strip stops scrolling, bounded by 80 percent of the work area and floored at
-  the width the user last chose; an automatic fit is never persisted.
-- 2026-07-29: Changed `TabbedList` tab selection so the tab strip survives a
-  click. Selecting a tab previously navigated into it, which rebuilt the strip
-  from that folder's children and hid every sibling. The Launcher now tracks a
-  tab-strip owner and a selected tab separately: `SelectTab` highlights a tab
-  and shows its Launch Items in place, and only a Menu Folder list row moves the
-  strip one level deeper. `Back` first returns to the owning tab.
-- 2026-07-29: Stopped the `TabbedList` strip from opening on an empty tab. The
-  Content Snapshot already hid Menu Folders with no Launch Item beneath them,
-  but the strip always rendered a tab for its own Entry Root or Menu Folder.
-  `Get-LaunchTreeTabbedListContent` now reports `CurrentTabVisible` and
-  redirects the selection to the first child Menu Folder when the owning folder
-  holds no Launch Item of its own; the owning tab survives only when no child
-  tab can replace it, so a wholly empty Entry Root still renders. Added `AS-020`
-  and extended `FR-011`.
+- 2026-07-29: Built the `TabbedList` Launcher Layout and made it the default on
+  customer request; `Grid` stays selectable through `LauncherLayout`. Added
+  `CR-013` root overrides on `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
+  `Test-LaunchTree`, and `Export-LaunchTreeSupportBundle`, rejecting a relative
+  value instead of falling back; `Update-LaunchTree` is excluded because an
+  activated Start Entry re-resolves the root from the configuration file.
+  Replaced the tall header with one compact line that doubles as the drag
+  handle and restores a remembered position clamped to the virtual screen.
+  Durable lessons from that run, each paid for by a live-UI failure: a themed
+  `ComboBox` needs a full XAML `Style` or it renders as a classic control
+  inside the dark window; a fixed-height tab strip starves its labels once a
+  scrollbar appears, so it must size to content; a tab handler that rebuilds
+  the strip from shared selection state enters the wrong folder, so tab-strip
+  owner and selected tab are tracked separately and only a list row descends;
+  and `TabItem.DesiredSize` or a single `ExtentWidth` read under-measures the
+  strip by about one tab, so the width fit grows by reported overflow until
+  scrolling stops. Menu Folders with no Launch Item beneath them are hidden,
+  and a tab whose owner holds no Launch Item of its own redirects to its first
+  child unless nothing can replace it. Added `AS-018` and `AS-020`.
 - 2026-08-06: Prepared the repository for a public release. A disclosure audit
   covering all 126 tracked files, all 34 commits on every reference, and all 13
   distinct historical screenshot blobs found no personally identifiable
@@ -214,6 +169,19 @@ release remains gated by external environment evidence.
   renaming an `IconFile` cannot invalidate the entry. It self-heals only at the
   30-day `MaximumAgeDays` trim. Deleting the one cache entry restored the icon;
   the durable fix is undecided.
+- 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
+  icons without `Remove-LaunchTree`, which also deletes Start Entries and the
+  event registration. It resolves the namespace through
+  `Get-LaunchTreeConfiguration`, accepts a `-CachePath` override, supports
+  `ShouldProcess` at `Medium` impact, removes only `*.png`, keeps the namespace
+  directory so the next Launcher run repopulates it, and returns the entry count
+  and bytes reclaimed. `ADR-0007` fixed the public surface at seven commands, so
+  it carries a dated amendment rather than a silent breach; added `FR-034`,
+  raised the `Test-Documentation.ps1` `FR` range to 34, and wired `ClearCache`
+  into the full single-file dispatch map. Verified against the real cache: 159
+  entries and 561,321 bytes discarded. Suite: 209 passed, 1 skip. The same edit
+  curated `progress.md` and `systemPatterns.md` back inside their line budgets,
+  which had both been breached since before this session.
 
 ## Stable capabilities
 

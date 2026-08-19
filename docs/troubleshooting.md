@@ -74,10 +74,22 @@ The Launcher requests DPI-sized icons from Windows Shell. Extraction failures
 fall back to a fixed icon without resizing the tile.
 
 1. Close the Launcher.
-2. Remove the configured cache directory, or run `Remove-LaunchTree` only
-   when full Generated State removal is intended.
+2. Run `Clear-LaunchTreeCache` to discard every cached icon. Use
+   `Remove-LaunchTree` only when full Generated State removal is intended.
 3. Reopen the Launcher so the versioned cache can rebuild.
 4. Use diagnostic event IDs `1401` and `1402` for extraction or cache failures.
+
+A blank Launch Item icon is usually a missing icon target rather than a failed
+extraction. Read the `IconFile` line of a `.url` in the system ANSI code page
+and confirm the file exists; PowerShell 7 reads as UTF-8 by default and will
+show a replacement character for a legitimate `ß` or `ä` that Windows wrote as a
+single ANSI byte.
+
+A cache key covers the shortcut's own path, length, and last-write time, not
+the icon it points at. Deploying or renaming an icon target therefore cannot
+invalidate the entry the shortcut already produced, and the stale icon survives
+until `Cache.MaximumAgeDays` expires it. Run `Clear-LaunchTreeCache` after any
+icon deployment.
 
 ## Policy blocks
 

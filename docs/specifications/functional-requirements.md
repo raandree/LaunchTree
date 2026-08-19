@@ -206,6 +206,19 @@ The current module must read and transactionally migrate Generated State from
 one previous major schema. A supported downgrade must restore compatible state.
 Incompatible cache namespaces must be ignored rather than parsed.
 
+### FR-034 Clear the user cache on demand
+
+`Clear-LaunchTreeCache` must discard every cached icon in the resolved cache
+namespace without waiting for the age or size eviction in `CR-009`. It must
+support `ShouldProcess`, keep the namespace directory so the next Launcher run
+repopulates it, report how many entries and bytes it discarded, and succeed
+with a zero count when the namespace does not exist. It must not touch source
+content, Generated State, machine configuration, or user preferences.
+
+An operator needs this because a cache key identifies only the shortcut, so a
+repaired or newly deployed icon target cannot invalidate the entry that the
+shortcut already produced.
+
 ## Health and support
 
 ### FR-026 Emit stable events
@@ -268,6 +281,7 @@ or a standard interactive user cannot read and write a probe event.
 | `Show-LaunchTree` | Open or activate the Launcher | Requires an Entry Root name and implements `FR-009` through `FR-019` |
 | `Get-LaunchTreeDiagnostic` | Read structured recent events and Health Findings | Implements `FR-031` and applies `QR-012` |
 | `Export-LaunchTreeSupportBundle` | Export support evidence | Implements `FR-028` and supports `ShouldProcess` |
+| `Clear-LaunchTreeCache` | Discard cached icons | Supports `ShouldProcess`; implements `FR-034` |
 | `Remove-LaunchTree` | Remove Generated State | Supports `ShouldProcess`; implements `FR-024` |
 
 No version 1 public command creates, edits, renames, moves, or deletes source
