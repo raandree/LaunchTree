@@ -216,7 +216,7 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
         )
 
         $parameterNames | Should -Be @(
-            'CloseAfterLaunch', 'Command', 'EntryName', 'ManagedRoot'
+            'CloseAfterLaunch', 'Command', 'EntryName', 'EntryRootPath', 'ManagedRoot'
         )
     }
 
@@ -236,18 +236,25 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
         $context.LauncherCommand | Should -Be 'Show'
     }
 
-    It 'Should accept the Show and ClearCache commands' {
+    It 'Should accept the Show, ClearCache, and CreateShortcut commands' {
         $commandParameter = $script:minimalAst.ParamBlock.Parameters |
             Where-Object { $_.Name.VariablePath.UserPath -eq 'Command' }
         $validateSet = $commandParameter.Attributes |
             Where-Object { $_.TypeName.FullName -eq 'ValidateSet' }
 
-        @($validateSet.PositionalArguments.Value) | Should -Be @('Show', 'ClearCache')
+        @($validateSet.PositionalArguments.Value) |
+            Should -Be @('Show', 'ClearCache', 'CreateShortcut')
     }
 
     It 'Should dispatch ClearCache to the embedded command (FR-034)' {
         $script:minimalContent | Should -Match 'function Clear-LaunchTreeCache\b'
         $script:minimalContent | Should -Match "if \(\`$Command -eq 'ClearCache'\)"
+    }
+
+    It 'Should dispatch CreateShortcut to the embedded wizard (FR-035)' {
+        $script:minimalContent | Should -Match 'function New-LaunchTreeShortcut\b'
+        $script:minimalContent | Should -Match 'function Show-LaunchTreeShortcutWizard\b'
+        $script:minimalContent | Should -Match "if \(\`$Command -eq 'CreateShortcut'\)"
     }
 
     It 'Should stamp the requested version' {

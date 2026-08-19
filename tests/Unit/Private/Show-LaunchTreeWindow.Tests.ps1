@@ -35,17 +35,29 @@ Describe 'Show-LaunchTreeWindow' -Tag 'Unit' {
         $detailAssignment.Right.Extent.Text | Should -Not -Match '\$item\.ContentSource'
     }
 
-    It 'Should offer the shortcut wizard from the title bar' {
+    It 'Should offer minimize, maximize, and close in the title bar' {
         $projectPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..'
         $windowSourcePath = Join-Path -Path $projectPath -ChildPath (
             'source\Private\Show-LaunchTreeWindow.ps1'
         )
         $windowSource = Get-Content -LiteralPath $windowSourcePath -Raw
 
+        $windowSource | Should -Match '\$minimizeButton\.Content = \[char\] 0xE921'
+        $windowSource | Should -Match '\$maximizeButton\.Content = \[char\] 0xE922'
+        $windowSource | Should -Match '\$closeButton\.Content = \[char\] 0xE8BB'
         $windowSource | Should -Match (
-            '\$wizardButton = \[System\.Windows\.Controls\.Button\]::new\(\)'
+            '\$window\.WindowState = \[System\.Windows\.WindowState\]::Minimized'
         )
-        $windowSource | Should -Match '\$wizardButton\.Content = \[char\] 0xE713'
-        $windowSource | Should -Match 'Show-LaunchTreeShortcutWizard @wizardParameters'
+        $windowSource | Should -Match '\$window\.Add_StateChanged\('
+    }
+
+    It 'Should keep the shortcut wizard out of the title bar (FR-035)' {
+        $projectPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..'
+        $windowSourcePath = Join-Path -Path $projectPath -ChildPath (
+            'source\Private\Show-LaunchTreeWindow.ps1'
+        )
+        $windowSource = Get-Content -LiteralPath $windowSourcePath -Raw
+
+        $windowSource | Should -Not -Match 'Show-LaunchTreeShortcutWizard'
     }
 }

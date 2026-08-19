@@ -99,11 +99,18 @@ while preserving the approved behavior and security boundaries.
   passes an explicit `ErrorAction` on every probe, so a denied Menu Folder on a
   DFS Managed Root degrades to Health Findings instead of printing a raw error
   before the Launcher opens.
-- The Launcher title bar carries a gear beside Close that opens a three-step
-  shortcut wizard (`FR-035`). It derives the Managed Root from the parent of the
-  entered Entry Root folder and the Entry Root name from its last segment, and
-  writes the `CR-015` shortcut through a save dialog. The result is user-owned,
-  not Generated State.
+- The Launcher title bar carries the classic Minimize, Maximize, and Close
+  controls. The shortcut wizard is no longer a gear beside Close: `FR-035` is
+  now the `New-LaunchTreeShortcut` command, which both single-file deliveries
+  reach as `-Command CreateShortcut`. The wizard derives the Managed Root from
+  the parent of the entered Entry Root folder and the Entry Root name from its
+  last segment, and writes the `CR-015` shortcut through a save dialog. The
+  result is user-owned, not Generated State.
+- WPF's `WindowChrome` handles the maximized borderless window itself: measured
+  on a 150% display, the window rect is inflated by the resize border while the
+  window region is clipped to exactly the work area, so no compensating margin
+  is needed. The remembered geometry uses `RestoreBounds` while maximized, and
+  the tab-strip width fit is skipped in that state.
 - `CloseAfterLaunch` now defaults to `false`, so the Launcher stays open after an
   item starts. `CR-014` adds a call-scoped switch on `Get-LaunchTreeConfiguration`
   and `Show-LaunchTree`, and the wizard bakes it into the shortcut it writes.

@@ -86,7 +86,9 @@ sessions for one account, must have independent Launcher processes.
 Activating a Menu Folder must replace the visible content in the same window.
 The Back control must restore parent context. The window title bar must be one
 compact line holding the application icon, the current Entry Root title, and the
-Close control; the title must expose the current path as its tooltip. The
+Minimize, Maximize, and Close controls; the Maximize control must restore the
+window when it is already maximized; the title must expose the current path as
+its tooltip. The
 selected description must appear in its own field between the title bar and the
 navigation strip. That field must always reserve exactly two lines, so the
 navigation strip never moves when the description changes; a description longer
@@ -130,8 +132,9 @@ selector.
 The Launcher must follow the user's light, dark, and high-contrast settings. It
 must open near the Start button when no window position is remembered and at
 the remembered position afterwards, stay inside the active work area, fit
-content within screen bounds, permit resizing, permit moving the window by
-dragging its title bar, and scroll overflow.
+content within screen bounds, permit resizing, permit minimizing, maximizing,
+and restoring, permit moving the window by dragging its title bar, and scroll
+overflow.
 
 ### FR-015 Support keyboard and touch
 
@@ -180,8 +183,9 @@ The module must never rewrite administrator-authored configuration.
 ### FR-021 Persist only allowed user preferences
 
 The Launcher may persist sort order, close-after-launch behavior, window size,
-and window position in the user preference file. It must not persist source
-content or target details.
+and window position in the user preference file. A maximized window must
+persist the size and position it restores to, not its maximized bounds. It must
+not persist source content or target details.
 
 ## Reconciliation and lifecycle
 
@@ -222,13 +226,15 @@ An operator needs this because a cache key identifies only the shortcut, so a
 repaired or newly deployed icon target cannot invalidate the entry that the
 shortcut already produced.
 
-### FR-035 Create an Entry Root shortcut from the Launcher
+### FR-035 Create an Entry Root shortcut with a wizard
 
-The Launcher title bar must offer a control that opens a three-step wizard for
-creating a Windows shortcut to an Entry Root. The wizard must accept one folder
-path, derive the Managed Root from its parent and the Entry Root name from its
-last segment, and reject a path that is relative, names no parent folder, or
-names a UNC share without an Entry Root folder below it.
+`New-LaunchTreeShortcut` must open a three-step wizard for creating a Windows
+shortcut to an Entry Root. Both single-file deliveries must reach the same
+wizard through `-Command CreateShortcut`. The Launcher must not offer the
+wizard from its title bar. The wizard must accept one folder path, derive the
+Managed Root from its parent and the Entry Root name from its last segment, and
+reject a path that is relative, names no parent folder, or names a UNC share
+without an Entry Root folder below it.
 
 The wizard must let the user choose whether the Launcher closes after an item
 starts, must ask for the shortcut file through a Windows save dialog, must show
@@ -302,6 +308,7 @@ or a standard interactive user cannot read and write a probe event.
 | `Get-LaunchTreeDiagnostic` | Read structured recent events and Health Findings | Implements `FR-031` and applies `QR-012` |
 | `Export-LaunchTreeSupportBundle` | Export support evidence | Implements `FR-028` and supports `ShouldProcess` |
 | `Clear-LaunchTreeCache` | Discard cached icons | Supports `ShouldProcess`; implements `FR-034` |
+| `New-LaunchTreeShortcut` | Create a user-owned shortcut to an Entry Root | Supports `ShouldProcess`; implements `FR-035` |
 | `Remove-LaunchTree` | Remove Generated State | Supports `ShouldProcess`; implements `FR-024` |
 
 No version 1 public command creates, edits, renames, moves, or deletes source

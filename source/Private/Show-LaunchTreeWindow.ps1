@@ -48,73 +48,19 @@
         Write-Verbose -Message $cacheTrimError.Exception.Message
     }
 
-    $isHighContrast = [System.Windows.SystemParameters]::HighContrast
-    $appsUseLightTheme = 0
-    try {
-        $themeValue = Get-ItemPropertyValue -LiteralPath (
-            'HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize'
-        ) -Name 'AppsUseLightTheme' -ErrorAction Stop
-        $appsUseLightTheme = [int] $themeValue
-    } catch {
-        $themeError = $_
-        Write-Verbose -Message $themeError.Exception.Message
-    }
-    $isLight = -not $isHighContrast -and $appsUseLightTheme -eq 1
     $useTabbedListLayout = $Configuration.LauncherLayout -eq 'TabbedList'
 
-    if ($isHighContrast) {
-        $windowBrush = [System.Windows.SystemColors]::WindowBrush
-        $surfaceBrush = [System.Windows.SystemColors]::ControlBrush
-        $foregroundBrush = [System.Windows.SystemColors]::WindowTextBrush
-        $secondaryBrush = [System.Windows.SystemColors]::GrayTextBrush
-        $accentBrush = [System.Windows.SystemColors]::HighlightBrush
-        $borderBrush = [System.Windows.SystemColors]::ActiveBorderBrush
-        $hoverColor = [System.Windows.SystemColors]::HighlightColor.ToString()
-        $pressedColor = [System.Windows.SystemColors]::ControlDarkColor.ToString()
-    } elseif ($isLight) {
-        $windowBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#F3F3F3')
-        $surfaceBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#FFFFFF')
-        $foregroundBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#1A1A1A')
-        $secondaryBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#5D5D5D')
-        $accentBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#0067C0')
-        $borderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#D3D3D3')
-        $hoverColor = '#E8E8E8'
-        $pressedColor = '#D8D8D8'
-    } else {
-        $windowBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#202020')
-        $surfaceBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#2B2B2B')
-        $foregroundBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#F5F5F5')
-        $secondaryBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#B9B9B9')
-        $accentBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#60CDFF')
-        $borderBrush = [System.Windows.Media.BrushConverter]::new().ConvertFrom('#454545')
-        $hoverColor = '#383838'
-        $pressedColor = '#474747'
-    }
-    if ($isHighContrast) {
-        $hoverForegroundColor = [System.Windows.SystemColors]::HighlightTextColor.ToString()
-        $pressedForegroundColor = [System.Windows.SystemColors]::ControlTextColor.ToString()
-    } else {
-        $hoverForegroundColor = $foregroundBrush.Color.ToString()
-        $pressedForegroundColor = $foregroundBrush.Color.ToString()
-    }
-
-    $theme = [PSCustomObject] @{
-        PSTypeName             = 'LaunchTree.Theme'
-        Window                 = $windowBrush
-        Surface                = $surfaceBrush
-        Foreground             = $foregroundBrush
-        Secondary              = $secondaryBrush
-        Accent                 = $accentBrush
-        Border                 = $borderBrush
-        ForegroundColor        = $foregroundBrush.Color.ToString()
-        SurfaceColor           = $surfaceBrush.Color.ToString()
-        AccentColor            = $accentBrush.Color.ToString()
-        BorderColor            = $borderBrush.Color.ToString()
-        HoverColor             = $hoverColor
-        PressedColor           = $pressedColor
-        HoverForegroundColor   = $hoverForegroundColor
-        PressedForegroundColor = $pressedForegroundColor
-    }
+    $theme = Get-LaunchTreeTheme
+    $windowBrush = $theme.Window
+    $surfaceBrush = $theme.Surface
+    $foregroundBrush = $theme.Foreground
+    $secondaryBrush = $theme.Secondary
+    $accentBrush = $theme.Accent
+    $borderBrush = $theme.Border
+    $hoverColor = $theme.HoverColor
+    $pressedColor = $theme.PressedColor
+    $hoverForegroundColor = $theme.HoverForegroundColor
+    $pressedForegroundColor = $theme.PressedForegroundColor
 
     $applicationIcon = Get-LaunchTreeApplicationIcon
     $window = [System.Windows.Window]::new()
@@ -179,7 +125,7 @@
     $header.Background = [System.Windows.Media.Brushes]::Transparent
     $header.Margin = [System.Windows.Thickness]::new(6, 2, 6, 2)
     $header.ToolTip = 'Drag to move the window'
-    for ($columnIndex = 0; $columnIndex -lt 6; $columnIndex++) {
+    for ($columnIndex = 0; $columnIndex -lt 7; $columnIndex++) {
         [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
         $header.ColumnDefinitions[$columnIndex].Width = [System.Windows.GridLength]::Auto
     }
@@ -243,16 +189,27 @@
     [System.Windows.Controls.Grid]::SetColumn($sortBox, 3)
     [void] $header.Children.Add($sortBox)
 
-    $wizardButton = [System.Windows.Controls.Button]::new()
-    $wizardButton.Content = [char] 0xE713
-    $wizardButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
-    $wizardButton.FontSize = 13
-    $wizardButton.Width = 28
-    $wizardButton.Height = 28
-    $wizardButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
-    $wizardButton.ToolTip = 'Create a shortcut to an Entry Root'
-    [System.Windows.Controls.Grid]::SetColumn($wizardButton, 4)
-    [void] $header.Children.Add($wizardButton)
+    $minimizeButton = [System.Windows.Controls.Button]::new()
+    $minimizeButton.Content = [char] 0xE921
+    $minimizeButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
+    $minimizeButton.FontSize = 11
+    $minimizeButton.Width = 28
+    $minimizeButton.Height = 28
+    $minimizeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $minimizeButton.ToolTip = 'Minimize'
+    [System.Windows.Controls.Grid]::SetColumn($minimizeButton, 4)
+    [void] $header.Children.Add($minimizeButton)
+
+    $maximizeButton = [System.Windows.Controls.Button]::new()
+    $maximizeButton.Content = [char] 0xE922
+    $maximizeButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
+    $maximizeButton.FontSize = 11
+    $maximizeButton.Width = 28
+    $maximizeButton.Height = 28
+    $maximizeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $maximizeButton.ToolTip = 'Maximize'
+    [System.Windows.Controls.Grid]::SetColumn($maximizeButton, 5)
+    [void] $header.Children.Add($maximizeButton)
 
     $closeButton = [System.Windows.Controls.Button]::new()
     $closeButton.Content = [char] 0xE8BB
@@ -262,7 +219,7 @@
     $closeButton.Height = 28
     $closeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $closeButton.ToolTip = 'Close'
-    [System.Windows.Controls.Grid]::SetColumn($closeButton, 5)
+    [System.Windows.Controls.Grid]::SetColumn($closeButton, 6)
     [void] $header.Children.Add($closeButton)
 
     $searchBorder = [System.Windows.Controls.Border]::new()
@@ -423,7 +380,7 @@
 </Style>
 "@
     $buttonStyle = [System.Windows.Markup.XamlReader]::Parse($buttonStyleXaml)
-    foreach ($button in @($backButton, $wizardButton, $closeButton)) {
+    foreach ($button in @($backButton, $minimizeButton, $maximizeButton, $closeButton)) {
         $button.Style = $buttonStyle
     }
 
@@ -738,9 +695,14 @@
     $script:activeEntryName = $EntryName
     $script:baseWindowWidth = $window.Width
     $script:autoWindowWidth = $window.Width
+    $script:restoreBounds = [System.Windows.Rect]::Empty
 
     $fitWidthToTabs = {
         if ($folderTabs.Items.Count -eq 0) {
+            return
+        }
+        # A maximized window reports the screen width, which is not a width to grow from.
+        if ($window.WindowState -ne [System.Windows.WindowState]::Normal) {
             return
         }
         $tabScroll = $folderTabs.Template.FindName('PART_TabScroll', $folderTabs)
@@ -1324,28 +1286,27 @@
         & $renderItems
     }
     $closeButton.Add_Click({ $window.Close() })
-    $wizardButton.Add_Click({
-        $entryRootPath = Join-Path -Path $script:activeConfiguration.ManagedRoot `
-            -ChildPath $script:activeEntryName
-        try {
-            $wizardParameters = @{
-                Configuration = $script:activeConfiguration
-                Theme         = $theme
-                Owner         = $window
-                InitialPath   = $entryRootPath
-            }
-            $createdShortcut = Show-LaunchTreeShortcutWizard @wizardParameters
-        } catch {
-            $wizardError = $_
-            $statusText.Foreground = [System.Windows.Media.Brushes]::IndianRed
-            $statusText.Text = $wizardError.Exception.Message
-            $statusText.Visibility = [System.Windows.Visibility]::Visible
-            return
+    $minimizeButton.Add_Click({
+        $window.WindowState = [System.Windows.WindowState]::Minimized
+    })
+    $maximizeButton.Add_Click({
+        $window.WindowState = if (
+            $window.WindowState -eq [System.Windows.WindowState]::Maximized
+        ) {
+            [System.Windows.WindowState]::Normal
+        } else {
+            [System.Windows.WindowState]::Maximized
         }
-        if ($createdShortcut) {
-            $statusText.Foreground = $secondaryBrush
-            $statusText.Text = 'Shortcut created: {0}' -f $createdShortcut
-            $statusText.Visibility = [System.Windows.Visibility]::Visible
+    })
+    $window.Add_StateChanged({
+        $isMaximized = $window.WindowState -eq [System.Windows.WindowState]::Maximized
+        $maximizeButton.Content = if ($isMaximized) { [char] 0xE923 } else { [char] 0xE922 }
+        $maximizeButton.ToolTip = if ($isMaximized) { 'Restore' } else { 'Maximize' }
+        # A rounded corner on a maximized window would show the desktop behind it.
+        $rootBorder.CornerRadius = if ($isMaximized) {
+            [System.Windows.CornerRadius]::new(0)
+        } else {
+            [System.Windows.CornerRadius]::new(8)
         }
     })
     $header.Add_MouseLeftButtonDown({
@@ -1493,6 +1454,19 @@
         $window.Add_ContentRendered({ $captureTimer.Start() })
     }
 
+    $window.Add_Closing({
+        # RestoreBounds is Empty once the window is closed, so read it while it lives.
+        $script:restoreBounds = if (
+            $window.WindowState -eq [System.Windows.WindowState]::Normal
+        ) {
+            [System.Windows.Rect]::new(
+                $window.Left, $window.Top, $window.ActualWidth, $window.ActualHeight
+            )
+        } else {
+            $window.RestoreBounds
+        }
+    })
+
     $window.Add_Closed({
         $iconTimer.Stop()
         $activationTimer.Stop()
@@ -1505,6 +1479,13 @@
         $null = Write-LaunchTreePerformanceEvent @performanceParameters
         if (-not $CapturePath) {
             try {
+                $restoreBounds = if ($script:restoreBounds.IsEmpty) {
+                    [System.Windows.Rect]::new(
+                        $window.Left, $window.Top, $window.ActualWidth, $window.ActualHeight
+                    )
+                } else {
+                    $script:restoreBounds
+                }
                 $preferenceParameters = @{
                     Configuration = $script:activeConfiguration
                     SortOrder     = if ($sortBox.SelectedIndex -eq 1) {
@@ -1513,15 +1494,15 @@
                         'NameAscending'
                     }
                     Width         = if ([Math]::Abs(
-                            $window.ActualWidth - $script:autoWindowWidth
+                            $restoreBounds.Width - $script:autoWindowWidth
                         ) -gt 0.5) {
-                        $window.ActualWidth
+                        $restoreBounds.Width
                     } else {
                         $script:baseWindowWidth
                     }
-                    Height        = $window.ActualHeight
-                    Left          = $window.Left
-                    Top           = $window.Top
+                    Height        = $restoreBounds.Height
+                    Left          = $restoreBounds.Left
+                    Top           = $restoreBounds.Top
                 }
                 Save-LaunchTreePreference @preferenceParameters
             } catch {

@@ -74,6 +74,7 @@ FunctionsToExport = @(
     'Export-LaunchTreeSupportBundle'
     'Get-LaunchTreeConfiguration'
     'Get-LaunchTreeDiagnostic'
+    'New-LaunchTreeShortcut'
     'Remove-LaunchTree'
     'Show-LaunchTree'
     'Test-LaunchTree'

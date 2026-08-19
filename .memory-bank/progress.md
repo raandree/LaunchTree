@@ -24,21 +24,19 @@ release remains gated by external environment evidence.
   and confirmed a broken shortcut target still reports failure. The status line
   now wraps so the Windows reason stays readable. 232 tests pass.
 
-- 2026-08-19: Added a customer-requested shortcut wizard to the Launcher and
-  flipped the close-after-launch default. A gear in the title bar opens a
-  three-step dialog that takes one Entry Root folder such as
-  `\\contoso.com\Data\Files\programs`, derives the Managed Root from its parent
-  and the Entry Root name from its last segment, asks whether the Launcher
-  should close after a launch, and writes the `CR-015` shortcut to a location
-  chosen in a save dialog. `CloseAfterLaunch` now defaults to `false` and gained
-  a call-scoped `CR-014` switch on `Get-LaunchTreeConfiguration` and
+- 2026-08-19: Added a customer-requested shortcut wizard and flipped the
+  close-after-launch default. The three-step dialog takes one Entry Root folder
+  such as `\\contoso.com\Data\Files\programs`, derives the Managed Root from its
+  parent and the Entry Root name from its last segment, asks whether the
+  Launcher should close after a launch, and writes the `CR-015` shortcut to a
+  location chosen in a save dialog. `CloseAfterLaunch` now defaults to `false`
+  and gained a call-scoped `CR-014` switch on `Get-LaunchTreeConfiguration` and
   `Show-LaunchTree`; the module launcher bootstrap gained an
   `EntryName`/`ManagedRoot` parameter set so a wizard shortcut works from every
   delivery. Fixed a pre-existing blocker found while validating it: the native
   window helper failed to compile under Windows PowerShell 5.1, the default
   `LauncherHost`, because `Window` implements `IQueryAmbient` and the reference
-  to `System.Xaml` was implicit. Both editions pass 231 tests with one skip, and
-  the wizard was driven end to end under 5.1 to a verified shortcut.
+  to `System.Xaml` was implicit. Both editions pass 231 tests with one skip.
 
 - 2026-08-19: Fixed the access-denied error a customer saw before the Launcher
   opened on a DFS Managed Root. `Test-Path` writes a non-terminating
@@ -159,26 +157,30 @@ release remains gated by external environment evidence.
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through
   `Get-LaunchTreeConfiguration`, accepts a `-CachePath` override, supports
-  `ShouldProcess` at `Medium` impact, removes only `*.png`, keeps the namespace
-  directory so the next Launcher run repopulates it, and returns the entry count
-  and bytes reclaimed. `ADR-0007` fixed the public surface at seven commands, so
-  it carries a dated amendment rather than a silent breach; added `FR-034`,
-  raised the `Test-Documentation.ps1` `FR` range to 34, and wired `ClearCache`
-  into the full single-file dispatch map. Verified against the real cache: 159
-  entries and 561,321 bytes discarded. Suite: 209 passed, 1 skip. The same edit
-  curated `progress.md` and `systemPatterns.md` back inside their line budgets,
-  which had both been breached since before this session. Follow-up the same
-  day: the customer asked for it in `LaunchTree.Minimal.ps1` too, so the Minimal
-  closure now starts from both `Show-LaunchTree` and `Clear-LaunchTreeCache` and
-  the script accepts `-Command ClearCache`. It costs one function and about 4 KB
+  `ShouldProcess`, removes only `*.png`, keeps the namespace directory, and
+  returns the entry count and bytes reclaimed. `ADR-0007` fixed the public
+  surface at seven commands, so it carries a dated amendment; added `FR-034` and
+  wired `ClearCache` into both single-file deliveries after the customer asked
+  for it in `LaunchTree.Minimal.ps1` too, which cost one function and about 4 KB
   because the Minimal `Get-LaunchTreeConfiguration` override already supplies
-  `Cache.Path`. Suite: 210 passed, 1 skip.
+  `Cache.Path`. Verified against the real cache: 159 entries and 561,321 bytes
+  discarded. Suite: 210 passed, 1 skip.
 - 2026-08-19: Removed Content Source subtitles from compact Launcher rows.
 - 2026-08-19: Fixed the Launcher taskbar button showing the PowerShell host
   icon even though the window and Alt+Tab used the embedded LaunchTree icon.
   The native HWND now receives the per-window AppUserModelID
   `LaunchTree.Launcher` during WPF `SourceInitialized`, separating its taskbar
   group without changing the identity of the hosting PowerShell process.
+- 2026-08-19: Replaced the title-bar gear with the classic Minimize and Maximize
+  controls on customer request and moved the shortcut wizard to
+  `New-LaunchTreeShortcut`, reachable as `-Command CreateShortcut` in both
+  single-file deliveries; `ADR-0007` carries a second dated amendment and the
+  theme moved into `Get-LaunchTreeTheme` so a standalone wizard renders
+  identically. Maximize needed no chrome workaround: measured on a 150%
+  display, `WindowChrome` clips the window region to exactly the work area, so
+  only the remembered geometry (`RestoreBounds`) and the tab width fit needed a
+  maximized-state guard. Verified live on both deliveries with `PrintWindow`
+  captures. Suite: 244 passed, 2 skips.
 
 ## Stable capabilities
 

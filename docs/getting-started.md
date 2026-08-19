@@ -120,12 +120,13 @@ control rules for this delivery.
 
 When a machine only needs to open the Launcher, deploy
 `output\LaunchTree.Minimal.ps1` instead. It is a much smaller script that
-supports opening an Entry Root and clearing the icon cache, and no
-Reconciliation:
+supports opening an Entry Root, clearing the icon cache, and creating a
+shortcut, and no Reconciliation:
 
 ```powershell
 .\output\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot 'D:\temp\' -EntryName 'Programs'
 .\output\LaunchTree.Minimal.ps1 -Command ClearCache
+.\output\LaunchTree.Minimal.ps1 -Command CreateShortcut
 ```
 
 ## Run the setup script
@@ -310,9 +311,18 @@ or pass `-CloseAfterLaunch` to `Show-LaunchTree`, to close it instead.
 
 ## Create a shortcut to an Entry Root
 
-The gear at the right of the Launcher title bar opens a three-step wizard that
-writes a Windows shortcut for one Entry Root. It is the fastest way to give a
-user a desktop or Start menu entry without running Reconciliation.
+`New-LaunchTreeShortcut` opens a three-step wizard that writes a Windows
+shortcut for one Entry Root. It is the fastest way to give a user a desktop or
+Start menu entry without running Reconciliation. Both single-file deliveries
+reach the same wizard:
+
+```powershell
+New-LaunchTreeShortcut
+& 'C:\Program Files\LaunchTree\LaunchTree.ps1' -Command CreateShortcut
+.\output\LaunchTree.Minimal.ps1 -Command CreateShortcut
+```
+
+Pass `-EntryRootPath` to fill the first step in advance.
 
 1. Enter the folder that holds the shortcuts you want to launch, for example
    `\\contoso.com\Data\Files\programs`. The wizard reads

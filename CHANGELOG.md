@@ -7,14 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a shortcut wizard to the Launcher: the gear at the right of the title bar
-  opens a three-step dialog that takes one Entry Root folder such as
-  `\\contoso.com\Data\Files\programs`, derives the Managed Root from its parent
-  and the Entry Root name from its last segment, asks whether the Launcher
-  should close after a launch, and writes the shortcut to a location chosen in a
-  save dialog; the produced shortcut runs the delivery that created it with
-  `-Command Show -ManagedRoot <path> -EntryName <name>` and is user-owned rather
-  than Generated State
+- Add `New-LaunchTreeShortcut`, a three-step wizard that takes one Entry Root
+  folder such as `\\contoso.com\Data\Files\programs`, derives the Managed Root
+  from its parent and the Entry Root name from its last segment, asks whether
+  the Launcher should close after a launch, and writes the shortcut to a
+  location chosen in a save dialog; the produced shortcut runs the delivery that
+  created it with `-Command Show -ManagedRoot <path> -EntryName <name>` and is
+  user-owned rather than Generated State. Both single-file deliveries reach the
+  same wizard through `-Command CreateShortcut`
+- Add the classic Minimize and Maximize controls to the Launcher title bar, left
+  of Close; the Maximize control restores an already maximized window, and the
+  remembered window size and position stay the ones the window restores to
 - Add a `CloseAfterLaunch` switch to `Get-LaunchTreeConfiguration` and
   `Show-LaunchTree` so one invocation can decide whether the Launcher closes
   after an item starts, and an `EntryName`/`ManagedRoot` parameter set to the
@@ -27,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   invalidate the stale entry before `Cache.MaximumAgeDays` expired it. It is
   also reachable as `-Command ClearCache` in both single-file deliveries,
   including `LaunchTree.Minimal.ps1`, whose embedded set is now derived from the
-  `Show-LaunchTree` and `Clear-LaunchTreeCache` call graphs
+  `Show-LaunchTree`, `Clear-LaunchTreeCache`, and `New-LaunchTreeShortcut` call
+  graphs
 - Add a LaunchTree application icon that appears at the left of the Launcher
   title bar, in the taskbar, and in Alt+Tab; `source/Assets/LaunchTree.ico` is
   the source of truth and the icon is embedded in the module so the single-file

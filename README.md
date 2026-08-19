@@ -59,6 +59,7 @@ selected tab appears as a row that moves the tab strip one level deeper. Select
 - `Get-LaunchTreeDiagnostic`
 - `Export-LaunchTreeSupportBundle`
 - `Clear-LaunchTreeCache`
+- `New-LaunchTreeShortcut`
 - `Remove-LaunchTree`
 
 ## Development

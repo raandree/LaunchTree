@@ -82,10 +82,11 @@ The build also produces a Launcher-only script for hosts that never reconcile:
 output\LaunchTree.Minimal.ps1
 ```
 
-The generator derives it from the `Show-LaunchTree` and `Clear-LaunchTreeCache`
-call graphs, so it embeds only the functions those two calls need, and it then
-removes every comment and the blank lines they leave behind. What remains is the
-code those calls execute. It accepts only the parameters they need:
+The generator derives it from the `Show-LaunchTree`, `Clear-LaunchTreeCache`,
+and `New-LaunchTreeShortcut` call graphs, so it embeds only the functions those
+calls need, and it then removes every comment and the blank lines they leave
+behind. What remains is the code those calls execute. It accepts only the
+parameters they need:
 
 ```powershell
 & 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command Show `
@@ -97,6 +98,14 @@ because a cache key covers the shortcut rather than the icon it points at:
 
 ```powershell
 & 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command ClearCache
+```
+
+`-Command CreateShortcut` opens the wizard that writes a Windows shortcut to an
+Entry Root, which the same switch reaches in the full script and the module
+exposes as `New-LaunchTreeShortcut`:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command CreateShortcut
 ```
 
 Reconciliation, health checks, diagnostics, Support Bundle export, removal, and

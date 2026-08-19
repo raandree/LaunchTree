@@ -26,6 +26,7 @@ Export exactly these version 1 commands:
 - `Get-LaunchTreeDiagnostic`
 - `Export-LaunchTreeSupportBundle`
 - `Clear-LaunchTreeCache`
+- `New-LaunchTreeShortcut`
 - `Remove-LaunchTree`
 
 State-changing commands support `ShouldProcess`. No exported command modifies
@@ -40,6 +41,13 @@ source content.
   Entries and the event registration. The command is maintenance over
   module-owned disposable state, so the read-mostly, no-content-editing intent
   of this decision is unchanged. Specified by `FR-034`.
+- 2026-08-19: Added `New-LaunchTreeShortcut` on explicit user request. The
+  shortcut wizard was reachable only from a gear in the Launcher title bar,
+  which the customer rejected because the title bar must carry the classic
+  window controls instead. The wizard is now a command, reachable as
+  `-Command CreateShortcut` in both single-file deliveries. It writes only a
+  user-owned shortcut outside Generated State and edits no source content, so
+  the read-mostly intent of this decision is unchanged. Specified by `FR-035`.
 
 ## Consequences
 

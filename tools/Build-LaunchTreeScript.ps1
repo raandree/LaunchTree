@@ -68,7 +68,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # Entry points of the Minimal variant; their call graph decides what gets embedded.
-$minimalEntryPoint = @('Show-LaunchTree', 'Clear-LaunchTreeCache')
+$minimalEntryPoint = @('Show-LaunchTree', 'Clear-LaunchTreeCache', 'New-LaunchTreeShortcut')
 
 function Get-LaunchTreeFunctionClosure {
     <#
@@ -358,6 +358,11 @@ $fullHeader = @'
         .\LaunchTree.ps1 -Command Show -EntryName 'LaunchTree Demo'
 
         Opens an Entry Root in the WPF Launcher.
+
+    .EXAMPLE
+        .\LaunchTree.ps1 -Command CreateShortcut
+
+        Opens the wizard that writes a Windows shortcut to an Entry Root.
 #>
 #Requires -Version 5.1
 [CmdletBinding()]
@@ -371,6 +376,7 @@ param(
         'GetDiagnostic',
         'ExportSupportBundle',
         'ClearCache',
+        'CreateShortcut',
         'Remove',
         'EventLogProbe'
     )]
@@ -382,6 +388,10 @@ param(
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string] $EntryName,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $EntryRootPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -464,23 +474,27 @@ $minimalHeader = @'
         Minimal self-contained LaunchTree delivery that opens the Launcher.
 
     .DESCRIPTION
-        Contains only the LaunchTree logic that Show-LaunchTree and
-        Clear-LaunchTreeCache need, so it is markedly smaller than the full
-        single-file script. Reconciliation, health checks, diagnostics, Support
-        Bundle export, removal, the Event Log, and every JSON file are not part
-        of this delivery, so machine configuration and user preferences fall
-        back to built-in defaults and the roots come from parameters. This file
-        is generated from the module source by
-        tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the module
-        source instead of this script.
+        Contains only the LaunchTree logic that Show-LaunchTree,
+        Clear-LaunchTreeCache, and New-LaunchTreeShortcut need, so it is
+        markedly smaller than the full single-file script. Reconciliation,
+        health checks, diagnostics, Support Bundle export, removal, the Event
+        Log, and every JSON file are not part of this delivery, so machine
+        configuration and user preferences fall back to built-in defaults and
+        the roots come from parameters. This file is generated from the module
+        source by tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the
+        module source instead of this script.
 
     .PARAMETER Command
-        Specifies the operation to run. Show opens the Launcher and ClearCache
-        discards every cached icon. Omit it and dot-source the script to load
-        the embedded commands instead.
+        Specifies the operation to run. Show opens the Launcher, ClearCache
+        discards every cached icon, and CreateShortcut opens the wizard that
+        writes a Windows shortcut to an Entry Root. Omit it and dot-source the
+        script to load the embedded commands instead.
 
     .PARAMETER EntryName
         Specifies the Entry Root to open.
+
+    .PARAMETER EntryRootPath
+        Specifies the Entry Root folder the CreateShortcut wizard starts with.
 
     .PARAMETER ManagedRoot
         Overrides the Managed Root that supplies Entry Roots.
@@ -498,17 +512,26 @@ $minimalHeader = @'
         .\LaunchTree.Minimal.ps1 -Command ClearCache
 
         Discards every cached icon so the next run extracts them again.
+
+    .EXAMPLE
+        .\LaunchTree.Minimal.ps1 -Command CreateShortcut
+
+        Opens the wizard that writes a Windows shortcut to an Entry Root.
 #>
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('Show', 'ClearCache')]
+    [ValidateSet('Show', 'ClearCache', 'CreateShortcut')]
     [string] $Command,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
     [string] $EntryName,
+
+    [Parameter()]
+    [ValidateNotNullOrEmpty()]
+    [string] $EntryRootPath,
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
@@ -536,6 +559,7 @@ $script:LaunchTreeCommandMap = @{
     GetDiagnostic       = 'Get-LaunchTreeDiagnostic'
     ExportSupportBundle = 'Export-LaunchTreeSupportBundle'
     ClearCache          = 'Clear-LaunchTreeCache'
+    CreateShortcut      = 'New-LaunchTreeShortcut'
     Remove              = 'Remove-LaunchTree'
 }
 
@@ -583,6 +607,16 @@ if (-not $Command) {
 
 if ($Command -eq 'ClearCache') {
     Clear-LaunchTreeCache
+    return
+}
+
+if ($Command -eq 'CreateShortcut') {
+    $shortcutSplat = @{}
+    if ($PSBoundParameters.ContainsKey('EntryRootPath')) {
+        $shortcutSplat['EntryRootPath'] = $EntryRootPath
+    }
+
+    New-LaunchTreeShortcut @shortcutSplat
     return
 }
 
