@@ -142,6 +142,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix a red error appearing under the Launcher after an item started
+  successfully. The invocation asked `Start-Process` for a process object it
+  never used, and Windows Shell returns none when it hands the request to a
+  running instance, an elevated process, or a registered protocol handler, so
+  every `.url` link and every shortcut that opens a folder or an already-running
+  application was reported as failed. A genuine failure still reports, and the
+  status line now wraps so the Windows reason at the end of the message is
+  readable instead of truncated
 - Fix the Launcher failing to start under Windows PowerShell 5.1, the default
   `LauncherHost` every Start Entry and shortcut uses. Compiling the native
   window helper reported that `System.Windows.Markup.IQueryAmbient` was defined

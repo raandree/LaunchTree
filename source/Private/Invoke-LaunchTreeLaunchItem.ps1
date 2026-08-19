@@ -32,7 +32,12 @@ function Invoke-LaunchTreeLaunchItem {
     }
 
     try {
-        $null = Start-Process -FilePath $LiteralPath -PassThru -ErrorAction Stop
+        <#
+            No -PassThru: Windows Shell returns no process handle when it hands
+            the request to a running instance, an elevated one, or a registered
+            protocol handler, and requesting one fails a launch that succeeded.
+        #>
+        Start-Process -FilePath $LiteralPath -ErrorAction Stop
         [PSCustomObject] @{
             PSTypeName  = 'LaunchTree.LaunchResult'
             Succeeded   = $true

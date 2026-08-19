@@ -15,6 +15,15 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
+- 2026-08-19: Fixed a customer report that the Launcher showed a red error after
+  an item had started fine. `Invoke-LaunchTreeLaunchItem` asked `Start-Process`
+  for a process object it discarded, and Windows Shell returns none when it hands
+  the request to a running instance, an elevated process, or a protocol handler,
+  so every `.url` link and every shortcut opening a folder or a running
+  application was reported as failed. Reproduced all three, removed `-PassThru`,
+  and confirmed a broken shortcut target still reports failure. The status line
+  now wraps so the Windows reason stays readable. 232 tests pass.
+
 - 2026-08-19: Added a customer-requested shortcut wizard to the Launcher and
   flipped the close-after-launch default. A gear in the title bar opens a
   three-step dialog that takes one Entry Root folder such as
@@ -72,31 +81,26 @@ release remains gated by external environment evidence.
   and a tab whose owner holds no Launch Item of its own redirects to its first
   child unless nothing can replace it. Added `AS-018` and `AS-020`.
 - 2026-08-06: Prepared the repository for a public release. A disclosure audit
-  covering all 126 tracked files, all 34 commits on every reference, and all 13
-  distinct historical screenshot blobs found no personally identifiable
-  information, no secrets, and no customer or agency reference. The only
-  personal data is the author identity in commit metadata, which the owner
-  accepted as public. Added the MIT `LICENSE`, a `SECURITY.md`, a
-  `CONTRIBUTING.md`, and a `CODEOWNERS` default owner, and replaced the
-  contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
-- 2026-08-17: Made `.memory-bank/promptHistory.md` local-only. Rewrote all 38
-  commits on `main` with `git filter-branch --index-filter` to drop it, kept the
-  working copy, and ignored it. Every SHA on `main` changed; `origin/main` and
-  the local `refs/original/refs/heads/main` backup still carry the old blobs
-  until the owner force-pushes and drops that ref.
+  of every tracked file, commit, and historical screenshot blob found no
+  personally identifiable information, secrets, or customer reference; the
+  author identity in commit metadata is accepted as public. Added the MIT
+  `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and `CODEOWNERS`, and replaced
+  the contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
+- 2026-08-17: Made `.memory-bank/promptHistory.md` local-only by rewriting all
+  38 commits on `main` with `git filter-branch --index-filter`. Every SHA
+  changed; `origin/main` and `refs/original/refs/heads/main` still carry the old
+  blobs until the owner force-pushes and drops that ref.
 - 2026-08-18: Turned the Launcher's compact top line into a window title bar on
-  customer request. The application icon and the Entry Root title now sit at its
-  left where Back used to be, `Window.Icon` carries the same icon into the
-  taskbar, and Back moved into a navigation strip at the left of the
-  `TabbedList` tab strip, whose width fit accounts for it. The icon ships as
-  `source/Assets/LaunchTree.ico`, embedded as base64 with a unit test comparing
-  the two. A probe then measured a 10-pixel non-client inset on every side while
-  the DWM visible frame started 8 pixels in at the sides and 0 at the top, so
-  only the top border showed and looked five times thicker; a `WindowChrome`
-  with zero caption height, glass frame, and corner radius plus a 4 DIU resize
-  border makes the live window measure inset 0 on all four sides. Also fixed
-  `Grid` folder activation, which assigned to a breadcrumb control removed on
-  2026-07-29 and therefore threw.
+  customer request. The application icon and the Entry Root title sit at its
+  left, `Window.Icon` carries the same icon into the taskbar, and Back moved
+  into a navigation strip at the left of the `TabbedList` tab strip. The icon
+  ships as `source/Assets/LaunchTree.ico`, embedded as base64 with a unit test
+  comparing the two. A probe then measured a 10-pixel non-client inset on every
+  side while the DWM visible frame started 8 pixels in at the sides and 0 at the
+  top, so only the top border showed; a `WindowChrome` with zero caption height,
+  glass frame, and corner radius plus a 4 DIU resize border makes the live window
+  measure inset 0 on all four sides. Also fixed `Grid` folder activation, which
+  assigned to a breadcrumb control removed on 2026-07-29 and therefore threw.
 - 2026-08-18: Fixed internet shortcut (`.url`) Launch Items rendering the
   generic file icon. `IShellItemImageFactory` returned the correct browser icon
   synchronously on the Launcher's STA thread but the generic document icon from
@@ -143,15 +147,14 @@ release remains gated by external environment evidence.
   folder: all three items appear with no Health Finding. Suite: 198 passed,
   1 skip.
 - 2026-08-19: Investigated a follow-up report that the same folder still showed
-  blank icons for three `.url` items, suspected to be a second decoding fault.
-  No defect: the shortcut is plain CP1252, the host ANSI code page is 1252, and
-  the icon never passes through LaunchTree because `NativeIcon` hands the shell
-  the `.url` path and the internet shortcut handler resolves `IconFile` itself.
-  A pixel-hash probe showed all three targets were simply absent, one saved with
-  a doubled `.ico.ico` extension. Treat a blank Launch Item icon as a missing
-  `IconFile` target until a byte dump says otherwise. Fixing the file name did
-  not help either, because `Get-LaunchTreeIconCachePath` keys on the shortcut's
-  own path, length, and `LastWriteTimeUtc` and never observes the icon target.
+  blank icons for three `.url` items. No defect: the shortcut is plain CP1252,
+  and the icon never passes through LaunchTree because the internet shortcut
+  handler resolves `IconFile` itself. A pixel-hash probe showed all three
+  targets were simply absent, one saved with a doubled `.ico.ico` extension.
+  Treat a blank Launch Item icon as a missing `IconFile` target until a byte
+  dump says otherwise. Fixing the file name did not help either, because
+  `Get-LaunchTreeIconCachePath` keys on the shortcut's own path, length, and
+  `LastWriteTimeUtc` and never observes the icon target.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through

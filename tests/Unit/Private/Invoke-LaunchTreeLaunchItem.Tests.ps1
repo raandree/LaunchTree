@@ -10,9 +10,9 @@ AfterAll {
 Describe 'Invoke-LaunchTreeLaunchItem' -Tag 'Unit' {
     Context 'When Windows Shell accepts the Launch Item' {
         BeforeEach {
-            Mock -ModuleName $moduleName -CommandName Start-Process -MockWith {
-                [PSCustomObject] @{ Id = 42 }
-            }
+            # Start-Process writes nothing without -PassThru, and the Launch
+            # Result must be the command's only output.
+            Mock -ModuleName $moduleName -CommandName Start-Process -MockWith { }
         }
 
         It 'Should pass the .lnk file itself without reconstructed target values' {
@@ -59,6 +59,28 @@ Describe 'Invoke-LaunchTreeLaunchItem' -Tag 'Unit' {
                 Times           = 1
                 Exactly         = $true
                 ParameterFilter = { $FilePath -eq $urlPath }
+            }
+            Should -Invoke @assertion
+        }
+
+        It 'Should not request a process object Windows Shell need not return' {
+            $linkPath = Join-Path -Path $TestDrive -ChildPath 'Portal.lnk'
+            $null = New-Item -Path $linkPath -ItemType File
+
+            $result = InModuleScope -ModuleName $moduleName -Parameters @{
+                TestPath = $linkPath
+            } {
+                Invoke-LaunchTreeLaunchItem -LiteralPath $TestPath
+            }
+
+            @($result).Count | Should -Be 1
+            $result.Succeeded | Should -BeTrue
+            $assertion = @{
+                ModuleName      = $moduleName
+                CommandName     = 'Start-Process'
+                Times           = 1
+                Exactly         = $true
+                ParameterFilter = { -not $PSBoundParameters.ContainsKey('PassThru') }
             }
             Should -Invoke @assertion
         }

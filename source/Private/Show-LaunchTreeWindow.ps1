@@ -381,6 +381,9 @@
     $statusText.Margin = [System.Windows.Thickness]::new(20, 8, 20, 14)
     $statusText.Foreground = $secondaryBrush
     $statusText.FontSize = 12
+    # A launch failure carries the Windows reason at the end of the message.
+    $statusText.TextWrapping = [System.Windows.TextWrapping]::Wrap
+    $statusText.MaxHeight = 52
     $statusText.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
     [System.Windows.Controls.Grid]::SetRow($statusText, 5)
     [void] $rootGrid.Children.Add($statusText)
