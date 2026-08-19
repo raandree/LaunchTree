@@ -25,6 +25,10 @@ function Show-LaunchTree {
         .PARAMETER CapturePath
             Renders the Launcher to a PNG and self-closes for visual validation.
 
+        .PARAMETER CloseAfterLaunch
+            Closes the Launcher after a Launch Item starts. Omit it to keep the
+            Launcher open so more items can be started from the same window.
+
         .EXAMPLE
             Show-LaunchTree -EntryName 'Programs' -ManagedRoot D:\temp
 
@@ -50,7 +54,10 @@ function Show-LaunchTree {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $CapturePath
+        [string] $CapturePath,
+
+        [Parameter()]
+        [switch] $CloseAfterLaunch
     )
 
     if ([Threading.Thread]::CurrentThread.GetApartmentState() -ne
@@ -62,7 +69,8 @@ function Show-LaunchTree {
     $startupStopwatch = [Diagnostics.Stopwatch]::StartNew()
 
     $configurationParameters = @{}
-    foreach ($parameterName in 'ConfigurationPath', 'ManagedRoot', 'PersonalRoot') {
+    foreach ($parameterName in 'ConfigurationPath', 'ManagedRoot', 'PersonalRoot',
+        'CloseAfterLaunch') {
         if ($PSBoundParameters.ContainsKey($parameterName)) {
             $configurationParameters[$parameterName] = $PSBoundParameters[$parameterName]
         }

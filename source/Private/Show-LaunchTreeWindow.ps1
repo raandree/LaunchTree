@@ -98,6 +98,24 @@
         $pressedForegroundColor = $foregroundBrush.Color.ToString()
     }
 
+    $theme = [PSCustomObject] @{
+        PSTypeName             = 'LaunchTree.Theme'
+        Window                 = $windowBrush
+        Surface                = $surfaceBrush
+        Foreground             = $foregroundBrush
+        Secondary              = $secondaryBrush
+        Accent                 = $accentBrush
+        Border                 = $borderBrush
+        ForegroundColor        = $foregroundBrush.Color.ToString()
+        SurfaceColor           = $surfaceBrush.Color.ToString()
+        AccentColor            = $accentBrush.Color.ToString()
+        BorderColor            = $borderBrush.Color.ToString()
+        HoverColor             = $hoverColor
+        PressedColor           = $pressedColor
+        HoverForegroundColor   = $hoverForegroundColor
+        PressedForegroundColor = $pressedForegroundColor
+    }
+
     $applicationIcon = Get-LaunchTreeApplicationIcon
     $window = [System.Windows.Window]::new()
     $window.Title = $EntryName
@@ -161,7 +179,7 @@
     $header.Background = [System.Windows.Media.Brushes]::Transparent
     $header.Margin = [System.Windows.Thickness]::new(6, 2, 6, 2)
     $header.ToolTip = 'Drag to move the window'
-    for ($columnIndex = 0; $columnIndex -lt 5; $columnIndex++) {
+    for ($columnIndex = 0; $columnIndex -lt 6; $columnIndex++) {
         [void] $header.ColumnDefinitions.Add([System.Windows.Controls.ColumnDefinition]::new())
         $header.ColumnDefinitions[$columnIndex].Width = [System.Windows.GridLength]::Auto
     }
@@ -225,6 +243,17 @@
     [System.Windows.Controls.Grid]::SetColumn($sortBox, 3)
     [void] $header.Children.Add($sortBox)
 
+    $wizardButton = [System.Windows.Controls.Button]::new()
+    $wizardButton.Content = [char] 0xE713
+    $wizardButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
+    $wizardButton.FontSize = 13
+    $wizardButton.Width = 28
+    $wizardButton.Height = 28
+    $wizardButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
+    $wizardButton.ToolTip = 'Create a shortcut to an Entry Root'
+    [System.Windows.Controls.Grid]::SetColumn($wizardButton, 4)
+    [void] $header.Children.Add($wizardButton)
+
     $closeButton = [System.Windows.Controls.Button]::new()
     $closeButton.Content = [char] 0xE8BB
     $closeButton.FontFamily = [System.Windows.Media.FontFamily]::new('Segoe Fluent Icons')
@@ -233,7 +262,7 @@
     $closeButton.Height = 28
     $closeButton.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
     $closeButton.ToolTip = 'Close'
-    [System.Windows.Controls.Grid]::SetColumn($closeButton, 4)
+    [System.Windows.Controls.Grid]::SetColumn($closeButton, 5)
     [void] $header.Children.Add($closeButton)
 
     $searchBorder = [System.Windows.Controls.Border]::new()
@@ -391,7 +420,7 @@
 </Style>
 "@
     $buttonStyle = [System.Windows.Markup.XamlReader]::Parse($buttonStyleXaml)
-    foreach ($button in @($backButton, $closeButton)) {
+    foreach ($button in @($backButton, $wizardButton, $closeButton)) {
         $button.Style = $buttonStyle
     }
 
@@ -1292,6 +1321,30 @@
         & $renderItems
     }
     $closeButton.Add_Click({ $window.Close() })
+    $wizardButton.Add_Click({
+        $entryRootPath = Join-Path -Path $script:activeConfiguration.ManagedRoot `
+            -ChildPath $script:activeEntryName
+        try {
+            $wizardParameters = @{
+                Configuration = $script:activeConfiguration
+                Theme         = $theme
+                Owner         = $window
+                InitialPath   = $entryRootPath
+            }
+            $createdShortcut = Show-LaunchTreeShortcutWizard @wizardParameters
+        } catch {
+            $wizardError = $_
+            $statusText.Foreground = [System.Windows.Media.Brushes]::IndianRed
+            $statusText.Text = $wizardError.Exception.Message
+            $statusText.Visibility = [System.Windows.Visibility]::Visible
+            return
+        }
+        if ($createdShortcut) {
+            $statusText.Foreground = $secondaryBrush
+            $statusText.Text = 'Shortcut created: {0}' -f $createdShortcut
+            $statusText.Visibility = [System.Windows.Visibility]::Visible
+        }
+    })
     $header.Add_MouseLeftButtonDown({
         param($eventSource, $eventArguments)
         [void] $eventSource

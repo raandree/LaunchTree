@@ -215,7 +215,25 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
             $script:minimalAst.ParamBlock.Parameters.Name.VariablePath.UserPath | Sort-Object
         )
 
-        $parameterNames | Should -Be @('Command', 'EntryName', 'ManagedRoot')
+        $parameterNames | Should -Be @(
+            'CloseAfterLaunch', 'Command', 'EntryName', 'ManagedRoot'
+        )
+    }
+
+    It 'Should resolve its own path so the shortcut wizard can target it' {
+        $script:minimalContent | Should -Match 'LaunchTreeStandalonePath'
+
+        $probe = {
+            param($ScriptPath)
+            . $ScriptPath
+            Get-LaunchTreeRuntimeContext
+        }
+
+        $context = & $probe $script:minimalPath
+
+        $context.HostKind | Should -Be 'Script'
+        $context.LauncherPath | Should -Be $script:minimalPath
+        $context.LauncherCommand | Should -Be 'Show'
     }
 
     It 'Should accept the Show and ClearCache commands' {
@@ -296,6 +314,6 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
 
         # The trailing newline leaves one empty final line.
         $strayBlank.Count | Should -BeLessOrEqual 1
-        $script:minimalResult.LineCount | Should -BeLessThan 3200
+        $script:minimalResult.LineCount | Should -BeLessThan 4200
     }
 }

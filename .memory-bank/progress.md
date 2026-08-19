@@ -15,6 +15,22 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
+- 2026-08-19: Added a customer-requested shortcut wizard to the Launcher and
+  flipped the close-after-launch default. A gear in the title bar opens a
+  three-step dialog that takes one Entry Root folder such as
+  `\\contoso.com\Data\Files\programs`, derives the Managed Root from its parent
+  and the Entry Root name from its last segment, asks whether the Launcher
+  should close after a launch, and writes the `CR-015` shortcut to a location
+  chosen in a save dialog. `CloseAfterLaunch` now defaults to `false` and gained
+  a call-scoped `CR-014` switch on `Get-LaunchTreeConfiguration` and
+  `Show-LaunchTree`; the module launcher bootstrap gained an
+  `EntryName`/`ManagedRoot` parameter set so a wizard shortcut works from every
+  delivery. Fixed a pre-existing blocker found while validating it: the native
+  window helper failed to compile under Windows PowerShell 5.1, the default
+  `LauncherHost`, because `Window` implements `IQueryAmbient` and the reference
+  to `System.Xaml` was implicit. Both editions pass 231 tests with one skip, and
+  the wizard was driven end to end under 5.1 to a verified shortcut.
+
 - 2026-08-19: Fixed the access-denied error a customer saw before the Launcher
   opened on a DFS Managed Root. `Test-Path` writes a non-terminating
   `UnauthorizedAccessException` when the containing directory denies list or

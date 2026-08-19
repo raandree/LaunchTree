@@ -25,6 +25,11 @@ function Get-LaunchTreeConfiguration {
         .PARAMETER PreferencePath
             Specifies an alternate user preference JSON file to read.
 
+        .PARAMETER CloseAfterLaunch
+            Overrides whether the Launcher closes after a Launch Item starts.
+            The value takes precedence over the machine configuration file and
+            the user preference file.
+
         .EXAMPLE
             Get-LaunchTreeConfiguration
 
@@ -61,7 +66,10 @@ function Get-LaunchTreeConfiguration {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $PreferencePath
+        [string] $PreferencePath,
+
+        [Parameter()]
+        [switch] $CloseAfterLaunch
     )
 
     $healthFindings = [System.Collections.Generic.List[object]]::new()
@@ -418,6 +426,10 @@ function Get-LaunchTreeConfiguration {
                 }
             }
         }
+    }
+
+    if ($PSBoundParameters.ContainsKey('CloseAfterLaunch')) {
+        $configuration['CloseAfterLaunch'] = [bool] $CloseAfterLaunch
     }
 
     $result = [PSCustomObject] @{

@@ -100,7 +100,7 @@ if ($configurationExists -and -not $Force) {
         MaximumDepth     = 5
         LauncherHost     = $LauncherHost
         DefaultSortOrder = 'NameAscending'
-        CloseAfterLaunch = $true
+        CloseAfterLaunch = $false
         Cache            = [ordered] @{
             MaximumSizeMB  = 64
             MaximumAgeDays = 30

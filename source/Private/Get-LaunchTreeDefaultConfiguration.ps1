@@ -37,7 +37,7 @@ function Get-LaunchTreeDefaultConfiguration {
         LauncherHost     = 'WindowsPowerShell'
         LauncherLayout   = 'TabbedList'
         SortOrder        = 'NameAscending'
-        CloseAfterLaunch = $true
+        CloseAfterLaunch = $false
         Cache            = [ordered] @{
             Path           = Join-Path -Path $localRoot -ChildPath 'LaunchTree\Cache\v1'
             MaximumSizeMB  = 64

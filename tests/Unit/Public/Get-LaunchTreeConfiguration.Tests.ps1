@@ -50,7 +50,7 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
             $result.LauncherHost | Should -Be 'WindowsPowerShell'
             $result.LauncherLayout | Should -Be 'TabbedList'
             $result.SortOrder | Should -Be 'NameAscending'
-            $result.CloseAfterLaunch | Should -BeTrue
+            $result.CloseAfterLaunch | Should -BeFalse
             $result.Cache.MaximumSizeMB | Should -Be 64
             $result.Cache.MaximumAgeDays | Should -Be 30
             $result.HealthFindings | Should -BeNullOrEmpty
@@ -244,6 +244,48 @@ Describe 'Get-LaunchTreeConfiguration' -Tag 'Unit' {
         It 'Should reject a relative root override instead of falling back' {
             { Get-LaunchTreeConfiguration -ManagedRoot 'Relative\Menu' } |
                 Should -Throw -ExpectedMessage '*absolute path*'
+        }
+    }
+
+    Context 'When the close-after-launch override is supplied as a parameter' {
+        It 'Should take precedence over the machine configuration and preferences' {
+            $configurationPath = Join-Path -Path $TestDrive -ChildPath 'close-machine.json'
+            $preferencePath = Join-Path -Path $TestDrive -ChildPath 'close-preferences.json'
+            @{
+                SchemaVersion    = 1
+                CloseAfterLaunch = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $configurationPath -Encoding UTF8
+            @{
+                SchemaVersion    = 1
+                CloseAfterLaunch = $false
+            } | ConvertTo-Json | Set-Content -LiteralPath $preferencePath -Encoding UTF8
+
+            $parameters = @{
+                ConfigurationPath = $configurationPath
+                PreferencePath    = $preferencePath
+                CloseAfterLaunch  = $true
+            }
+
+            $result = Get-LaunchTreeConfiguration @parameters
+
+            $result.CloseAfterLaunch | Should -BeTrue
+        }
+
+        It 'Should leave the resolved value untouched when the override is absent' {
+            $configurationPath = Join-Path -Path $TestDrive -ChildPath 'close-only.json'
+            @{
+                SchemaVersion    = 1
+                CloseAfterLaunch = $true
+            } | ConvertTo-Json | Set-Content -LiteralPath $configurationPath -Encoding UTF8
+
+            $parameters = @{
+                ConfigurationPath = $configurationPath
+                PreferencePath    = Join-Path -Path $TestDrive -ChildPath 'absent.json'
+            }
+
+            $result = Get-LaunchTreeConfiguration @parameters
+
+            $result.CloseAfterLaunch | Should -BeTrue
         }
     }
 }

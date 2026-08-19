@@ -5,6 +5,7 @@ function Initialize-LaunchTreeWpf {
     Add-Type -AssemblyName PresentationCore
     Add-Type -AssemblyName PresentationFramework
     Add-Type -AssemblyName WindowsBase
+    Add-Type -AssemblyName System.Xaml
 
     if (('LaunchTree.ActivationServer' -as [type]) -and
         ('LaunchTree.NativeIcon' -as [type]) -and
@@ -377,6 +378,9 @@ namespace LaunchTree
             [System.Windows.Media.Imaging.BitmapSource].Assembly.Location
             [System.Windows.Window].Assembly.Location
             [System.Windows.Rect].Assembly.Location
+            # Window implements IQueryAmbient, which the C# compiler in Windows
+            # PowerShell refuses to resolve without an explicit System.Xaml.
+            [System.Windows.Markup.IQueryAmbient].Assembly.Location
         )
         <#
             Supplying references replaces the PowerShell 7 default set, which

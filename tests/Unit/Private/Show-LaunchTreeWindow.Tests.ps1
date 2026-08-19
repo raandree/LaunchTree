@@ -34,4 +34,18 @@ Describe 'Show-LaunchTreeWindow' -Tag 'Unit' {
         $detailAssignment | Should -Not -BeNullOrEmpty
         $detailAssignment.Right.Extent.Text | Should -Not -Match '\$item\.ContentSource'
     }
+
+    It 'Should offer the shortcut wizard from the title bar' {
+        $projectPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..'
+        $windowSourcePath = Join-Path -Path $projectPath -ChildPath (
+            'source\Private\Show-LaunchTreeWindow.ps1'
+        )
+        $windowSource = Get-Content -LiteralPath $windowSourcePath -Raw
+
+        $windowSource | Should -Match (
+            '\$wizardButton = \[System\.Windows\.Controls\.Button\]::new\(\)'
+        )
+        $windowSource | Should -Match '\$wizardButton\.Content = \[char\] 0xE713'
+        $windowSource | Should -Match 'Show-LaunchTreeShortcutWizard @wizardParameters'
+    }
 }

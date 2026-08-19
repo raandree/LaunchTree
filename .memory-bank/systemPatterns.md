@@ -10,18 +10,18 @@ source: repository evidence
 ## Architecture
 
 Accepted: machine-wide native Start shortcuts open one session-local WPF
-launcher process. A managed directory tree supplies entry roots; a roaming
+launcher process. A managed directory tree supplies entry roots and a roaming
 per-user tree augments matching roots. The launcher reads snapshots, delegates
 invocation to Windows Shell, manages only generated state and caches, and takes
-opaque Entry IDs across the process boundary. Reconciliation is transactional,
-and its event log is writable by standard interactive users. Runtime artifacts
-have no external dependency. `TabbedList` separates tab-strip owner
-from selected tab; compact rows render descriptions, not Content Source metadata.
+opaque Entry IDs across the process boundary. Reconciliation is transactional
+and its event log is writable by standard interactive users; runtime artifacts
+have no external dependency. `TabbedList` separates tab-strip owner from
+selected tab, and compact rows render descriptions, not Content Source metadata.
 
 ## Documentation
 
-`docs/getting-started.md` is the canonical first-run operator path; it links to
-deployment and specifications rather than duplicating those contracts.
+`docs/getting-started.md` is the canonical first-run operator path and links to
+deployment and specifications rather than duplicating those contracts;
 `tools/Initialize-QuickStart.ps1` is the scripted fast path. Every documented
 sample block must run standalone, and a multistatement block runs inside
 `& { $ErrorActionPreference = 'Stop'; ... }` so the first failure stops it.
@@ -29,65 +29,68 @@ sample block must run standalone, and a multistatement block runs inside
 ## Constraints
 
 Root resolution has one owner, `Get-LaunchTreeConfiguration`; commands forward
-the `CR-013` `ManagedRoot` and `PersonalRoot` overrides to it. An invalid
-override throws instead of falling back, and `Update-LaunchTree` refuses them
-because an activated Start Entry re-resolves its root from the configuration.
+the `CR-013` root overrides and the `CR-014` `CloseAfterLaunch` override to it.
+An invalid override throws instead of falling back, and `Update-LaunchTree`
+refuses root overrides because an activated Start Entry re-resolves its root.
 
 The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
-`Invoke-LaunchTreeStandardUserEventProbe`) launches a de-elevated process with
+`Invoke-LaunchTreeStandardUserEventProbe`) de-elevates through
 `CreateProcessWithTokenW` and the UAC-linked token, which is only
 `Identification`-level from an interactive elevated admin; raising it needs
-`SeTcbPrivilege`, held only by SYSTEM. The probe is therefore best-effort and
-never throws, and `Test-LaunchTree` reports
-`StandardUserEventAccessUnverified`.
-
-Windows binds an event source name to exactly one classic log, and
-`System.Diagnostics.EventLog.WriteEntry` registers an unknown source in the
-`Application` log when the caller is elevated. Runtime code therefore resolves
-the source through `[Diagnostics.EventLog]::LogNameFromSourceName` first.
+`SeTcbPrivilege`, held only by SYSTEM. The probe is best-effort, never throws,
+and `Test-LaunchTree` reports `StandardUserEventAccessUnverified`. Windows binds
+an event source name to exactly one classic log, and `EventLog.WriteEntry`
+registers an unknown source in `Application` when the caller is elevated, so
+runtime code resolves it through `LogNameFromSourceName` first.
 
 An icon cache key covers the shortcut's path, length, and last-write time, never
 the icon target, so a repaired target cannot invalidate the entry the shortcut
-already produced. `Clear-LaunchTreeCache` is the escape hatch. Shell icon
+already produced; `Clear-LaunchTreeCache` is the escape hatch. Shell icon
 extraction runs on the dedicated STA worker owned by `LaunchTree.NativeIcon`,
-never on the thread pool: the internet shortcut handler answers only in an STA,
-and elsewhere the shell substitutes the generic file icon instead of failing.
-The Launcher sets `System.AppUserModel.ID` on its HWND during `SourceInitialized`;
-`Window.Icon` alone can group it under PowerShell; a process identity relabels the host.
+because the internet shortcut handler answers only in an STA and elsewhere the
+shell substitutes the generic file icon. The Launcher sets
+`System.AppUserModel.ID` on its HWND during `SourceInitialized`; `Window.Icon`
+alone can group it under PowerShell.
 
 Content Source metadata is decoded with the encoding the producing Windows
-component actually writes. `description.txt` is operator-authored and stays
-strict UTF-8; a `.lnk` or `.url` is Windows-authored and therefore ANSI, so
-`Get-LaunchTreeLaunchItemDetail` falls back to `TextInfo.ANSICodePage`. The
-`http`/`https` scheme check remains the only reason to exclude a shortcut.
-
+component writes: `description.txt` is operator-authored and stays strict UTF-8,
+while a `.lnk` or `.url` is Windows-authored and therefore ANSI, so
+`Get-LaunchTreeLaunchItemDetail` falls back to `TextInfo.ANSICodePage`.
 Every filesystem probe over Managed or Personal content passes an explicit
 `ErrorAction`: `Test-Path` writes a non-terminating `UnauthorizedAccessException`
 instead of returning `$false` when the containing directory denies list or
 traverse access. The description probe uses `Stop` and degrades to a
 `DescriptionUnavailable` finding; the root probes use `Ignore` beside their own.
+An Entry Root path is split with plain string operations, never `Split-Path` or
+the .NET path helpers, which throw on a bare drive specifier and disagree across
+editions about the parent of a UNC share. A wizard-created shortcut is
+user-owned, so it names its Entry Root directly rather than carrying an Entry ID
+and Reconciliation ignores it.
+
+A type compiled against WPF must reference `System.Xaml` explicitly, because
+`Window` implements `System.Windows.Markup.IQueryAmbient` and the Windows
+PowerShell compiler will not resolve it while PowerShell 7 does. The Launcher is
+normally hosted by Windows PowerShell, so such an omission stays invisible to a
+PowerShell 7 test run.
 
 ## Delivery
 
 The Sampler module under `output/module/LaunchTree/<version>` stays the
-recommended form; `output/LaunchTree.ps1` serves hosts where installing a
-module is impractical. Both are generated by `tools/Build-LaunchTreeScript.ps1`,
-which concatenates the selected functions and parse-checks the result.
-
+recommended form; `output/LaunchTree.ps1` serves hosts where installing a module
+is impractical. Both come from `tools/Build-LaunchTreeScript.ps1`, which
+concatenates the selected functions and parse-checks the result.
 `-Variant Full` embeds every function during `build`. `-Variant Minimal` emits
-`output/LaunchTree.Minimal.ps1` with `-Command Show`,
-`-EntryName`, and `-ManagedRoot`. Its content is derived, not curated: files in
-`tools/MinimalVariant` replace same-named module functions to drop the Event Log
-and every JSON reader, an AST call-graph traversal from `Show-LaunchTree` selects
-what to embed, and a token-stream comparison proves the comment strip changed
-nothing.
+`output/LaunchTree.Minimal.ps1` with `-Command Show`, `-EntryName`,
+`-ManagedRoot`, and `-CloseAfterLaunch`. Its content is derived, not curated:
+files in `tools/MinimalVariant` replace same-named module functions to drop the
+Event Log and every JSON reader, an AST call-graph traversal selects what to
+embed, and a token comparison proves the comment strip changed nothing.
 
-Host-dependent values resolve through the private
-`Get-LaunchTreeRuntimeContext`: the module base, version, launcher path, and
-probe path as a module, and the script's own path plus a `-Command` token when
-running standalone. A binary asset is embedded as base64 in the private function
-that decodes it, because the single-file deliveries carry functions only;
-`source/Assets` holds the editable source of truth and a unit test guards drift.
+Host-dependent values resolve through the private `Get-LaunchTreeRuntimeContext`:
+the module base, version, launcher path, and probe path as a module, and the
+script's own path plus a `-Command` token when running standalone. A binary
+asset is embedded as base64 in the private function that decodes it; the
+editable source of truth stays in `source/Assets` and a unit test guards drift.
 
 ## Decisions
 
@@ -95,16 +98,13 @@ Durable context stays evidence-backed in `.memory-bank`, and
 `docs/design-concept.md` is a sign-off gate: the native/WPF and deployment
 boundaries required a requirements interview before implementation. Directory
 traversal decides on the reparse tag from `FindFirstFileW`, not the reparse
-attribute: `Test-LaunchTreeTraversableDirectory` admits the DFS tags and refuses
-every other tag, so a junction or mount point cannot leave the root.
+attribute, so `Test-LaunchTreeTraversableDirectory` admits the DFS tags and
+refuses every other one, and a junction or mount point cannot leave the root.
 
-- `ADR-0001`: Native Start Entries open the WPF Launcher.
-- `ADR-0002`: Managed and Personal Content Sources merge by relative path.
-- `ADR-0003`: Windows Shell invokes Launch Items.
-- `ADR-0004`: Sampler PowerShell module with a WPF runtime.
-- `ADR-0005`: Transactional Reconciliation and ownership records.
-- `ADR-0006`: Versioned configuration, events, and cache contracts.
-- `ADR-0007`: Read-mostly public surface; `Clear-LaunchTreeCache` amended in.
-- `ADR-0008`: Opaque Entry ID activation through a validated Launcher Host.
-- `ADR-0009`: Standard-user access to the dedicated diagnostic event log.
-- `ADR-0010`: Explicit long-path degradation on Windows PowerShell 5.1.
+- `ADR-0001..0003`: native Start Entries open the WPF Launcher, Managed and
+  Personal sources merge by relative path, Windows Shell invokes Launch Items.
+- `ADR-0004..0007`: Sampler module with a WPF runtime, transactional
+  Reconciliation with ownership records, versioned configuration, event, and
+  cache contracts, read-mostly surface amended by `Clear-LaunchTreeCache`.
+- `ADR-0008..0010`: opaque Entry ID activation through a validated Launcher
+  Host, standard-user diagnostic log access, explicit long-path degradation.

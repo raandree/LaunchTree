@@ -99,6 +99,19 @@ while preserving the approved behavior and security boundaries.
   passes an explicit `ErrorAction` on every probe, so a denied Menu Folder on a
   DFS Managed Root degrades to Health Findings instead of printing a raw error
   before the Launcher opens.
+- The Launcher title bar carries a gear beside Close that opens a three-step
+  shortcut wizard (`FR-035`). It derives the Managed Root from the parent of the
+  entered Entry Root folder and the Entry Root name from its last segment, and
+  writes the `CR-015` shortcut through a save dialog. The result is user-owned,
+  not Generated State.
+- `CloseAfterLaunch` now defaults to `false`, so the Launcher stays open after an
+  item starts. `CR-014` adds a call-scoped switch on `Get-LaunchTreeConfiguration`
+  and `Show-LaunchTree`, and the wizard bakes it into the shortcut it writes.
+- The Launcher could not start under Windows PowerShell 5.1 at all: the native
+  window helper failed to compile because `Window` implements `IQueryAmbient` and
+  `System.Xaml` was not referenced. Because 5.1 is the default `LauncherHost`,
+  every Start Entry was affected while the PowerShell 7 test run stayed green.
+  Validate host-dependent WPF work on the edition that actually hosts it.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

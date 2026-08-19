@@ -163,8 +163,11 @@ directories, show states, environment expansion, or elevation behavior.
 ### FR-019 Handle invocation outcomes
 
 After a successful invocation, the Launcher must close when `CloseAfterLaunch`
-is true and remain open otherwise. A failed invocation must show a nonmodal
-inline error, retain navigation state, and emit a redacted error event.
+is true and remain open otherwise. The resolved default is false, so the
+Launcher stays open and a user can start several items from one window; an
+administrator, a user preference, or the `CR-014` override may ask for closing.
+A failed invocation must show a nonmodal inline error, retain navigation state,
+and emit a redacted error event.
 
 ## Configuration and preferences
 
@@ -218,6 +221,23 @@ content, Generated State, machine configuration, or user preferences.
 An operator needs this because a cache key identifies only the shortcut, so a
 repaired or newly deployed icon target cannot invalidate the entry that the
 shortcut already produced.
+
+### FR-035 Create an Entry Root shortcut from the Launcher
+
+The Launcher title bar must offer a control that opens a three-step wizard for
+creating a Windows shortcut to an Entry Root. The wizard must accept one folder
+path, derive the Managed Root from its parent and the Entry Root name from its
+last segment, and reject a path that is relative, names no parent folder, or
+names a UNC share without an Entry Root folder below it.
+
+The wizard must let the user choose whether the Launcher closes after an item
+starts, must ask for the shortcut file through a Windows save dialog, must show
+the resulting command line before it writes anything, and must write the
+`CR-015` shortcut only when the user confirms the last step. A failure at any
+step must stay inside the wizard with an actionable message and must not create
+a partial shortcut. The created shortcut is user-owned: it must not appear in
+the `CR-007` ownership record and Reconciliation must neither create nor remove
+it.
 
 ## Health and support
 

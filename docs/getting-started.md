@@ -304,6 +304,28 @@ Nested content and changes inside an existing Entry Root are read each time the
 Launcher opens. Run Reconciliation again only after changing machine
 configuration or adding, renaming, or removing an immediate Entry Root.
 
+The Launcher stays open after an item starts, so several items can be started
+from one window. Set `CloseAfterLaunch` to `true` in the machine configuration,
+or pass `-CloseAfterLaunch` to `Show-LaunchTree`, to close it instead.
+
+## Create a shortcut to an Entry Root
+
+The gear at the right of the Launcher title bar opens a three-step wizard that
+writes a Windows shortcut for one Entry Root. It is the fastest way to give a
+user a desktop or Start menu entry without running Reconciliation.
+
+1. Enter the folder that holds the shortcuts you want to launch, for example
+   `\\contoso.com\Data\Files\programs`. The wizard reads
+   `\\contoso.com\Data\Files` as the Managed Root and opens `programs` as the
+   Entry Root.
+1. Choose whether the Launcher closes after an item starts. It stays open by
+   default.
+1. Pick the shortcut file through the save dialog. The wizard shows the full
+   command line before it writes anything.
+
+The result is a plain user-owned shortcut. It is not Generated State, so
+Reconciliation and `Remove-LaunchTree` neither create nor delete it.
+
 ## Remove the sample Generated State
 
 Run removal from an elevated interactive PowerShell session before deleting the

@@ -28,6 +28,9 @@ function Get-LaunchTreeConfiguration {
         .PARAMETER PreferencePath
             Accepted for signature compatibility. The file is never read.
 
+        .PARAMETER CloseAfterLaunch
+            Overrides whether the Launcher closes after a Launch Item starts.
+
         .EXAMPLE
             Get-LaunchTreeConfiguration -ManagedRoot C:\Menus\Contoso
 
@@ -54,7 +57,10 @@ function Get-LaunchTreeConfiguration {
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
-        [string] $PreferencePath
+        [string] $PreferencePath,
+
+        [Parameter()]
+        [switch] $CloseAfterLaunch
     )
 
     if (-not $PSBoundParameters.ContainsKey('ConfigurationPath')) {
@@ -85,6 +91,10 @@ function Get-LaunchTreeConfiguration {
         }
 
         $configuration[$rootName] = $overridePath
+    }
+
+    if ($PSBoundParameters.ContainsKey('CloseAfterLaunch')) {
+        $configuration['CloseAfterLaunch'] = [bool] $CloseAfterLaunch
     }
 
     [PSCustomObject] @{

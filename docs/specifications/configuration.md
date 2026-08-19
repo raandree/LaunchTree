@@ -53,7 +53,19 @@ Managed Root from the machine configuration file named in its `CR-011`
 arguments and compares it with the `CR-007` ownership record, so Reconciliation
 from an unpersisted root would commit Start Entries that fail on activation. A
 relocated deployment must persist `ManagedRoot` in the machine configuration.
+### CR-014 Close-after-launch override parameter
 
+`Get-LaunchTreeConfiguration` and `Show-LaunchTree` accept a `CloseAfterLaunch`
+switch. The resolution precedence is:
+
+1. The switch supplied to the command, including `-CloseAfterLaunch:$false`.
+2. The user preference field from `CR-006`.
+3. The machine configuration field from `CR-005`.
+4. The default `false`.
+
+The default keeps the Launcher open after an item starts so a user can start
+several items from one window. An override applies only to the invocation that
+supplies it and is never written back to the preference file.
 ### CR-003 Start Entry location
 
 Machine-wide Start Entries live directly under the Common Programs directory
@@ -87,7 +99,7 @@ Reconciliation must refuse every mutation without reading other fields.
   "LauncherHost": "WindowsPowerShell",
   "LauncherLayout": "TabbedList",
   "DefaultSortOrder": "NameAscending",
-  "CloseAfterLaunch": true,
+  "CloseAfterLaunch": false,
   "Cache": {
     "MaximumSizeMB": 64,
     "MaximumAgeDays": 30
@@ -113,7 +125,7 @@ Reconciliation must refuse every mutation without reading other fields.
 | `LauncherHost` | String | `WindowsPowerShell` | `WindowsPowerShell` or `PowerShell7` |
 | `LauncherLayout` | String | `TabbedList` | `Grid` or `TabbedList` |
 | `DefaultSortOrder` | String | `NameAscending` | `NameAscending` or `NameDescending` |
-| `CloseAfterLaunch` | Boolean | `true` | No coercion from strings or numbers |
+| `CloseAfterLaunch` | Boolean | `false` | No coercion from strings or numbers |
 | `Cache.MaximumSizeMB` | Integer | `64` | Inclusive range `16..256` |
 | `Cache.MaximumAgeDays` | Integer | `30` | Inclusive range `1..90` |
 | `Diagnostics.LogName` | String | `LaunchTree` | Non-empty and valid for Windows Event Log registration |
@@ -134,7 +146,7 @@ The user preference file is UTF-8 JSON and may contain only presentation state:
 {
   "SchemaVersion": 1,
   "SortOrder": "NameAscending",
-  "CloseAfterLaunch": true,
+  "CloseAfterLaunch": false,
   "Window": {
     "Width": null,
     "Height": null,
@@ -273,13 +285,33 @@ in executable PowerShell text. Windows paths cannot contain a double quote, and
 Reconciliation must reject any bootstrap or configuration path that cannot be
 represented as one quoted argument. Argument encoding must follow Windows
 `CommandLineToArgvW` escaping, including doubling trailing backslashes before a
-closing quote. The bootstrap accepts only a GUID Entry ID,
+closing quote. The bootstrap accepts a GUID Entry ID,
 loads the ownership record, verifies that the ID and normalized Managed Root
-still match, and then starts or contacts the session-local Launcher.
+still match, and then starts or contacts the session-local Launcher. Its second
+parameter set exists only for the user-owned shortcuts of `CR-015` and is never
+used by Reconciliation.
 
 The Launcher uses a `Local\` session-scoped mutex and a current-user-only named
 pipe. This produces one process per interactive logon session without allowing
 another user or session to redirect activation.
+
+### CR-015 Entry Root shortcut arguments
+
+A shortcut created by `FR-035` is user-owned rather than Generated State, so it
+names its Entry Root directly instead of carrying an Entry ID. Its argument
+sequence for the single-file deliveries is:
+
+```text
+-NoLogo -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -STA -File "<delivery>.ps1" -Command "Show" -ManagedRoot "<absolute-path>" -EntryName "<name>" [-CloseAfterLaunch]
+```
+
+The module delivery omits the `-Command` pair and targets
+`<ModuleBase>\Scripts\Start-LaunchTreeLauncher.ps1`, whose second parameter set
+accepts `EntryName`, `ManagedRoot`, and `CloseAfterLaunch`. Every value is a
+`-File` argument, never executable PowerShell text, and uses the same
+`CommandLineToArgvW` escaping as `CR-011`. The window style is hidden, the
+working directory is the delivery directory, and the shortcut carries no Entry
+ID, ownership record, or Generated State.
 
 ## Event log access
 

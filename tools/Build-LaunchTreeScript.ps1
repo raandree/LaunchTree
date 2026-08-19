@@ -444,6 +444,9 @@ param(
     [switch] $SkipEventLogRegistration,
 
     [Parameter()]
+    [switch] $CloseAfterLaunch,
+
+    [Parameter()]
     [switch] $Force
 )
 
@@ -482,6 +485,10 @@ $minimalHeader = @'
     .PARAMETER ManagedRoot
         Overrides the Managed Root that supplies Entry Roots.
 
+    .PARAMETER CloseAfterLaunch
+        Closes the Launcher after a Launch Item starts. Omit it to keep the
+        Launcher open so more items can be started from the same window.
+
     .EXAMPLE
         .\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot D:\temp\ -EntryName Programs
 
@@ -505,9 +512,17 @@ param(
 
     [Parameter()]
     [ValidateNotNullOrEmpty()]
-    [string] $ManagedRoot
+    [string] $ManagedRoot,
+
+    [Parameter()]
+    [switch] $CloseAfterLaunch
 )
 
+$script:LaunchTreeStandalonePath = if ($PSCommandPath) {
+    $PSCommandPath
+} else {
+    $MyInvocation.MyCommand.Path
+}
 $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 '@
 
@@ -572,7 +587,7 @@ if ($Command -eq 'ClearCache') {
 }
 
 $splat = @{}
-foreach ($parameterName in @('EntryName', 'ManagedRoot')) {
+foreach ($parameterName in @('EntryName', 'ManagedRoot', 'CloseAfterLaunch')) {
     if ($PSBoundParameters.ContainsKey($parameterName)) {
         $splat[$parameterName] = $PSBoundParameters[$parameterName]
     }

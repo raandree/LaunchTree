@@ -7,7 +7,7 @@
     "LauncherHost": "WindowsPowerShell",
     "LauncherLayout": "TabbedList",
     "DefaultSortOrder": "NameAscending",
-    "CloseAfterLaunch": true,
+    "CloseAfterLaunch": false,
     "Cache": {
         "MaximumSizeMB": 64,
         "MaximumAgeDays": 30

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add a shortcut wizard to the Launcher: the gear at the right of the title bar
+  opens a three-step dialog that takes one Entry Root folder such as
+  `\\contoso.com\Data\Files\programs`, derives the Managed Root from its parent
+  and the Entry Root name from its last segment, asks whether the Launcher
+  should close after a launch, and writes the shortcut to a location chosen in a
+  save dialog; the produced shortcut runs the delivery that created it with
+  `-Command Show -ManagedRoot <path> -EntryName <name>` and is user-owned rather
+  than Generated State
+- Add a `CloseAfterLaunch` switch to `Get-LaunchTreeConfiguration` and
+  `Show-LaunchTree` so one invocation can decide whether the Launcher closes
+  after an item starts, and an `EntryName`/`ManagedRoot` parameter set to the
+  module launcher bootstrap so a wizard-created shortcut works from the module
+  delivery as well
 - Add `Clear-LaunchTreeCache`, which discards every cached icon in the resolved
   cache namespace, supports `ShouldProcess`, keeps the namespace directory, and
   reports the entry count and bytes reclaimed; a cache key covers only the
@@ -74,6 +87,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Keep the Launcher open after a Launch Item starts. `CloseAfterLaunch` now
+  defaults to `false`, so a user can start several items from one window; set it
+  to `true` in the machine configuration or the user preference file, or pass
+  `-CloseAfterLaunch`, to restore the previous behavior
 - Hide Content Source metadata from compact Launcher rows; a Launch Item or
   Menu Folder without a description now shows no subtitle instead of
   `Managed`, `Personal`, or `Managed+Personal`
@@ -125,6 +142,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix the Launcher failing to start under Windows PowerShell 5.1, the default
+  `LauncherHost` every Start Entry and shortcut uses. Compiling the native
+  window helper reported that `System.Windows.Markup.IQueryAmbient` was defined
+  in an unreferenced assembly, because `Window` implements it and the Windows
+  PowerShell compiler will not resolve `System.Xaml` implicitly. The reference
+  is now explicit
 - Show the LaunchTree application icon on the Launcher taskbar button instead
   of the PowerShell host icon by assigning a per-window AppUserModelID when WPF
   creates the native window
