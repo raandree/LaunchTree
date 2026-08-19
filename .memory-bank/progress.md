@@ -193,6 +193,27 @@ release remains gated by external environment evidence.
   ASCII, which is why the suite never caught it. Verified against the real
   folder: all three items appear with no Health Finding. Suite: 198 passed,
   1 skip.
+- 2026-08-19: Investigated a follow-up report that the same folder still showed
+  blank icons for three `.url` items, suspected to be a second decoding fault
+  because one `IconFile` reads `IT Service Hashtag wei\xDF gro\xDF.ico`. No defect:
+  the shortcut is plain CP1252, the host ANSI code page is 1252, and the icon
+  never passes through LaunchTree at all because `NativeIcon` hands the shell
+  the `.url` path and the internet shortcut handler resolves `IconFile` itself.
+  A probe pinned it down by pixel hash: a CP1252 shortcut pointing at an
+  existing `Test wei\xDF gro\xDF.ico` extracted a distinct icon, while a shortcut
+  pointing at a missing sharp-s target and the real shortcut both produced the
+  identical generic-document bitmap. All three targets are simply absent -
+  `C:\temp\1 2\LaunchTree.ico` and `Wegweiser-modern.ico` do not exist, and the
+  sharp-s file was saved as `IT Service Hashtag wei\xDF gro\xDF.ico.ico`. The two
+  items that do render point at no `IconFile` and at `SHELL32.dll`. Treat a
+  blank Launch Item icon as a missing `IconFile` target until a byte dump says
+  otherwise. Nothing in the module changed. Follow-up: after the customer fixed
+  the file name the Launcher still showed the blank icon, because
+  `Get-LaunchTreeIconCachePath` keys on the shortcut's own path, length, and
+  `LastWriteTimeUtc` and never observes the icon target, so deploying or
+  renaming an `IconFile` cannot invalidate the entry. It self-heals only at the
+  30-day `MaximumAgeDays` trim. Deleting the one cache entry restored the icon;
+  the durable fix is undecided.
 
 ## Stable capabilities
 
