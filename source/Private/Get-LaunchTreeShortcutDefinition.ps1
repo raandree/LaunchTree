@@ -6,8 +6,9 @@ function Get-LaunchTreeShortcutDefinition {
         [ValidateNotNullOrEmpty()]
         [string] $EntryRootPath,
 
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyString()]
         [string] $LauncherHostPath,
 
         [Parameter(Mandatory)]
@@ -19,8 +20,18 @@ function Get-LaunchTreeShortcutDefinition {
         [string] $LauncherCommand,
 
         [Parameter()]
+        [switch] $LauncherIsExecutable,
+
+        [Parameter()]
         [switch] $CloseAfterLaunch
     )
+
+    if (-not $LauncherIsExecutable -and [string]::IsNullOrWhiteSpace($LauncherHostPath)) {
+        throw [System.ArgumentException]::new(
+            'A script Launcher needs the path of its Launcher Host.',
+            'LauncherHostPath'
+        )
+    }
 
     $expandedPath = [Environment]::ExpandEnvironmentVariables($EntryRootPath).Trim().Trim('"')
     if ([string]::IsNullOrWhiteSpace($expandedPath)) {
@@ -77,19 +88,21 @@ function Get-LaunchTreeShortcutDefinition {
     }
 
     $argumentParts = [System.Collections.Generic.List[string]]::new()
-    foreach ($part in @(
-            '-NoLogo'
-            '-NoProfile'
-            '-NonInteractive'
-            '-WindowStyle'
-            'Hidden'
-            '-ExecutionPolicy'
-            'Bypass'
-            '-STA'
-            '-File'
-            (ConvertTo-LaunchTreeCommandLineArgument -Value $LauncherPath)
-        )) {
-        [void] $argumentParts.Add($part)
+    if (-not $LauncherIsExecutable) {
+        foreach ($part in @(
+                '-NoLogo'
+                '-NoProfile'
+                '-NonInteractive'
+                '-WindowStyle'
+                'Hidden'
+                '-ExecutionPolicy'
+                'Bypass'
+                '-STA'
+                '-File'
+                (ConvertTo-LaunchTreeCommandLineArgument -Value $LauncherPath)
+            )) {
+            [void] $argumentParts.Add($part)
+        }
     }
     if (-not [string]::IsNullOrWhiteSpace($LauncherCommand)) {
         [void] $argumentParts.Add('-Command')
@@ -121,7 +134,7 @@ function Get-LaunchTreeShortcutDefinition {
         PSTypeName       = 'LaunchTree.ShortcutDefinition'
         ManagedRoot      = $managedRoot
         EntryName        = $entryName
-        TargetPath       = $LauncherHostPath
+        TargetPath       = if ($LauncherIsExecutable) { $LauncherPath } else { $LauncherHostPath }
         Arguments        = $argumentParts -join ' '
         WorkingDirectory = Split-Path -Path $LauncherPath -Parent
         FileName         = "$fileNameStem.lnk"

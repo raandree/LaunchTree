@@ -125,7 +125,7 @@ content and restore compatible Generated State.
 ### QR-018 Sampler build
 
 The repository must use the canonical Sampler structure, explicit function
-exports, GitVersion, Pester 5, PSScriptAnalyzer, and a detached build process.
+exports, GitVersion, Pester 6, PSScriptAnalyzer, and a detached build process.
 The full build must pass on Windows PowerShell 5.1 and PowerShell 7 x64.
 
 ### QR-019 Offline artifact

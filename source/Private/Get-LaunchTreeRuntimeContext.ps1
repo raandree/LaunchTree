@@ -15,32 +15,37 @@ function Get-LaunchTreeRuntimeContext {
         }
 
         return [PSCustomObject] @{
-            PSTypeName      = 'LaunchTree.RuntimeContext'
-            HostKind        = 'Module'
-            RootPath        = $module.ModuleBase
-            Version         = $module.Version.ToString()
-            LauncherPath    = Join-Path -Path $module.ModuleBase -ChildPath (
+            PSTypeName           = 'LaunchTree.RuntimeContext'
+            HostKind             = 'Module'
+            RootPath             = $module.ModuleBase
+            Version              = $module.Version.ToString()
+            LauncherIsExecutable = $false
+            LauncherPath         = Join-Path -Path $module.ModuleBase -ChildPath (
                 'Scripts\Start-LaunchTreeLauncher.ps1'
             )
-            LauncherCommand = $null
-            ProbePath       = Join-Path -Path $module.ModuleBase -ChildPath (
+            LauncherCommand      = $null
+            ProbePath            = Join-Path -Path $module.ModuleBase -ChildPath (
                 'Scripts\Test-LaunchTreeEventLogAccess.ps1'
             )
-            ProbeCommand    = $null
+            ProbeCommand         = $null
         }
     }
 
     $standaloneVersion = Get-Variable -Name 'LaunchTreeStandaloneVersion' -Scope Script `
         -ValueOnly -ErrorAction SilentlyContinue
 
+    # A compiled executable is its own Launcher Host; a script still needs one to run it.
+    $isExecutable = [IO.Path]::GetExtension($standalonePath) -eq '.exe'
+
     [PSCustomObject] @{
-        PSTypeName      = 'LaunchTree.RuntimeContext'
-        HostKind        = 'Script'
-        RootPath        = Split-Path -Path $standalonePath -Parent
-        Version         = if ($standaloneVersion) { $standaloneVersion } else { '0.0.0' }
-        LauncherPath    = $standalonePath
-        LauncherCommand = 'Show'
-        ProbePath       = $standalonePath
-        ProbeCommand    = 'EventLogProbe'
+        PSTypeName           = 'LaunchTree.RuntimeContext'
+        HostKind             = if ($isExecutable) { 'Executable' } else { 'Script' }
+        RootPath             = Split-Path -Path $standalonePath -Parent
+        Version              = if ($standaloneVersion) { $standaloneVersion } else { '0.0.0' }
+        LauncherIsExecutable = $isExecutable
+        LauncherPath         = $standalonePath
+        LauncherCommand      = 'Show'
+        ProbePath            = $standalonePath
+        ProbeCommand         = 'EventLogProbe'
     }
 }

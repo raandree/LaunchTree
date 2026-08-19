@@ -10,8 +10,9 @@ function Invoke-LaunchTreeStandardUserEventProbe {
         [ValidateNotNull()]
         [PSCustomObject] $Configuration,
 
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyString()]
         [string] $LauncherHostPath
     )
 
@@ -33,16 +34,18 @@ function Invoke-LaunchTreeStandardUserEventProbe {
 
     $nonce = [guid]::NewGuid().ToString('N')
     $argumentParts = [System.Collections.Generic.List[string]]::new()
-    foreach ($part in @(
-            '-NoLogo'
-            '-NoProfile'
-            '-NonInteractive'
-            '-ExecutionPolicy'
-            'Bypass'
-            '-File'
-            (ConvertTo-LaunchTreeCommandLineArgument -Value $probePath)
-        )) {
-        [void] $argumentParts.Add($part)
+    if (-not $runtime.LauncherIsExecutable) {
+        foreach ($part in @(
+                '-NoLogo'
+                '-NoProfile'
+                '-NonInteractive'
+                '-ExecutionPolicy'
+                'Bypass'
+                '-File'
+                (ConvertTo-LaunchTreeCommandLineArgument -Value $probePath)
+            )) {
+            [void] $argumentParts.Add($part)
+        }
     }
     if ($runtime.ProbeCommand) {
         [void] $argumentParts.Add('-Command')
@@ -62,8 +65,13 @@ function Invoke-LaunchTreeStandardUserEventProbe {
     }
 
     try {
+        $applicationPath = if ($runtime.LauncherIsExecutable) {
+            $probePath
+        } else {
+            $LauncherHostPath
+        }
         $exitCode = Invoke-LaunchTreeUnelevatedProcess `
-            -ApplicationPath $LauncherHostPath `
+            -ApplicationPath $applicationPath `
             -Arguments ($argumentParts -join ' ') `
             -WorkingDirectory $moduleBase `
             -TimeoutMilliseconds 20000

@@ -9,28 +9,27 @@ source: repository evidence
 
 ## Architecture
 
-Accepted: machine-wide native Start shortcuts open one session-local WPF
-launcher process. A managed directory tree supplies entry roots and a roaming
-per-user tree augments matching roots. The launcher reads snapshots, delegates
-invocation to Windows Shell, manages only generated state and caches, and takes
-opaque Entry IDs across the process boundary. Reconciliation is transactional,
-its event log is writable by standard interactive users, and runtime artifacts
-have no external dependency.
+Accepted: machine-wide native Start shortcuts open one session-local WPF launcher
+process. A managed directory tree supplies entry roots and a roaming per-user tree
+augments matching roots. The launcher reads snapshots, delegates invocation to
+Windows Shell, manages only generated state and caches, and takes opaque Entry IDs
+across the process boundary. Reconciliation is transactional, its event log is
+writable by standard interactive users, and runtime artifacts have no dependency.
 
 ## Documentation
 
 `docs/getting-started.md` is the canonical first-run operator path and links to
-deployment and specifications rather than duplicating those contracts;
+deployment and specifications instead of duplicating them;
 `tools/Initialize-QuickStart.ps1` is the scripted fast path. Every documented
-sample block must run standalone, and a multistatement block runs inside
+sample block runs standalone, multistatement ones inside
 `& { $ErrorActionPreference = 'Stop'; ... }`.
 
 ## Constraints
 
-Root resolution has one owner, `Get-LaunchTreeConfiguration`; commands forward
-the `CR-013` root overrides and the `CR-014` `CloseAfterLaunch` override to it.
-An invalid override throws instead of falling back, and `Update-LaunchTree`
-refuses root overrides because an activated Start Entry re-resolves its root.
+Root resolution has one owner, `Get-LaunchTreeConfiguration`; commands forward the
+`CR-013` root overrides and the `CR-014` `CloseAfterLaunch` override to it. An
+invalid override throws instead of falling back, and `Update-LaunchTree` refuses
+root overrides because an activated Start Entry re-resolves its root.
 
 The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
 `Invoke-LaunchTreeStandardUserEventProbe`) de-elevates through
@@ -38,9 +37,9 @@ The standard-user Event Log probe (`Initialize-LaunchTreeUnelevatedProcess` plus
 `Identification`-level from an interactive elevated admin; raising it needs
 `SeTcbPrivilege`, held only by SYSTEM, so the probe is best-effort and
 `Test-LaunchTree` reports `StandardUserEventAccessUnverified`. Windows binds an
-event source name to exactly one classic log, and `EventLog.WriteEntry`
-registers an unknown source in `Application` when the caller is elevated, so
-runtime code resolves it through `LogNameFromSourceName` first.
+event source name to one classic log, and `EventLog.WriteEntry` registers an
+unknown source in `Application` when the caller is elevated, so runtime code
+resolves it through `LogNameFromSourceName` first.
 
 An icon cache key covers the shortcut's path, length, and last-write time, never
 the icon target, so a repaired target cannot invalidate the entry it produced;
@@ -54,42 +53,44 @@ Content Source metadata uses the encoding its producing component writes:
 is ANSI, so `Get-LaunchTreeLaunchItemDetail` falls back to the ANSI code page.
 Every filesystem probe over Managed or Personal content passes an explicit
 `ErrorAction`: `Test-Path` writes a non-terminating `UnauthorizedAccessException`
-rather than `$false` when the directory denies list or traverse access. The
-description probe uses `Stop` and degrades to a `DescriptionUnavailable`
-finding; the root probes use `Ignore`.
-An Entry Root path is split with plain string operations, never `Split-Path` or
-the .NET path helpers, which throw on a bare drive specifier and disagree across
-editions about the parent of a UNC share. A wizard-created shortcut is
-user-owned: it names its Entry Root directly and Reconciliation ignores it.
+rather than `$false` when the directory denies list or traverse access; the
+description probe uses `Stop` and degrades to `DescriptionUnavailable`, the root
+probes use `Ignore`. An Entry Root path is split with plain string operations,
+never `Split-Path` or the .NET path helpers, which throw on a bare drive
+specifier and disagree across editions about the parent of a UNC share. A
+wizard-created shortcut is user-owned: it names its Entry Root directly and
+Reconciliation ignores it.
 
 Shell invocation never asks for a process object: `-PassThru` fails a launch that
 succeeded, because Windows Shell returns no handle when it hands the request to a
-running instance, an elevated process, or a protocol handler.
-A type compiled against WPF must reference `System.Xaml` explicitly, because
-`Window` implements `System.Windows.Markup.IQueryAmbient` and the Windows
-PowerShell compiler will not resolve it while PowerShell 7 does. The Launcher is
-normally hosted by Windows PowerShell, so such an omission stays invisible to a
-PowerShell 7 test run. A borderless window that carries a `WindowChrome` needs
-no maximize workaround: WPF clips its window region to the work area, but the
-remembered geometry must come from `RestoreBounds` while maximized.
+running instance, an elevated process, or a protocol handler. A type compiled
+against WPF must reference `System.Xaml` explicitly, because `Window` implements
+`System.Windows.Markup.IQueryAmbient` and the Windows PowerShell compiler will
+not resolve it while PowerShell 7 does; the Launcher is normally hosted by
+Windows PowerShell, so such an omission stays invisible to a PowerShell 7 test
+run. A borderless window that carries a `WindowChrome` needs no maximize
+workaround: WPF clips its window region to the work area, but the remembered
+geometry must come from `RestoreBounds` while maximized.
 
 ## Delivery
 
 The Sampler module under `output/module/LaunchTree/<version>` stays the
-recommended form; `output/LaunchTree.ps1` serves hosts where installing a module
-is impractical. Both come from `tools/Build-LaunchTreeScript.ps1`, which
-concatenates the selected functions and parse-checks the result.
-`-Variant Full` embeds every function during `build`. `-Variant Minimal` emits
-`output/LaunchTree.Minimal.ps1` for the `Show`, `ClearCache`, and
-`CreateShortcut` commands. Its content is derived, not curated:
+recommended form. `tools/Build-LaunchTreeScript.ps1` also emits a parse-checked
+`output/LaunchTree.ps1`, and `output/LaunchTree.Minimal.ps1` for `Show`,
+`ClearCache`, and `CreateShortcut`. Minimal content is derived, not curated:
 `tools/MinimalVariant` files replace same-named module functions to drop the
 Event Log and every JSON reader, an AST call-graph traversal selects what to
 embed, and a token comparison proves the comment strip changed nothing.
-Host-dependent values resolve through the private `Get-LaunchTreeRuntimeContext`:
-the module base, version, launcher path, and probe path as a module, and the
-script's own path plus a `-Command` token when running standalone. A binary
-asset is embedded as base64 in the private function that decodes it; the
-editable source of truth stays in `source/Assets` and a unit test guards drift.
+`tools/Build-LaunchTreeExecutable.ps1` then compiles each script into
+`output/LaunchTree.exe` and `output/LaunchTree.Minimal.exe` with the in-box
+.NET Framework compiler, embedding script and bootstrap as resources. That host
+must implement a `PSHost`, because `exit` reaches a caller only through
+`SetShouldExit`, and must bind argument names against the embedded script's
+`ParamBlock`, because splatting an argument array binds by position only. A
+compiled delivery reports `LauncherIsExecutable` from
+`Get-LaunchTreeRuntimeContext`, so its Start Entries, wizard shortcuts, and probe
+target the executable itself instead of a Launcher Host; a binary asset stays
+base64 in the private function that decodes it.
 
 ## Decisions
 
@@ -103,8 +104,7 @@ one, and a junction or mount point cannot leave the root.
 - `ADR-0001..0003`: native Start Entries open the WPF Launcher, Managed and
   Personal sources merge by relative path, Windows Shell invokes Launch Items.
 - `ADR-0004..0007`: Sampler module with a WPF runtime, transactional
-  Reconciliation with ownership records, versioned configuration, event, and
-  cache contracts, read-mostly surface amended by `Clear-LaunchTreeCache` and
-  `New-LaunchTreeShortcut`.
-- `ADR-0008..0010`: opaque Entry ID activation through a validated Launcher
-  Host, standard-user diagnostic log access, explicit long-path degradation.
+  Reconciliation, versioned configuration/event/cache contracts, read-mostly
+  surface amended by `Clear-LaunchTreeCache` and `New-LaunchTreeShortcut`.
+- `ADR-0008..0010`: opaque Entry ID activation through a validated Launcher Host,
+  standard-user diagnostic log access, long-path degradation.

@@ -147,4 +147,35 @@ Describe 'Get-LaunchTreeShortcutDefinition' -Tag 'Unit' {
             }
         } | Should -Throw -ExpectedMessage '*no parent folder*'
     }
+
+    It 'Should target a compiled executable directly instead of a Launcher Host' {
+        $definition = InModuleScope -ModuleName $moduleName {
+            $parameters = @{
+                EntryRootPath        = 'C:\Menus\Contoso\Programs'
+                LauncherPath         = 'C:\Program Files\LaunchTree\LaunchTree.Minimal.exe'
+                LauncherCommand      = 'Show'
+                LauncherIsExecutable = $true
+            }
+            Get-LaunchTreeShortcutDefinition @parameters
+        }
+
+        $definition.TargetPath | Should -Be 'C:\Program Files\LaunchTree\LaunchTree.Minimal.exe'
+        $definition.Arguments | Should -Not -Match '-File'
+        $definition.Arguments | Should -Not -Match '-ExecutionPolicy'
+        $definition.Arguments | Should -Be (
+            '-Command "Show" -ManagedRoot "C:\Menus\Contoso" -EntryName "Programs"'
+        )
+    }
+
+    It 'Should reject a script Launcher that names no Launcher Host' {
+        {
+            InModuleScope -ModuleName $moduleName {
+                $parameters = @{
+                    EntryRootPath = 'C:\Menus\Contoso\Programs'
+                    LauncherPath  = 'C:\Tools\LaunchTree.Minimal.ps1'
+                }
+                Get-LaunchTreeShortcutDefinition @parameters
+            }
+        } | Should -Throw -ExpectedMessage '*needs the path of its Launcher Host*'
+    }
 }

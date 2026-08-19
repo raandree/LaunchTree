@@ -22,7 +22,11 @@ function Show-LaunchTreeShortcutWizard {
     Initialize-LaunchTreeWpf
 
     $runtimeContext = Get-LaunchTreeRuntimeContext
-    $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost $Configuration.LauncherHost
+    $launcherHostPath = if ($runtimeContext.LauncherIsExecutable) {
+        ''
+    } else {
+        Get-LaunchTreeLauncherHostPath -LauncherHost $Configuration.LauncherHost
+    }
 
     $state = [PSCustomObject] @{
         Step       = 1
@@ -392,11 +396,12 @@ function Show-LaunchTreeShortcutWizard {
 
     $resolveDefinition = {
         $definitionParameters = @{
-            EntryRootPath    = $pathBox.Text
-            LauncherHostPath = $launcherHostPath
-            LauncherPath     = $runtimeContext.LauncherPath
-            LauncherCommand  = $runtimeContext.LauncherCommand
-            CloseAfterLaunch = $closeAfterLaunchBox.IsChecked -eq $true
+            EntryRootPath        = $pathBox.Text
+            LauncherHostPath     = $launcherHostPath
+            LauncherPath         = $runtimeContext.LauncherPath
+            LauncherCommand      = $runtimeContext.LauncherCommand
+            LauncherIsExecutable = [bool] $runtimeContext.LauncherIsExecutable
+            CloseAfterLaunch     = $closeAfterLaunchBox.IsChecked -eq $true
         }
         $state.Definition = Get-LaunchTreeShortcutDefinition @definitionParameters
     }

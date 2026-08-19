@@ -460,10 +460,15 @@ param(
     [switch] $Force
 )
 
-$script:LaunchTreeStandalonePath = if ($PSCommandPath) {
-    $PSCommandPath
-} else {
-    $MyInvocation.MyCommand.Path
+# A compiled executable runs this script from a resource, so it supplies its own path.
+$script:LaunchTreeStandalonePath = Get-Variable -Name 'LaunchTreeExecutablePath' `
+    -ValueOnly -ErrorAction SilentlyContinue
+if (-not $script:LaunchTreeStandalonePath) {
+    $script:LaunchTreeStandalonePath = if ($PSCommandPath) {
+        $PSCommandPath
+    } else {
+        $MyInvocation.MyCommand.Path
+    }
 }
 $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 '@
@@ -541,10 +546,15 @@ param(
     [switch] $CloseAfterLaunch
 )
 
-$script:LaunchTreeStandalonePath = if ($PSCommandPath) {
-    $PSCommandPath
-} else {
-    $MyInvocation.MyCommand.Path
+# A compiled executable runs this script from a resource, so it supplies its own path.
+$script:LaunchTreeStandalonePath = Get-Variable -Name 'LaunchTreeExecutablePath' `
+    -ValueOnly -ErrorAction SilentlyContinue
+if (-not $script:LaunchTreeStandalonePath) {
+    $script:LaunchTreeStandalonePath = if ($PSCommandPath) {
+        $PSCommandPath
+    } else {
+        $MyInvocation.MyCommand.Path
+    }
 }
 $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 '@

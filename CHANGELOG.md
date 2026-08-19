@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `output\LaunchTree.exe` and `output\LaunchTree.Minimal.exe`, generated
+  from the matching single-file scripts by the new build tasks
+  `Build_Single_File_Executable` and `Build_Minimal_Single_File_Executable`.
+  `tools\Build-LaunchTreeExecutable.ps1` embeds the script as a resource in a
+  .NET Framework host and compiles it with the C# compiler that ships with
+  Windows, so the delivery needs no external module and no SDK. Each executable
+  takes the parameter surface of the script it was built from, `LaunchTree.exe`
+  hides a console it created for itself so a Start Entry shows no console
+  window, and `LaunchTree.Minimal.exe` creates none
 - Add `New-LaunchTreeShortcut`, a three-step wizard that takes one Entry Root
   folder such as `\\contoso.com\Data\Files\programs`, derives the Managed Root
   from its parent and the Entry Root name from its last segment, asks whether
@@ -91,6 +100,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Recognise a compiled executable as its own Launcher Host. A Start Entry, a
+  wizard-created shortcut, and the standard-user Event Log probe now target the
+  executable directly instead of prefixing a PowerShell host and `-File`, so
+  `LauncherHost` in the machine configuration has no effect on that delivery
+- Track the latest Pester release instead of pinning `5.7.1`. The build now
+  resolves Pester 6, which keeps the classic `Should` assertions, still supports
+  Windows PowerShell 5.1 and PowerShell 7, and discovers and runs each test file
+  as a self-contained unit
 - Keep the Launcher open after a Launch Item starts. `CloseAfterLaunch` now
   defaults to `false`, so a user can start several items from one window; set it
   to `true` in the machine configuration or the user preference file, or pass

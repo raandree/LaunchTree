@@ -52,6 +52,8 @@ BuildWorkflow:
     - Create_changelog_release_output
     - Build_Single_File_Script
     - Build_Minimal_Single_File_Script
+    - Build_Single_File_Executable
+    - Build_Minimal_Single_File_Executable
 
 
   pack:

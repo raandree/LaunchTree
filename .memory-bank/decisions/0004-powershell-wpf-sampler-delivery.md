@@ -30,6 +30,14 @@ Windows PowerShell 5.1 cannot acquire that process-level capability from a
 module, so it reports and excludes over-limit content without hiding healthy
 siblings, as recorded in `ADR-0010`.
 
+## Amendments
+
+- 2026-08-19: The build tracks the latest Pester release instead of a pinned
+  version, and now resolves Pester 6. Pester 6 keeps the classic `Should`
+  assertions the suite uses and still supports Windows PowerShell 5.1 and
+  PowerShell 7, so no test needed converting. The tooling intent of this
+  decision is unchanged. Recorded in `QR-018`.
+
 ## Consequences
 
 - One source supports Windows PowerShell 5.1 and PowerShell 7.

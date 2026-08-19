@@ -21,6 +21,11 @@ load every command, or use `-Command` to run one operation. It also produces
 Launcher. See
 [single-file script delivery](docs/deployment.md#single-file-script-delivery).
 
+Each of those scripts is also compiled into a self-contained executable,
+`output\LaunchTree.exe` and `output\LaunchTree.Minimal.exe`, for machines where
+running a `.ps1` is inconvenient or blocked by policy. See
+[executable delivery](docs/deployment.md#executable-delivery).
+
 ## Content model
 
 The default Managed Root is:
@@ -64,7 +69,7 @@ selected tab appears as a row that moves the tab strip one level deeper. Select
 
 ## Development
 
-The project uses Sampler, Pester 5, ModuleBuilder, PSScriptAnalyzer, and
+The project uses Sampler, Pester 6, ModuleBuilder, PSScriptAnalyzer, and
 GitVersion. Run builds and tests through the detached launcher described in the
 project instructions. The `Validate documentation` VS Code task checks the
 Memory Bank, specification identifiers, references, links, and sign-off state.

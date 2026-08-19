@@ -10,8 +10,9 @@ function New-LaunchTreeStartEntry {
         [ValidateNotNullOrEmpty()]
         [string] $LiteralPath,
 
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyString()]
         [string] $LauncherHostPath,
 
         [Parameter(Mandatory)]
@@ -34,24 +35,36 @@ function New-LaunchTreeStartEntry {
         [string] $CommandName,
 
         [Parameter()]
+        [switch] $LauncherIsExecutable,
+
+        [Parameter()]
         [AllowEmptyString()]
         [string] $Description
     )
 
+    if (-not $LauncherIsExecutable -and [string]::IsNullOrWhiteSpace($LauncherHostPath)) {
+        throw [System.ArgumentException]::new(
+            'A script bootstrap needs the path of its Launcher Host.',
+            'LauncherHostPath'
+        )
+    }
+
     $argumentParts = [System.Collections.Generic.List[string]]::new()
-    foreach ($part in @(
-            '-NoLogo'
-            '-NoProfile'
-            '-NonInteractive'
-            '-WindowStyle'
-            'Hidden'
-            '-ExecutionPolicy'
-            'Bypass'
-            '-STA'
-            '-File'
-            (ConvertTo-LaunchTreeCommandLineArgument -Value $BootstrapPath)
-        )) {
-        [void] $argumentParts.Add($part)
+    if (-not $LauncherIsExecutable) {
+        foreach ($part in @(
+                '-NoLogo'
+                '-NoProfile'
+                '-NonInteractive'
+                '-WindowStyle'
+                'Hidden'
+                '-ExecutionPolicy'
+                'Bypass'
+                '-STA'
+                '-File'
+                (ConvertTo-LaunchTreeCommandLineArgument -Value $BootstrapPath)
+            )) {
+            [void] $argumentParts.Add($part)
+        }
     }
     if ($CommandName) {
         [void] $argumentParts.Add('-Command')
@@ -73,7 +86,7 @@ function New-LaunchTreeStartEntry {
     try {
         $shell = New-Object -ComObject WScript.Shell
         $shortcut = $shell.CreateShortcut($LiteralPath)
-        $shortcut.TargetPath = $LauncherHostPath
+        $shortcut.TargetPath = if ($LauncherIsExecutable) { $BootstrapPath } else { $LauncherHostPath }
         $shortcut.Arguments = $argumentParts -join ' '
         $shortcut.WorkingDirectory = $WorkingDirectory
         $shortcut.Description = $Description

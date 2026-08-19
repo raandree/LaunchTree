@@ -126,6 +126,51 @@ The replaced implementations live in `tools/MinimalVariant`. A unit test
 compares the configuration object of both deliveries so the reduced one cannot
 drift from the module contract.
 
+## Executable delivery
+
+The build compiles each single-file script into a self-contained executable:
+
+```text
+output\LaunchTree.exe
+output\LaunchTree.Minimal.exe
+```
+
+`tools\Build-LaunchTreeExecutable.ps1` embeds the generated script as a resource
+in a small .NET Framework host and compiles it with the C# compiler that ships
+with Windows. No external module or SDK is involved, and the result needs
+nothing installed on the target machine beyond .NET Framework 4, which is part
+of Windows. Do not edit an executable; edit the module source and rebuild.
+
+Each executable takes exactly the parameters of the script it was built from,
+so every `-Command` example above works unchanged:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.exe' -Command Update -Force
+& 'C:\Program Files\LaunchTree\LaunchTree.exe' -Command Test
+& 'C:\Program Files\LaunchTree\LaunchTree.Minimal.exe' -Command Show `
+    -ManagedRoot 'D:\temp\' -EntryName 'Programs'
+```
+
+`LaunchTree.exe` is a console application. It hides a console window it created
+for itself, so a Start Entry or a double click shows no console while a terminal
+still receives the output and the exit code. `LaunchTree.Minimal.exe` is a
+windows application that never creates one.
+
+Reconciliation performed by an executable points its Start Entries at the
+executable itself rather than at a Launcher Host, so `LauncherHost` in the
+machine configuration has no effect on that delivery. Copy the file to a stable
+machine-wide path before reconciling, and rerun Reconciliation after a move or
+rename, exactly as for the script.
+
+Two limitations distinguish this delivery from the script:
+
+- The embedded script is not a file on disk, so under Windows Defender
+  Application Control or AppLocker in enforcement it runs in Constrained
+  Language Mode even where an allowed `.ps1` would not. Verify the delivery
+  against your policy before choosing it.
+- The executable is unsigned. Sign it yourself before distributing it outside
+  the machine that built it, and allow its path just as you would the script.
+
 ## File-copy installation
 
 1. Copy the built version directory to a module path, for example:

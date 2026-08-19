@@ -67,9 +67,11 @@ function Register-LaunchTreeEventLog {
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'MaxSize' -Value $maximumBytes -Type DWord
     Set-ItemProperty -LiteralPath $eventLogKey -Name 'Retention' -Value 0 -Type DWord
 
-    $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost (
-        $Configuration.LauncherHost
-    )
+    $launcherHostPath = if ((Get-LaunchTreeRuntimeContext).LauncherIsExecutable) {
+        ''
+    } else {
+        Get-LaunchTreeLauncherHostPath -LauncherHost $Configuration.LauncherHost
+    }
     $probeParameters = @{
         Configuration    = $Configuration
         LauncherHostPath = $launcherHostPath

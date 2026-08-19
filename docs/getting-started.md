@@ -129,6 +129,23 @@ shortcut, and no Reconciliation:
 .\output\LaunchTree.Minimal.ps1 -Command CreateShortcut
 ```
 
+## Use the executable
+
+The build compiles each of those scripts into `output\LaunchTree.exe` and
+`output\LaunchTree.Minimal.exe`. Each executable carries its script inside
+itself and takes the same parameters, so every command above works unchanged:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.exe' -Command Update -Force
+& 'C:\Program Files\LaunchTree\LaunchTree.exe' -Command Test
+```
+
+Reconciliation performed by an executable points its Start Entries at the
+executable itself, so no PowerShell host appears in the shortcut. Copy the file
+to a stable machine-wide path before reconciling, exactly as for the script.
+`LaunchTree.Minimal.exe` opens no console window at all, which makes it the
+simplest delivery for a shortcut a user double-clicks.
+
 ## Run the setup script
 
 The setup script writes a default machine configuration, creates one sample

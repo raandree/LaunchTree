@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-29
+last-verified: 2026-08-19
 owner: active-agent
 source: repository evidence
 ---
@@ -14,6 +14,31 @@ reviewed, and green under PowerShell 7 and Windows PowerShell 5.1. Production
 release remains gated by external environment evidence.
 
 ## Recent milestones
+
+- 2026-08-19: Added a compiled executable delivery for both single-file scripts.
+  `tools/Build-LaunchTreeExecutable.ps1` embeds the generated script and a
+  bootstrap as managed resources in the C# host under `tools/StandaloneHost`,
+  compiles it with the in-box .NET Framework `csc.exe`, and smoke-runs the
+  result; two Sampler tasks emit `LaunchTree.exe` (console, hides a console it
+  owns) and `LaunchTree.Minimal.exe` (windows subsystem). Two findings shaped it:
+  splatting an argument array binds by position only, so the bootstrap resolves
+  parameter names against the embedded script's own `ParamBlock`; and a custom
+  `PSHost` is what makes `exit` observable, because `SetShouldExit` is never
+  called under the default host. A compiled delivery is its own Launcher Host, so
+  `Get-LaunchTreeRuntimeContext` gained `LauncherIsExecutable` and the Start
+  Entry, wizard, and probe drop the PowerShell prefix. Verified by an isolated
+  Reconciliation: the Start Entry targets `LaunchTree.exe -Command "Show"`.- 2026-08-19: Moved the Pester build dependency from the pinned `5.7.1` to
+  `latest`, which resolves Pester 6.1.0. No test needed converting: the suite
+  uses only the classic `Should` assertions and `Should -Invoke`, which Pester 6
+  keeps, and it contains none of the removed constructs (`Assert-MockCalled`,
+  `Assert-VerifiableMock`, `-Focus`, `Set-ItResult -Pending`, mock fall-through,
+  duplicate setup blocks, empty `-ForEach`). PowerShell 7 and Windows
+  PowerShell 5.1 both report 243 passed, 2 intentional non-STA skips. One
+  failure remains and is pre-existing rather than version-related: the
+  `Get-LaunchTreeContentSnapshot` deny-ACL test expects both
+  `DescriptionUnavailable` and `ContentPathInaccessible` but sees only
+  `ContentPathInaccessible`, and it fails identically when Pester 5.7.1 is
+  imported explicitly.
 
 - 2026-08-19: Fixed a customer report that the Launcher showed a red error after
   an item had started fine. `Invoke-LaunchTreeLaunchItem` asked `Start-Process`
@@ -61,28 +86,19 @@ release remains gated by external environment evidence.
   geometry and sort order are no longer remembered.
 - 2026-07-29: Built the `TabbedList` Launcher Layout and made it the default on
   customer request; `Grid` stays selectable through `LauncherLayout`. Added
-  `CR-013` root overrides on `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
-  `Test-LaunchTree`, and `Export-LaunchTreeSupportBundle`, rejecting a relative
-  value instead of falling back; `Update-LaunchTree` is excluded because an
-  activated Start Entry re-resolves the root from the configuration file.
-  Replaced the tall header with one compact line that doubles as the drag
-  handle and restores a remembered position clamped to the virtual screen.
-  Durable lessons from that run, each paid for by a live-UI failure: a themed
-  `ComboBox` needs a full XAML `Style` or it renders as a classic control
-  inside the dark window; a fixed-height tab strip starves its labels once a
-  scrollbar appears, so it must size to content; a tab handler that rebuilds
-  the strip from shared selection state enters the wrong folder, so tab-strip
-  owner and selected tab are tracked separately and only a list row descends;
-  and `TabItem.DesiredSize` or a single `ExtentWidth` read under-measures the
-  strip by about one tab, so the width fit grows by reported overflow until
-  scrolling stops. Menu Folders with no Launch Item beneath them are hidden,
-  and a tab whose owner holds no Launch Item of its own redirects to its first
-  child unless nothing can replace it. Added `AS-018` and `AS-020`.
+  `CR-013` root overrides on the read commands, rejecting a relative value
+  instead of falling back, and replaced the tall header with one compact line
+  that doubles as the drag handle and restores a remembered position clamped to
+  the virtual screen. Durable live-UI lessons: a themed `ComboBox` needs a full
+  XAML `Style`; a fixed-height tab strip starves its labels once a scrollbar
+  appears; tab-strip owner and selected tab must be tracked separately so only a
+  list row descends; and `TabItem.DesiredSize` under-measures the strip, so the
+  width fit grows by reported overflow until scrolling stops. Menu Folders with
+  no Launch Item beneath them are hidden. Added `AS-018` and `AS-020`.
 - 2026-08-06: Prepared the repository for a public release. A disclosure audit
   of every tracked file, commit, and historical screenshot blob found no
-  personally identifiable information, secrets, or customer reference; the
-  author identity in commit metadata is accepted as public. Added the MIT
-  `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and `CODEOWNERS`, and replaced
+  personally identifiable information, secrets, or customer reference. Added the
+  MIT `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, and replaced
   the contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
 - 2026-08-17: Made `.memory-bank/promptHistory.md` local-only by rewriting all
   38 commits on `main` with `git filter-branch --index-filter`. Every SHA
@@ -123,36 +139,24 @@ release remains gated by external environment evidence.
   `description.txt` all place the tab strip at the same position.
 - 2026-08-18: Fixed a customer report that a Managed Root on a DFS namespace
   found no Entry Roots. A DFS link is a directory reparse point, and traversal
-  skipped every reparse point, so `Show-LaunchTree` threw `Entry Root '<name>'
-  was not found`. Traversal now reads the reparse tag through `FindFirstFileW`
-  and admits only `IO_REPARSE_TAG_DFS` and `IO_REPARSE_TAG_DFSR`; junctions,
-  symbolic links, and mount points stay excluded with a `ReparsePointIgnored`
-  finding. Verified on the lab namespace `\\contoso.com\Data`, whose `Files`
-  link targets the hidden shares `\\vwS1\Files$` and `\\vwS2\Files$`: the Entry
-  Root is discovered, 201 objects are read through the referral, the DFSR mount
-  point is still ignored, and the Minimal delivery opens the Launcher with the
-  customer's exact command on both editions. Suite: 197 passed, 1 skip.
+  skipped every reparse point. Traversal now reads the reparse tag through
+  `FindFirstFileW` and admits only `IO_REPARSE_TAG_DFS` and `IO_REPARSE_TAG_DFSR`;
+  junctions, symbolic links, and mount points stay excluded with a
+  `ReparsePointIgnored` finding. Verified on the lab namespace
+  `\\contoso.com\Data`, whose `Files` link targets hidden shares: 201 objects
+  read through the referral, DFSR mount point still ignored. Suite: 197 passed.
 - 2026-08-19: Fixed a customer report that a folder holding three `.url` files
   showed only two. `Get-LaunchTreeLaunchItemDetail` read the whole shortcut with
   a strict UTF-8 decoder, so one byte of the system ANSI code page anywhere in
-  the file threw and the shortcut was dropped as `LaunchItemInvalid`. The byte
-  sat in `IconFile=C:\...\IT Service Hashtag wei\xDF gro\xDF.ico`, a field the menu
-  never reads. Windows writes `.url` files in the ANSI code page, and no
-  requirement demands UTF-8 for them, so the read now falls back to
-  `TextInfo.ANSICodePage` on `DecoderFallbackException`; the `http`/`https`
-  scheme check is unchanged. Every existing test wrote its `.url` fixtures as
-  ASCII, which is why the suite never caught it. Verified against the real
-  folder: all three items appear with no Health Finding. Suite: 198 passed,
-  1 skip.
+  the file threw and the shortcut was dropped as `LaunchItemInvalid` — here in
+  `IconFile`, a field the menu never reads. Windows writes `.url` files in the
+  ANSI code page, so the read now falls back to `TextInfo.ANSICodePage` on
+  `DecoderFallbackException`. Every existing fixture was ASCII, which is why the
+  suite never caught it. Suite: 198 passed, 1 skip.
 - 2026-08-19: Investigated a follow-up report that the same folder still showed
-  blank icons for three `.url` items. No defect: the shortcut is plain CP1252,
-  and the icon never passes through LaunchTree because the internet shortcut
-  handler resolves `IconFile` itself. A pixel-hash probe showed all three
-  targets were simply absent, one saved with a doubled `.ico.ico` extension.
-  Treat a blank Launch Item icon as a missing `IconFile` target until a byte
-  dump says otherwise. Fixing the file name did not help either, because
-  `Get-LaunchTreeIconCachePath` keys on the shortcut's own path, length, and
-  `LastWriteTimeUtc` and never observes the icon target.
+  blank icons. No defect: the internet shortcut handler resolves `IconFile`
+  itself and all three targets were absent. Treat a blank Launch Item icon as a
+  missing `IconFile` target until a byte dump says otherwise.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through
@@ -161,10 +165,8 @@ release remains gated by external environment evidence.
   returns the entry count and bytes reclaimed. `ADR-0007` fixed the public
   surface at seven commands, so it carries a dated amendment; added `FR-034` and
   wired `ClearCache` into both single-file deliveries after the customer asked
-  for it in `LaunchTree.Minimal.ps1` too, which cost one function and about 4 KB
-  because the Minimal `Get-LaunchTreeConfiguration` override already supplies
-  `Cache.Path`. Verified against the real cache: 159 entries and 561,321 bytes
-  discarded. Suite: 210 passed, 1 skip.
+  for it in `LaunchTree.Minimal.ps1` too, which cost one function and about 4 KB.
+  Verified against the real cache: 159 entries discarded. Suite: 210 passed.
 - 2026-08-19: Removed Content Source subtitles from compact Launcher rows.
 - 2026-08-19: Fixed the Launcher taskbar button showing the PowerShell host
   icon even though the window and Alt+Tab used the embedded LaunchTree icon.

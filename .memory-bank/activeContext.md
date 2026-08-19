@@ -79,6 +79,12 @@ while preserving the approved behavior and security boundaries.
   unchanged. `output/LaunchTree.Minimal.ps1` is derived from the
   `Show-LaunchTree` call graph for hosts that only open the Launcher, and needs
   the same external matrix coverage as the other two deliveries.
+- The build also compiles each of those scripts into `output/LaunchTree.exe` and
+  `output/LaunchTree.Minimal.exe` with the in-box .NET Framework compiler, so an
+  executable delivery costs no external dependency. The embedded script is not a
+  file on disk, so under WDAC or AppLocker enforcement it runs in Constrained
+  Language Mode where an allowed `.ps1` would not; the executables are unsigned
+  and need the same external matrix coverage as the other deliveries.
 - A Managed Root on a DFS namespace works: traversal admits the DFS reparse
   tags and still refuses junctions, symbolic links, and mount points. Hidden
   (`$`) link targets need no special handling, because the referral is resolved
@@ -119,6 +125,17 @@ while preserving the approved behavior and security boundaries.
   `System.Xaml` was not referenced. Because 5.1 is the default `LauncherHost`,
   every Start Entry was affected while the PowerShell 7 test run stayed green.
   Validate host-dependent WPF work on the edition that actually hosts it.
+- The Pester build dependency is `latest` rather than a pinned version and now
+  resolves Pester 6.1.0 on both supported editions. The suite needed no
+  conversion, because it uses only the classic `Should` assertions that Pester 6
+  keeps. New tests must stay self-contained: Pester 6 discovers and runs one file
+  at a time, so a discovery-time side effect no longer reaches another file.
+- The `Get-LaunchTreeContentSnapshot` test 'Should report a Menu Folder that
+  denies access without writing a host error' fails on `main`. It expects both
+  `DescriptionUnavailable` and `ContentPathInaccessible` but the snapshot reports
+  only `ContentPathInaccessible`. The failure predates the Pester upgrade and
+  reproduces with Pester 5.7.1, so it belongs to the denied-Menu-Folder work,
+  not to the dependency change.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

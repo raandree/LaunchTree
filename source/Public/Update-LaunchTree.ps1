@@ -91,9 +91,11 @@ function Update-LaunchTree {
         )
     }
 
-    $launcherHostPath = Get-LaunchTreeLauncherHostPath -LauncherHost (
-        $configuration.LauncherHost
-    )
+    $launcherHostPath = if ($runtime.LauncherIsExecutable) {
+        ''
+    } else {
+        Get-LaunchTreeLauncherHostPath -LauncherHost $configuration.LauncherHost
+    }
     $eventProbe = $null
     if (-not $SkipEventLogRegistration) {
         $eventProbe = Register-LaunchTreeEventLog -Configuration $configuration
@@ -242,14 +244,15 @@ function Update-LaunchTree {
                 '{0}.lnk' -f $entry.EntryId
             )
             $shortcutParameters = @{
-                LiteralPath       = $stagedShortcut
-                LauncherHostPath  = $launcherHostPath
-                BootstrapPath     = $bootstrapPath
-                EntryId           = [guid] $entry.EntryId
-                ConfigurationPath = [IO.Path]::GetFullPath($ConfigurationPath)
-                WorkingDirectory  = $moduleBase
-                CommandName       = $runtime.LauncherCommand
-                Description       = $entry.Description
+                LiteralPath          = $stagedShortcut
+                LauncherHostPath     = $launcherHostPath
+                BootstrapPath        = $bootstrapPath
+                EntryId              = [guid] $entry.EntryId
+                ConfigurationPath    = [IO.Path]::GetFullPath($ConfigurationPath)
+                WorkingDirectory     = $moduleBase
+                CommandName          = $runtime.LauncherCommand
+                LauncherIsExecutable = [bool] $runtime.LauncherIsExecutable
+                Description          = $entry.Description
             }
             New-LaunchTreeStartEntry @shortcutParameters
             $entry | Add-Member -NotePropertyName StagedShortcut -NotePropertyValue $stagedShortcut

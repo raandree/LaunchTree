@@ -1,6 +1,6 @@
 ---
 status: current
-last-verified: 2026-07-29
+last-verified: 2026-08-19
 owner: active-agent
 source: repository evidence
 ---
@@ -10,7 +10,8 @@ source: repository evidence
 ## Stack
 
 - PowerShell module with WPF and Windows Shell integration.
-- Sampler, ModuleBuilder, Pester 5, PSScriptAnalyzer, and GitVersion.
+- Sampler, ModuleBuilder, Pester 6, PSScriptAnalyzer, and GitVersion. Build
+  dependencies track the latest release rather than a pinned version.
 
 ## Environment
 
@@ -38,9 +39,13 @@ source: repository evidence
   records, and signed design pass.
 - Single-file script: generated during `build`, parse-checked by the generator,
   and verified with no reachable module (45 commands, Reconciliation, health).
-- Full detached Sampler workflow: 159 tests pass under PowerShell 7.
-- Full detached Sampler workflow: 159 tests pass under Windows PowerShell 5.1
-  with one intentional host-dependent skip.
+- Compiled executable: generated during `build` from each single-file script,
+  smoke-run by the generator, and verified by an isolated Reconciliation whose
+  Start Entry targets the executable directly.
+- Full detached Sampler workflow under Pester 6.1.0: 243 pass, 2 intentional
+  non-STA skips, and 1 known failure on both PowerShell 7 and Windows
+  PowerShell 5.1. The failure is the `Get-LaunchTreeContentSnapshot` deny-ACL
+  Health Finding test and predates the Pester upgrade.
 - Recursive PSScriptAnalyzer: zero production-source findings.
 - `tools/New-LauncherScreenshot.ps1`: nonblank default `TabbedList` frame at
   `1204x1060` with 33 sampled colors and `Grid` frame at `1120x866` with 120

@@ -57,7 +57,7 @@ before merging.
 | `source/Public` | Exported commands, one file per command |
 | `source/Private` | Internal helpers, one file per function |
 | `source/Scripts` | Launcher bootstrap scripts copied into the built module |
-| `tests/Unit` | Pester 5 unit tests mirroring the `source` layout |
+| `tests/Unit` | Pester 6 unit tests mirroring the `source` layout |
 | `tests/QA` | Manifest, changelog, and analyzer quality tests |
 | `tools` | Repository scripts that are not shipped with the module |
 | `docs` | Design Concept, specifications, guides, and the issue register |
@@ -104,8 +104,12 @@ the documentation task fails when it is not.
 
 ## Tests
 
-- Add or update a Pester 5 test for every behavior change, in the file that
-  mirrors the changed source file.
+- Add or update a Pester 6 test for every behavior change, in the file that
+  mirrors the changed source file. Keep every test file self-contained, because
+  Pester 6 discovers and runs one file at a time.
+- The suite uses the classic `Should -Be` assertions. The Pester 6 `Should-*`
+  assertions are allowed in new tests, but do not rewrite a passing file only to
+  change its assertion style.
 - A bug fix keeps a regression test that fails before the fix.
 - Do not weaken an assertion to obtain a passing run.
 

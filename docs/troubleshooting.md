@@ -168,6 +168,23 @@ The generated `LaunchTree.ps1` behaves like the module once it is dot-sourced.
 - Do not edit the script. It is generated from the module source by
   `tools\Build-LaunchTreeScript.ps1` and is overwritten by every build.
 
+## Executable problems
+
+`LaunchTree.exe` and `LaunchTree.Minimal.exe` embed the matching script, so the
+entries above apply to them too, with these differences:
+
+- `'-<name>' is not a parameter of this executable` means the parameter does not
+  exist on the embedded script. Unlike a shell, an executable cannot be
+  dot-sourced, so every operation needs `-Command`.
+- A list value must arrive as one token, for example `-EventId 1,2`. A space
+  between the values makes the second one positional.
+- A confirmation prompt fails with `cannot confirm without a console` when the
+  executable owns no console, for example when it runs from a shortcut. Pass
+  `-Force`.
+- Commands that fail only under application control run in Constrained Language
+  Mode, because the embedded script is not a file the policy can allow. Deploy
+  the module or the script on those machines.
+
 ## Collect a Support Bundle
 
 ```powershell
