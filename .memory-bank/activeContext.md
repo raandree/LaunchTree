@@ -54,7 +54,10 @@ while preserving the approved behavior and security boundaries.
   below that, and the current path is the title tooltip.
 - The application icon is `source/Assets/LaunchTree.ico`, embedded as base64 in
   `Get-LaunchTreeApplicationIcon` so the single-file deliveries stay
-  self-contained; a unit test guards asset and embedding against drift.
+  self-contained; a unit test guards asset and embedding against drift. The
+  native Launcher window receives the per-window AppUserModelID
+  `LaunchTree.Launcher`, so Windows does not group its taskbar button under the
+  PowerShell host icon.
 - The window applies a `WindowChrome` with `CaptionHeight` and
   `GlassFrameThickness` at zero, because a borderless resizable window
   otherwise keeps its top resize border inside the visible frame and shows a

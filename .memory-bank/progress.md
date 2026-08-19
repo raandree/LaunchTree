@@ -26,27 +26,6 @@ release remains gated by external environment evidence.
   error stream and both findings, and fails without the fix. Both editions pass
   212 tests with one skip.
 
-- 2026-07-28: Baselined the project in git history: canonical Memory Bank,
-  requirements interview, signed Design Concept with 33 functional, 22 quality,
-  and 12 configuration requirements, 17 acceptance scenarios, ten ADRs, a
-  glossary, and nine issues; implemented all seven public commands; passed both
-  editions with 131 tests and an independent `APPROVE`.
-- 2026-07-28: Validated the canonical operator getting-started path from module
-  installation through first Launcher use and cleanup, including the
-  recognized/EntryId/STA failures no operator document had covered; added
-  `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware setup script that
-  reports `NotElevated`/`ModuleUnavailable` instead of failing; and renamed the
-  product from `StartMenuFolders` to `LaunchTree` everywhere while unreleased.
-- 2026-07-28: Closed OI-009. `CreateProcessWithTokenW` with the UAC-linked
-  token fails from an interactive elevated admin because that token is only
-  `Identification`-level and raising it needs `SeTcbPrivilege`, so the
-  standard-user Event Log probe is best-effort there and `Test-LaunchTree`
-  raises `StandardUserEventAccessUnverified` instead of aborting.
-- 2026-07-28: Added a second delivery form: `output/LaunchTree.ps1`, a generated
-  self-contained script holding all 45 functions. New private
-  `Get-LaunchTreeRuntimeContext` abstracts ModuleBase/version/launcher/probe
-  paths so one source serves both hosts. Verified with no module reachable.
-  Its operator documentation followed on 2026-07-29.
 - 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
@@ -57,13 +36,6 @@ release remains gated by external environment evidence.
   `tools/MinimalVariant`. Cost of the JSON removal: no machine configuration, so
   only defaults and command-line roots, and no preference file, so window
   geometry and sort order are no longer remembered.
-- 2026-07-29: Fixed the `Event source 'LaunchTree' is owned by log
-  'Application'` Reconciliation failure. `[Diagnostics.EventLog]::WriteEntry`
-  auto-registers an unknown source in the `Application` log when the caller is
-  elevated, binding the source there forever.
-  `Invoke-LaunchTreeEventLogWrite` now takes `LogName` and verifies the
-  registration through `LogNameFromSourceName` before writing, and
-  `Register-LaunchTreeEventLog` reports the `DeleteEventSource` remediation.
 - 2026-07-29: Built the `TabbedList` Launcher Layout and made it the default on
   customer request; `Grid` stays selectable through `LauncherLayout`. Added
   `CR-013` root overrides on `Get-LaunchTreeConfiguration`, `Show-LaunchTree`,
@@ -183,6 +155,11 @@ release remains gated by external environment evidence.
   because the Minimal `Get-LaunchTreeConfiguration` override already supplies
   `Cache.Path`. Suite: 210 passed, 1 skip.
 - 2026-08-19: Removed Content Source subtitles from compact Launcher rows.
+- 2026-08-19: Fixed the Launcher taskbar button showing the PowerShell host
+  icon even though the window and Alt+Tab used the embedded LaunchTree icon.
+  The native HWND now receives the per-window AppUserModelID
+  `LaunchTree.Launcher` during WPF `SourceInitialized`, separating its taskbar
+  group without changing the identity of the hosting PowerShell process.
 
 ## Stable capabilities
 

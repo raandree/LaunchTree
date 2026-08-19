@@ -1,4 +1,16 @@
 Describe 'Show-LaunchTreeWindow' -Tag 'Unit' {
+    It 'Should assign the Launcher taskbar identity when the native window is created' {
+        $projectPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..'
+        $windowSourcePath = Join-Path -Path $projectPath -ChildPath (
+            'source\Private\Show-LaunchTreeWindow.ps1'
+        )
+        $windowSource = Get-Content -LiteralPath $windowSourcePath -Raw
+
+        $windowSource | Should -Match '\$window\.Add_SourceInitialized\('
+        $windowSource | Should -Match '\[LaunchTree\.NativeWindow\]::SetAppUserModelId\('
+        $windowSource | Should -Match "'LaunchTree\.Launcher'"
+    }
+
     It 'Should not show Content Source metadata below compact row labels' {
         $projectPath = Join-Path -Path $PSScriptRoot -ChildPath '..\..\..'
         $windowSourcePath = Join-Path -Path $projectPath -ChildPath (

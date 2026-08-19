@@ -102,6 +102,9 @@
     $window = [System.Windows.Window]::new()
     $window.Title = $EntryName
     $window.Icon = $applicationIcon
+    $window.Add_SourceInitialized({
+        [LaunchTree.NativeWindow]::SetAppUserModelId($window, 'LaunchTree.Launcher')
+    })
     $window.WindowStyle = [System.Windows.WindowStyle]::None
     $window.ResizeMode = [System.Windows.ResizeMode]::CanResizeWithGrip
 

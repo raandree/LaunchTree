@@ -7,7 +7,8 @@ function Initialize-LaunchTreeWpf {
     Add-Type -AssemblyName WindowsBase
 
     if (('LaunchTree.ActivationServer' -as [type]) -and
-        ('LaunchTree.NativeIcon' -as [type])) {
+        ('LaunchTree.NativeIcon' -as [type]) -and
+        ('LaunchTree.NativeWindow' -as [type])) {
         return
     }
 
@@ -172,6 +173,93 @@ using System.Windows.Threading;
 namespace LaunchTree
 {
 
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    internal struct PropertyKey
+    {
+        public Guid FormatId;
+        public uint PropertyId;
+
+        public PropertyKey(Guid formatId, uint propertyId)
+        {
+            FormatId = formatId;
+            PropertyId = propertyId;
+        }
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    internal struct PropVariant : IDisposable
+    {
+        [FieldOffset(0)]
+        private ushort valueType;
+
+        [FieldOffset(8)]
+        private IntPtr pointerValue;
+
+        [DllImport("ole32.dll")]
+        private static extern int PropVariantClear(ref PropVariant value);
+
+        public static PropVariant FromString(string value)
+        {
+            PropVariant result = new PropVariant();
+            result.valueType = 31;
+            result.pointerValue = Marshal.StringToCoTaskMemUni(value);
+            return result;
+        }
+
+        public void Dispose()
+        {
+            PropVariantClear(ref this);
+        }
+    }
+
+    [ComImport]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [Guid("886d8eeb-8cf2-4446-8d02-cdba1dbdcf99")]
+    internal interface IPropertyStore
+    {
+        uint GetCount();
+        PropertyKey GetAt(uint propertyIndex);
+        void GetValue(ref PropertyKey key, out PropVariant value);
+        void SetValue(ref PropertyKey key, ref PropVariant value);
+        void Commit();
+    }
+
+    public static class NativeWindow
+    {
+        [DllImport("shell32.dll", PreserveSig = false)]
+        private static extern void SHGetPropertyStoreForWindow(
+            IntPtr windowHandle,
+            ref Guid interfaceId,
+            [MarshalAs(UnmanagedType.Interface)] out IPropertyStore propertyStore);
+
+        public static void SetAppUserModelId(Window window, string appUserModelId)
+        {
+            IPropertyStore propertyStore = null;
+            PropVariant value = PropVariant.FromString(appUserModelId);
+            try
+            {
+                Guid interfaceId = typeof(IPropertyStore).GUID;
+                SHGetPropertyStoreForWindow(
+                    new WindowInteropHelper(window).Handle,
+                    ref interfaceId,
+                    out propertyStore);
+                PropertyKey key = new PropertyKey(
+                    new Guid("9f4c2855-9f79-4b39-a8d0-e1d42de1d5f3"),
+                    5);
+                propertyStore.SetValue(ref key, ref value);
+                propertyStore.Commit();
+            }
+            finally
+            {
+                value.Dispose();
+                if (propertyStore != null)
+                {
+                    Marshal.FinalReleaseComObject(propertyStore);
+                }
+            }
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     internal struct NativeSize
     {
@@ -283,7 +371,8 @@ namespace LaunchTree
 }
 '@
 
-    if (-not ('LaunchTree.NativeIcon' -as [type])) {
+    if (-not ('LaunchTree.NativeIcon' -as [type]) -or
+        -not ('LaunchTree.NativeWindow' -as [type])) {
         $references = @(
             [System.Windows.Media.Imaging.BitmapSource].Assembly.Location
             [System.Windows.Window].Assembly.Location

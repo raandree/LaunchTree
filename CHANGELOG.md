@@ -125,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Show the LaunchTree application icon on the Launcher taskbar button instead
+  of the PowerShell host icon by assigning a per-window AppUserModelID when WPF
+  creates the native window
 - Fix a raw `Test-Path` access-denied error reaching the console when a Menu
   Folder below the Managed Root, such as a DFS link whose target the signed-in
   user may not read, denies list or traverse access. Probing the folder's

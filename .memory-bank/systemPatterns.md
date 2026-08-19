@@ -14,11 +14,9 @@ launcher process. A managed directory tree supplies entry roots; a roaming
 per-user tree augments matching roots. The launcher reads snapshots, delegates
 invocation to Windows Shell, manages only generated state and caches, and takes
 opaque Entry IDs across the process boundary. Reconciliation is transactional,
-and a dedicated event log is writable by standard interactive users. No runtime
-artifact has an external dependency; themed XAML and content-sized scrollbar
-strips are invariants. `TabbedList` omits `Grid` search and sort, separates
-tab-strip owner from selected tab, and keeps an owning tab only while it holds a
-Launch Item. Compact rows render descriptions only, never Content Source metadata.
+and its event log is writable by standard interactive users. Runtime artifacts
+have no external dependency. `TabbedList` separates tab-strip owner
+from selected tab; compact rows render descriptions, not Content Source metadata.
 
 ## Documentation
 
@@ -54,6 +52,8 @@ already produced. `Clear-LaunchTreeCache` is the escape hatch. Shell icon
 extraction runs on the dedicated STA worker owned by `LaunchTree.NativeIcon`,
 never on the thread pool: the internet shortcut handler answers only in an STA,
 and elsewhere the shell substitutes the generic file icon instead of failing.
+The Launcher sets `System.AppUserModel.ID` on its HWND during `SourceInitialized`;
+`Window.Icon` alone can group it under PowerShell; a process identity relabels the host.
 
 Content Source metadata is decoded with the encoding the producing Windows
 component actually writes. `description.txt` is operator-authored and stays
