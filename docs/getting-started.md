@@ -120,10 +120,12 @@ control rules for this delivery.
 
 When a machine only needs to open the Launcher, deploy
 `output\LaunchTree.Minimal.ps1` instead. It is a much smaller script that
-supports one call and no Reconciliation:
+supports opening an Entry Root and clearing the icon cache, and no
+Reconciliation:
 
 ```powershell
 .\output\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot 'D:\temp\' -EntryName 'Programs'
+.\output\LaunchTree.Minimal.ps1 -Command ClearCache
 ```
 
 ## Run the setup script

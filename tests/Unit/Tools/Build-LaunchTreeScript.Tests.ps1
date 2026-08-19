@@ -129,6 +129,7 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
             'Get-LaunchTreeContentSnapshot'
             'Initialize-LaunchTreeWpf'
             'Invoke-LaunchTreeLaunchItem'
+            'Clear-LaunchTreeCache'
         )
 
         foreach ($commandName in $expected) {
@@ -217,13 +218,18 @@ Describe 'Build-LaunchTreeScript minimal variant' -Tag 'Unit' {
         $parameterNames | Should -Be @('Command', 'EntryName', 'ManagedRoot')
     }
 
-    It 'Should accept only the Show command' {
+    It 'Should accept the Show and ClearCache commands' {
         $commandParameter = $script:minimalAst.ParamBlock.Parameters |
             Where-Object { $_.Name.VariablePath.UserPath -eq 'Command' }
         $validateSet = $commandParameter.Attributes |
             Where-Object { $_.TypeName.FullName -eq 'ValidateSet' }
 
-        @($validateSet.PositionalArguments.Value) | Should -Be @('Show')
+        @($validateSet.PositionalArguments.Value) | Should -Be @('Show', 'ClearCache')
+    }
+
+    It 'Should dispatch ClearCache to the embedded command (FR-034)' {
+        $script:minimalContent | Should -Match 'function Clear-LaunchTreeCache\b'
+        $script:minimalContent | Should -Match "if \(\`$Command -eq 'ClearCache'\)"
     }
 
     It 'Should stamp the requested version' {

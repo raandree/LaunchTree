@@ -157,18 +157,12 @@ release remains gated by external environment evidence.
   A probe pinned it down by pixel hash: a CP1252 shortcut pointing at an
   existing `Test wei\xDF gro\xDF.ico` extracted a distinct icon, while a shortcut
   pointing at a missing sharp-s target and the real shortcut both produced the
-  identical generic-document bitmap. All three targets are simply absent -
-  `C:\temp\1 2\LaunchTree.ico` and `Wegweiser-modern.ico` do not exist, and the
-  sharp-s file was saved as `IT Service Hashtag wei\xDF gro\xDF.ico.ico`. The two
-  items that do render point at no `IconFile` and at `SHELL32.dll`. Treat a
-  blank Launch Item icon as a missing `IconFile` target until a byte dump says
-  otherwise. Nothing in the module changed. Follow-up: after the customer fixed
-  the file name the Launcher still showed the blank icon, because
-  `Get-LaunchTreeIconCachePath` keys on the shortcut's own path, length, and
-  `LastWriteTimeUtc` and never observes the icon target, so deploying or
-  renaming an `IconFile` cannot invalidate the entry. It self-heals only at the
-  30-day `MaximumAgeDays` trim. Deleting the one cache entry restored the icon;
-  the durable fix is undecided.
+  identical generic-document bitmap. All three targets were simply absent, one
+  of them saved with a doubled `.ico.ico` extension. Treat a blank Launch Item
+  icon as a missing `IconFile` target until a byte dump says otherwise. Fixing
+  the file name did not help either, because `Get-LaunchTreeIconCachePath` keys
+  on the shortcut's own path, length, and `LastWriteTimeUtc` and never observes
+  the icon target, so the entry self-heals only at the `MaximumAgeDays` trim.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through
@@ -181,7 +175,12 @@ release remains gated by external environment evidence.
   into the full single-file dispatch map. Verified against the real cache: 159
   entries and 561,321 bytes discarded. Suite: 209 passed, 1 skip. The same edit
   curated `progress.md` and `systemPatterns.md` back inside their line budgets,
-  which had both been breached since before this session.
+  which had both been breached since before this session. Follow-up the same
+  day: the customer asked for it in `LaunchTree.Minimal.ps1` too, so the Minimal
+  closure now starts from both `Show-LaunchTree` and `Clear-LaunchTreeCache` and
+  the script accepts `-Command ClearCache`. It costs one function and about 4 KB
+  because the Minimal `Get-LaunchTreeConfiguration` override already supplies
+  `Cache.Path`. Suite: 210 passed, 1 skip.
 
 ## Stable capabilities
 

@@ -85,7 +85,10 @@ while preserving the approved behavior and security boundaries.
 - An icon cache entry cannot notice that its icon target changed, because the
   key covers only the shortcut. `Clear-LaunchTreeCache` is the eighth exported
   command and the supported recovery; `ADR-0007` carries a dated amendment for
-  the enlarged surface and `FR-034` specifies the behavior.
+  the enlarged surface and `FR-034` specifies the behavior. It reaches every
+  delivery: the module, `-Command ClearCache` in the full script, and the same
+  switch in `LaunchTree.Minimal.ps1`, whose embedded set now derives from two
+  entry points rather than one.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

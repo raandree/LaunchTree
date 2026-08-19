@@ -67,8 +67,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Entry point of the Minimal variant; its call graph decides what gets embedded.
-$minimalEntryPoint = 'Show-LaunchTree'
+# Entry points of the Minimal variant; their call graph decides what gets embedded.
+$minimalEntryPoint = @('Show-LaunchTree', 'Clear-LaunchTreeCache')
 
 function Get-LaunchTreeFunctionClosure {
     <#
@@ -458,21 +458,23 @@ $script:LaunchTreeStandaloneVersion = '__LAUNCHTREE_VERSION__'
 $minimalHeader = @'
 <#
     .SYNOPSIS
-        Minimal self-contained LaunchTree delivery that only opens the Launcher.
+        Minimal self-contained LaunchTree delivery that opens the Launcher.
 
     .DESCRIPTION
-        Contains only the LaunchTree logic that Show-LaunchTree needs, so it is
-        markedly smaller than the full single-file script. Reconciliation,
-        health checks, diagnostics, Support Bundle export, removal, the Event
-        Log, and every JSON file are not part of this delivery, so machine
-        configuration and user preferences fall back to built-in defaults and
-        the roots come from parameters. This file is generated from the module
-        source by tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the
-        module source instead of this script.
+        Contains only the LaunchTree logic that Show-LaunchTree and
+        Clear-LaunchTreeCache need, so it is markedly smaller than the full
+        single-file script. Reconciliation, health checks, diagnostics, Support
+        Bundle export, removal, the Event Log, and every JSON file are not part
+        of this delivery, so machine configuration and user preferences fall
+        back to built-in defaults and the roots come from parameters. This file
+        is generated from the module source by
+        tools\Build-LaunchTreeScript.ps1 -Variant Minimal; edit the module
+        source instead of this script.
 
     .PARAMETER Command
-        Specifies the operation to run. Only Show is supported. Omit it and
-        dot-source the script to load the embedded commands instead.
+        Specifies the operation to run. Show opens the Launcher and ClearCache
+        discards every cached icon. Omit it and dot-source the script to load
+        the embedded commands instead.
 
     .PARAMETER EntryName
         Specifies the Entry Root to open.
@@ -484,12 +486,17 @@ $minimalHeader = @'
         .\LaunchTree.Minimal.ps1 -Command Show -ManagedRoot D:\temp\ -EntryName Programs
 
         Opens the Programs Entry Root below the supplied Managed Root.
+
+    .EXAMPLE
+        .\LaunchTree.Minimal.ps1 -Command ClearCache
+
+        Discards every cached icon so the next run extracts them again.
 #>
 #Requires -Version 5.1
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('Show')]
+    [ValidateSet('Show', 'ClearCache')]
     [string] $Command,
 
     [Parameter()]
@@ -556,6 +563,11 @@ if ($Force -and $targetParameters.ContainsKey('Confirm')) {
 $minimalFooter = @'
 
 if (-not $Command) {
+    return
+}
+
+if ($Command -eq 'ClearCache') {
+    Clear-LaunchTreeCache
     return
 }
 

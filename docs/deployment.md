@@ -82,14 +82,21 @@ The build also produces a Launcher-only script for hosts that never reconcile:
 output\LaunchTree.Minimal.ps1
 ```
 
-The generator derives it from the `Show-LaunchTree` call graph, so it embeds
-only the functions that opening an Entry Root needs, and it then removes every
-comment and the blank lines they leave behind. What remains is the code that
-call executes. It accepts only the parameters that call needs:
+The generator derives it from the `Show-LaunchTree` and `Clear-LaunchTreeCache`
+call graphs, so it embeds only the functions those two calls need, and it then
+removes every comment and the blank lines they leave behind. What remains is the
+code those calls execute. It accepts only the parameters they need:
 
 ```powershell
 & 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command Show `
     -ManagedRoot 'D:\temp\' -EntryName 'Programs'
+```
+
+`-Command ClearCache` discards every cached icon, which a stale icon needs
+because a cache key covers the shortcut rather than the icon it points at:
+
+```powershell
+& 'C:\Program Files\LaunchTree\LaunchTree.Minimal.ps1' -Command ClearCache
 ```
 
 Reconciliation, health checks, diagnostics, Support Bundle export, removal, and
