@@ -125,6 +125,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix a raw `Test-Path` access-denied error reaching the console when a Menu
+  Folder below the Managed Root, such as a DFS link whose target the signed-in
+  user may not read, denies list or traverse access. Probing the folder's
+  `description.txt` wrote an uncaught `ItemExistsUnauthorizedAccessError` to the
+  error stream before the Launcher opened. The probe is now handled like every
+  other unreadable path and is reported as a `DescriptionUnavailable` Health
+  Finding, and probing an inaccessible Managed Root or Personal Root no longer
+  writes a raw error alongside its finding
 - Fix internet shortcut (`.url`) Launch Items silently disappearing from the
   Launcher when any line of the file is not valid UTF-8. Windows writes `.url`
   files in the system ANSI code page, so a non-ASCII character in a field the

@@ -11,7 +11,13 @@ function Get-LaunchTreeContentSnapshot {
     $objects = [System.Collections.Generic.List[object]]::new()
     $healthFindings = [System.Collections.Generic.List[object]]::new()
 
-    if (-not (Test-Path -LiteralPath $Configuration.ManagedRoot -PathType Container)) {
+    # A denied probe is reported as the finding below, never as a raw error.
+    $managedRootProbeParameters = @{
+        LiteralPath = $Configuration.ManagedRoot
+        PathType    = 'Container'
+        ErrorAction = 'Ignore'
+    }
+    if (-not (Test-Path @managedRootProbeParameters)) {
         $findingParameters = @{
             Code     = 'ManagedRootInaccessible'
             Severity = 'Error'
@@ -54,12 +60,18 @@ function Get-LaunchTreeContentSnapshot {
             }
 
             $personalEntryPath = Join-Path -Path $Configuration.PersonalRoot -ChildPath $managedEntry.Name
+            $personalProbeParameters = @{
+                LiteralPath = $personalEntryPath
+                PathType    = 'Container'
+                ErrorAction = 'Ignore'
+            }
+            $personalEntryExists = Test-Path @personalProbeParameters
             [void] $entryRoots.Add([PSCustomObject] @{
                 PSTypeName   = 'LaunchTree.EntryRoot'
                 Name         = $managedEntry.Name
                 Description  = $description
                 ManagedPath  = $managedEntry.FullName
-                PersonalPath = if (Test-Path -LiteralPath $personalEntryPath -PathType Container) {
+                PersonalPath = if ($personalEntryExists) {
                     $personalEntryPath
                 } else {
                     $null
@@ -81,7 +93,7 @@ function Get-LaunchTreeContentSnapshot {
                 [void] $healthFindings.Add($finding)
             }
 
-            if (Test-Path -LiteralPath $personalEntryPath -PathType Container) {
+            if ($personalEntryExists) {
                 $personalEntry = Get-Item -LiteralPath $personalEntryPath -Force
                 if (Test-LaunchTreeTraversableDirectory -Directory $personalEntry) {
                     $personalFragmentParameters = @{

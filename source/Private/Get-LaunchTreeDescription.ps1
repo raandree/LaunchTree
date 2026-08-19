@@ -7,7 +7,9 @@ function Get-LaunchTreeDescription {
         [string] $LiteralPath
     )
 
-    if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf)) {
+    # An unreadable path must reach the caller as a Health Finding, not as a
+    # non-terminating Test-Path error on the host error stream.
+    if (-not (Test-Path -LiteralPath $LiteralPath -PathType Leaf -ErrorAction Stop)) {
         return $null
     }
 

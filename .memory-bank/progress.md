@@ -15,6 +15,17 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
+- 2026-08-19: Fixed the access-denied error a customer saw before the Launcher
+  opened on a DFS Managed Root. `Test-Path` writes a non-terminating
+  `UnauthorizedAccessException` when the containing directory denies list or
+  traverse access, so probing a Menu Folder's `description.txt` leaked
+  `ItemExistsUnauthorizedAccessError` to the console instead of degrading. The
+  description probe now uses `-ErrorAction Stop` and degrades to a
+  `DescriptionUnavailable` finding; the root probes use `-ErrorAction Ignore`
+  beside their existing findings. A Deny-ACE regression test asserts an empty
+  error stream and both findings, and fails without the fix. Both editions pass
+  212 tests with one skip.
+
 - 2026-07-28: Baselined the project in git history: canonical Memory Bank,
   requirements interview, signed Design Concept with 33 functional, 22 quality,
   and 12 configuration requirements, 17 acceptance scenarios, ten ADRs, a
@@ -25,22 +36,17 @@ release remains gated by external environment evidence.
   recognized/EntryId/STA failures no operator document had covered; added
   `tools/Initialize-QuickStart.ps1`, a `ShouldProcess`-aware setup script that
   reports `NotElevated`/`ModuleUnavailable` instead of failing; and renamed the
-  product from `StartMenuFolders` to `LaunchTree` across module, commands,
-  paths, Event Log identity, type names, tests, specifications, and Memory Bank
-  while still unreleased.
+  product from `StartMenuFolders` to `LaunchTree` everywhere while unreleased.
 - 2026-07-28: Closed OI-009. `CreateProcessWithTokenW` with the UAC-linked
   token fails from an interactive elevated admin because that token is only
   `Identification`-level and raising it needs `SeTcbPrivilege`, so the
-  standard-user Event Log probe cannot work there. It is now best-effort:
-  `Invoke-LaunchTreeStandardUserEventProbe` returns a structured result through
-  a mockable seam, `Register-LaunchTreeEventLog` warns and emits `1603` without
-  aborting, and `Test-LaunchTree` raises `StandardUserEventAccessUnverified`.
+  standard-user Event Log probe is best-effort there and `Test-LaunchTree`
+  raises `StandardUserEventAccessUnverified` instead of aborting.
 - 2026-07-28: Added a second delivery form: `output/LaunchTree.ps1`, a generated
   self-contained script holding all 45 functions. New private
   `Get-LaunchTreeRuntimeContext` abstracts ModuleBase/version/launcher/probe
-  paths so one source serves both hosts. Verified with no module reachable: 45
-  commands loaded, Reconciliation added 1 Start Entry, health `Healthy`. Its
-  operator documentation followed on 2026-07-29.
+  paths so one source serves both hosts. Verified with no module reachable.
+  Its operator documentation followed on 2026-07-29.
 - 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
@@ -149,20 +155,15 @@ release remains gated by external environment evidence.
   folder: all three items appear with no Health Finding. Suite: 198 passed,
   1 skip.
 - 2026-08-19: Investigated a follow-up report that the same folder still showed
-  blank icons for three `.url` items, suspected to be a second decoding fault
-  because one `IconFile` reads `IT Service Hashtag wei\xDF gro\xDF.ico`. No defect:
-  the shortcut is plain CP1252, the host ANSI code page is 1252, and the icon
-  never passes through LaunchTree at all because `NativeIcon` hands the shell
+  blank icons for three `.url` items, suspected to be a second decoding fault.
+  No defect: the shortcut is plain CP1252, the host ANSI code page is 1252, and
+  the icon never passes through LaunchTree because `NativeIcon` hands the shell
   the `.url` path and the internet shortcut handler resolves `IconFile` itself.
-  A probe pinned it down by pixel hash: a CP1252 shortcut pointing at an
-  existing `Test wei\xDF gro\xDF.ico` extracted a distinct icon, while a shortcut
-  pointing at a missing sharp-s target and the real shortcut both produced the
-  identical generic-document bitmap. All three targets were simply absent, one
-  of them saved with a doubled `.ico.ico` extension. Treat a blank Launch Item
-  icon as a missing `IconFile` target until a byte dump says otherwise. Fixing
-  the file name did not help either, because `Get-LaunchTreeIconCachePath` keys
-  on the shortcut's own path, length, and `LastWriteTimeUtc` and never observes
-  the icon target, so the entry self-heals only at the `MaximumAgeDays` trim.
+  A pixel-hash probe showed all three targets were simply absent, one saved with
+  a doubled `.ico.ico` extension. Treat a blank Launch Item icon as a missing
+  `IconFile` target until a byte dump says otherwise. Fixing the file name did
+  not help either, because `Get-LaunchTreeIconCachePath` keys on the shortcut's
+  own path, length, and `LastWriteTimeUtc` and never observes the icon target.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through
@@ -181,8 +182,7 @@ release remains gated by external environment evidence.
   the script accepts `-Command ClearCache`. It costs one function and about 4 KB
   because the Minimal `Get-LaunchTreeConfiguration` override already supplies
   `Cache.Path`. Suite: 210 passed, 1 skip.
-- 2026-08-19: Removed Content Source subtitles from compact Launcher rows;
-  descriptions remain, tests guard it, and both scripts were rebuilt.
+- 2026-08-19: Removed Content Source subtitles from compact Launcher rows.
 
 ## Stable capabilities
 

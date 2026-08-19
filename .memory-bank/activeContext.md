@@ -91,6 +91,11 @@ while preserving the approved behavior and security boundaries.
   delivery: the module, `-Command ClearCache` in the full script, and the same
   switch in `LaunchTree.Minimal.ps1`, whose embedded set now derives from two
   entry points rather than one.
+- `Test-Path` does not return `$false` for a path it may not probe: it writes a
+  non-terminating `UnauthorizedAccessException`. Content traversal therefore
+  passes an explicit `ErrorAction` on every probe, so a denied Menu Folder on a
+  DFS Managed Root degrades to Health Findings instead of printing a raw error
+  before the Launcher opens.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

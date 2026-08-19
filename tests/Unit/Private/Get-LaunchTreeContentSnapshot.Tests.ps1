@@ -218,6 +218,47 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
                 Should -BeNullOrEmpty
             $result.HealthFindings.Code | Should -Contain 'DescriptionUnavailable'
         }
+
+        It 'Should report a Menu Folder that denies access without writing a host error' {
+            $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
+            @('[InternetShortcut]', 'URL=https://readable.example') |
+                Set-Content -LiteralPath (Join-Path $entry.FullName 'Readable.url') -Encoding ASCII
+            $denied = New-Item -Path (Join-Path $entry.FullName 'Denied') -ItemType Directory
+            'Denied description' |
+                Set-Content -LiteralPath (Join-Path $denied.FullName 'description.txt') -Encoding UTF8
+
+            $denyRule = [Security.AccessControl.FileSystemAccessRule]::new(
+                [Security.Principal.WindowsIdentity]::GetCurrent().User,
+                [Security.AccessControl.FileSystemRights] 'ListDirectory, ReadAttributes, Traverse',
+                [Security.AccessControl.InheritanceFlags] 'ContainerInherit, ObjectInherit',
+                [Security.AccessControl.PropagationFlags]::None,
+                [Security.AccessControl.AccessControlType]::Deny
+            )
+            $denyAcl = Get-Acl -LiteralPath $denied.FullName
+            $denyAcl.SetAccessRule($denyRule)
+            Set-Acl -LiteralPath $denied.FullName -AclObject $denyAcl
+
+            try {
+                $streams = InModuleScope -ModuleName $moduleName -Parameters @{
+                    TestConfiguration = $script:testConfiguration
+                } {
+                    Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
+                } 2>&1
+            } finally {
+                $restoreAcl = Get-Acl -LiteralPath $denied.FullName
+                $restoreAcl.RemoveAccessRuleAll($denyRule)
+                Set-Acl -LiteralPath $denied.FullName -AclObject $restoreAcl
+            }
+
+            $errorRecords = @($streams |
+                Where-Object { $_ -is [Management.Automation.ErrorRecord] })
+            $errorRecords | Should -HaveCount 0
+            $result = @($streams |
+                Where-Object { $_ -isnot [Management.Automation.ErrorRecord] })[0]
+            $result.Objects.Name | Should -Contain 'Readable'
+            $result.HealthFindings.Code | Should -Contain 'DescriptionUnavailable'
+            $result.HealthFindings.Code | Should -Contain 'ContentPathInaccessible'
+        }
     }
 
     Context 'When a Menu Folder subtree contains no Launch Item' {

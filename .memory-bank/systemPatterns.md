@@ -46,26 +46,26 @@ never throws, and `Test-LaunchTree` reports
 Windows binds an event source name to exactly one classic log, and
 `System.Diagnostics.EventLog.WriteEntry` registers an unknown source in the
 `Application` log when the caller is elevated. Runtime code therefore resolves
-the source through `[Diagnostics.EventLog]::LogNameFromSourceName` first; a
-mismatch skips the write instead of registering anything.
+the source through `[Diagnostics.EventLog]::LogNameFromSourceName` first.
 
 An icon cache key covers the shortcut's path, length, and last-write time, never
 the icon target, so a repaired target cannot invalidate the entry the shortcut
-already produced. `Clear-LaunchTreeCache` is the escape hatch.
+already produced. `Clear-LaunchTreeCache` is the escape hatch. Shell icon
+extraction runs on the dedicated STA worker owned by `LaunchTree.NativeIcon`,
+never on the thread pool: the internet shortcut handler answers only in an STA,
+and elsewhere the shell substitutes the generic file icon instead of failing.
 
-Shell icon extraction runs on the dedicated STA worker owned by
-`LaunchTree.NativeIcon`, never on the thread pool: the internet shortcut handler
-answers only in an STA, and elsewhere the shell substitutes the generic file
-icon instead of failing. The worker is one background STA thread running a WPF
-`Dispatcher`, which supplies the queue and bounds thread count at any scale.
 Content Source metadata is decoded with the encoding the producing Windows
-component actually writes, and a Launch Item is rejected only over a field the
-menu consumes. `description.txt` is operator-authored and stays strict UTF-8, so
-a bad byte degrades to a `DescriptionUnavailable` finding while the Menu Folder
-survives; a `.lnk` or `.url` is Windows-authored and therefore ANSI, so
-`Get-LaunchTreeLaunchItemDetail` falls back to `TextInfo.ANSICodePage` when the
-strict UTF-8 decode throws. The `http`/`https` scheme check remains the only
-reason to exclude a shortcut.
+component actually writes. `description.txt` is operator-authored and stays
+strict UTF-8; a `.lnk` or `.url` is Windows-authored and therefore ANSI, so
+`Get-LaunchTreeLaunchItemDetail` falls back to `TextInfo.ANSICodePage`. The
+`http`/`https` scheme check remains the only reason to exclude a shortcut.
+
+Every filesystem probe over Managed or Personal content passes an explicit
+`ErrorAction`: `Test-Path` writes a non-terminating `UnauthorizedAccessException`
+instead of returning `$false` when the containing directory denies list or
+traverse access. The description probe uses `Stop` and degrades to a
+`DescriptionUnavailable` finding; the root probes use `Ignore` beside their own.
 
 ## Delivery
 

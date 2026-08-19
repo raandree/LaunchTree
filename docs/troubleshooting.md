@@ -34,6 +34,11 @@ If an Entry Root below a DFS Managed Root is still missing, check in this order:
 3. Confirm the user has read access on the link target itself. Namespace
    permissions do not grant access behind the referral.
 
+A directory the signed-in user may not list is skipped rather than aborting the
+Launcher. `ContentPathInaccessible` names the directory, and
+`DescriptionUnavailable` names a `description.txt` that could not be probed or
+read; run `Test-LaunchTree` to see both.
+
 ## Launcher does not open from PowerShell
 
 `Show-LaunchTree` opens an Entry Root without a Start Entry:
