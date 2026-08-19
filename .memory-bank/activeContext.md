@@ -64,6 +64,8 @@ while preserving the approved behavior and security boundaries.
   opens near the Start button.
 - `TabbedList` sizes the window width to its tab strip instead of scrolling the
   tabs, and shows no item count.
+- Compact `TabbedList` rows show a description only when one exists; Content
+  Source metadata is never used as subtitle filler.
 - The repository is licensed under MIT and carries the governance files a public
   release needs: `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and `CODEOWNERS`.
   A disclosure audit of every tracked file, the full commit history, and every

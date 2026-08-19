@@ -926,11 +926,7 @@
                 $detail.Opacity = 0.72
                 $detail.Margin = [System.Windows.Thickness]::new(0, 2, 0, 0)
                 $detail.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
-                $detail.Text = if (-not [string]::IsNullOrWhiteSpace($item.Description)) {
-                    $item.Description
-                } else {
-                    $item.ContentSource
-                }
+                $detail.Text = $item.Description
 
                 $textStack = [System.Windows.Controls.StackPanel]::new()
                 $textStack.Margin = [System.Windows.Thickness]::new(12, 0, 12, 0)

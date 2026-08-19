@@ -74,6 +74,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Hide Content Source metadata from compact Launcher rows; a Launch Item or
+  Menu Folder without a description now shows no subtitle instead of
+  `Managed`, `Personal`, or `Managed+Personal`
 - Move the selected Menu Folder description out of the window title bar into its
   own `TabbedList` field between the title bar and the navigation strip; the
   field always reserves two lines so the tab strip stays put whichever tab is

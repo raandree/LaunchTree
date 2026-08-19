@@ -181,19 +181,20 @@ release remains gated by external environment evidence.
   the script accepts `-Command ClearCache`. It costs one function and about 4 KB
   because the Minimal `Get-LaunchTreeConfiguration` override already supplies
   `Cache.Path`. Suite: 210 passed, 1 skip.
+- 2026-08-19: Removed Content Source subtitles from compact Launcher rows;
+  descriptions remain, tests guard it, and both scripts were rebuilt.
 
 ## Stable capabilities
 
 - Managed and Personal Content Sources merge into immutable Content Snapshots.
 - Native Start Entries carry opaque Entry IDs into a session-local Launcher.
 - Reconciliation is ownership-aware, idempotent, and rollback-protected.
-- WPF rendering, high-resolution Shell icons, cache, preferences, search,
-  navigation, input suppression, and capture validation are implemented.
+- WPF rendering, Shell icons, cache, preferences, navigation, and capture
+  validation are implemented.
 - Event Log ACL validation, linked standard-user probing, structured event
   emission, health, and redacted Support Bundles are implemented.
 
 ## Open work
 
-- Close High-priority compatibility and validation issues before production
-  release.
+- Close High-priority compatibility and validation issues before release.
 - Implement Generated State schema migration before introducing schema 2.
