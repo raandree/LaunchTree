@@ -181,6 +181,18 @@ release remains gated by external environment evidence.
   Root is discovered, 201 objects are read through the referral, the DFSR mount
   point is still ignored, and the Minimal delivery opens the Launcher with the
   customer's exact command on both editions. Suite: 197 passed, 1 skip.
+- 2026-08-19: Fixed a customer report that a folder holding three `.url` files
+  showed only two. `Get-LaunchTreeLaunchItemDetail` read the whole shortcut with
+  a strict UTF-8 decoder, so one byte of the system ANSI code page anywhere in
+  the file threw and the shortcut was dropped as `LaunchItemInvalid`. The byte
+  sat in `IconFile=C:\...\IT Service Hashtag wei\xDF gro\xDF.ico`, a field the menu
+  never reads. Windows writes `.url` files in the ANSI code page, and no
+  requirement demands UTF-8 for them, so the read now falls back to
+  `TextInfo.ANSICodePage` on `DecoderFallbackException`; the `http`/`https`
+  scheme check is unchanged. Every existing test wrote its `.url` fixtures as
+  ASCII, which is why the suite never caught it. Verified against the real
+  folder: all three items appear with no Health Finding. Suite: 198 passed,
+  1 skip.
 
 ## Stable capabilities
 

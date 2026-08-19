@@ -59,9 +59,14 @@ Shell icon extraction runs on the dedicated STA worker owned by
 answers only in an STA, and elsewhere the shell substitutes the generic file
 icon instead of failing. The worker is one background STA thread running a WPF
 `Dispatcher`, which supplies the queue and bounds thread count at any scale;
-every frame is frozen before it crosses back. `-ReferencedAssemblies` replaces
-the PowerShell 7 default reference set, so `Initialize-LaunchTreeWpf` re-adds
-the `$PSHOME\ref` threading assemblies when that folder exists.
+Content Source metadata is decoded with the encoding the producing Windows
+component actually writes, and a Launch Item is rejected only over a field the
+menu consumes. `description.txt` is operator-authored and stays strict UTF-8, so
+a bad byte degrades to a `DescriptionUnavailable` finding while the Menu Folder
+survives. A `.lnk` or `.url` is Windows-authored and therefore ANSI, so
+`Get-LaunchTreeLaunchItemDetail` falls back to `TextInfo.ANSICodePage` when the
+strict UTF-8 decode throws; the `http`/`https` scheme check remains the only
+reason to exclude a shortcut.
 
 ## Delivery
 

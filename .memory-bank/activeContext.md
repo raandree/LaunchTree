@@ -78,6 +78,10 @@ while preserving the approved behavior and security boundaries.
   tags and still refuses junctions, symbolic links, and mount points. Hidden
   (`$`) link targets need no special handling, because the referral is resolved
   before LaunchTree reads the directory.
+- Real `.url` files are ANSI, not UTF-8. Content readers must decode a
+  shortcut leniently and validate only the fields they consume, because a
+  strict whole-file UTF-8 read made a valid Launch Item vanish over a byte in
+  `IconFile`. Content fixtures must cover ANSI bytes, not only ASCII.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

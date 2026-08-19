@@ -11,7 +11,14 @@ function Get-LaunchTreeLaunchItemDetail {
     if ($extension -eq '.url') {
         try {
             $strictUtf8 = [Text.UTF8Encoding]::new($false, $true)
-            $lines = [IO.File]::ReadAllLines($LiteralPath, $strictUtf8)
+            try {
+                $lines = [IO.File]::ReadAllLines($LiteralPath, $strictUtf8)
+            } catch [Text.DecoderFallbackException] {
+                # Windows writes internet shortcuts in the system ANSI code page.
+                $ansiCodePage = [Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage
+                $lines = [IO.File]::ReadAllLines($LiteralPath, [Text.Encoding]::GetEncoding($ansiCodePage))
+            }
+
             $urlLine = $lines | Where-Object { $_ -match '^URL=' } | Select-Object -First 1
             if (-not $urlLine) {
                 throw [System.IO.InvalidDataException]::new('The internet shortcut has no URL field.')

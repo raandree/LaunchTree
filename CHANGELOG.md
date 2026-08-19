@@ -114,6 +114,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix internet shortcut (`.url`) Launch Items silently disappearing from the
+  Launcher when any line of the file is not valid UTF-8. Windows writes `.url`
+  files in the system ANSI code page, so a non-ASCII character in a field the
+  menu never reads, such as `IconFile`, made the strict UTF-8 read throw and the
+  whole shortcut was dropped with a `LaunchItemInvalid` Health Finding. The
+  reader now falls back to the ANSI code page when the strict UTF-8 decode
+  fails; the `http`/`https` scheme check is unchanged
 - Fix a Managed Root on a DFS namespace finding no Entry Roots. A DFS link is a
   directory reparse point, and every reparse point was skipped to prevent cycles
   and root escape, so Entry Roots published as DFS links were invisible and

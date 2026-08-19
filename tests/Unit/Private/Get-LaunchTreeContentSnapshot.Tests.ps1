@@ -100,6 +100,30 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
         }
     }
 
+    Context 'When an internet shortcut is not valid UTF-8' {
+        It 'Should accept the Launch Item when a field outside URL uses the ANSI code page' {
+            $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
+            $shortcutText = @(
+                '[InternetShortcut]'
+                'URL=https://ansi.example/path'
+                # Windows writes this field in the system ANSI code page, not UTF-8.
+                ('IconFile=C:\Icons\wei{0} gro{0}.ico' -f [char] 0xDF)
+                'IconIndex=0'
+            ) -join "`r`n"
+            $shortcutBytes = [Text.Encoding]::GetEncoding(1252).GetBytes($shortcutText)
+            [IO.File]::WriteAllBytes((Join-Path $entry.FullName 'Ansi portal.url'), $shortcutBytes)
+
+            $result = InModuleScope -ModuleName $moduleName -Parameters @{
+                TestConfiguration = $script:testConfiguration
+            } {
+                Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
+            }
+
+            $result.Objects.Name | Should -Contain 'Ansi portal'
+            $result.HealthFindings.Code | Should -Not -Contain 'LaunchItemInvalid'
+        }
+    }
+
     Context 'When content exceeds the configured maximum depth' {
         It 'Should preserve visible siblings and report excluded deeper content' {
             $entry = New-Item -Path (Join-Path $managedRoot 'EntryA') -ItemType Directory
