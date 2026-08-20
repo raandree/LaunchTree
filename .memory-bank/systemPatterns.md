@@ -55,9 +55,11 @@ Every filesystem probe over Managed or Personal content passes an explicit
 `ErrorAction`: `Test-Path` writes a non-terminating `UnauthorizedAccessException`
 rather than `$false` when the directory denies list or traverse access; the
 description probe uses `Stop` and degrades to `DescriptionUnavailable`, the root
-probes use `Ignore`. An Entry Root path is split with plain string operations,
-never `Split-Path` or the .NET path helpers, which throw on a bare drive
-specifier and disagree across editions about the parent of a UNC share. A
+probes use `Ignore`; a negative-permission test must deny the object itself,
+because an inheritable `Deny` lands behind the explicit `Allow` entries an
+existing child already carries. An Entry Root path is split with plain string
+operations, never `Split-Path` or the .NET path helpers, which throw on a bare
+drive specifier and disagree across editions about the parent of a UNC share. A
 wizard-created shortcut is user-owned: it names its Entry Root directly and
 Reconciliation ignores it.
 
@@ -65,12 +67,10 @@ Shell invocation never asks for a process object: `-PassThru` fails a launch tha
 succeeded, because Windows Shell returns no handle when it hands the request to a
 running instance, an elevated process, or a protocol handler. A type compiled
 against WPF must reference `System.Xaml` explicitly, because `Window` implements
-`System.Windows.Markup.IQueryAmbient` and the Windows PowerShell compiler will
-not resolve it while PowerShell 7 does; the Launcher is normally hosted by
-Windows PowerShell, so such an omission stays invisible to a PowerShell 7 test
-run. A borderless window that carries a `WindowChrome` needs no maximize
-workaround: WPF clips its window region to the work area, but the remembered
-geometry must come from `RestoreBounds` while maximized.
+`IQueryAmbient` and only PowerShell 7 resolves it implicitly; the Launcher is
+normally hosted by Windows PowerShell, so such an omission stays invisible to a
+PowerShell 7 test run. A borderless `WindowChrome` window needs no maximize
+workaround, but the remembered geometry must come from `RestoreBounds`.
 
 ## Delivery
 

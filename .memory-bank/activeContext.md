@@ -130,12 +130,14 @@ while preserving the approved behavior and security boundaries.
   conversion, because it uses only the classic `Should` assertions that Pester 6
   keeps. New tests must stay self-contained: Pester 6 discovers and runs one file
   at a time, so a discovery-time side effect no longer reaches another file.
-- The `Get-LaunchTreeContentSnapshot` test 'Should report a Menu Folder that
-  denies access without writing a host error' fails on `main`. It expects both
-  `DescriptionUnavailable` and `ContentPathInaccessible` but the snapshot reports
-  only `ContentPathInaccessible`. The failure predates the Pester upgrade and
-  reproduces with Pester 5.7.1, so it belongs to the denied-Menu-Folder work,
-  not to the dependency change. It also decides the color of the first GitHub
+- The deny-ACL regression test failed in its own fixture rather than in the
+  module. An inheritable `Deny` placed on the Menu Folder reaches an already
+  created `description.txt` behind the explicit `Allow` entries that file
+  carries, and an access check stops at the first entry granting what was
+  asked, so the description stayed readable and only `ContentPathInaccessible`
+  was raised. Denying the file explicitly restores both findings on both
+  editions. A fixture that still grants access proves nothing about a denied
+  path, so a negative-permission test has to assert that its own setup denies. It also decides the color of the first GitHub
   Actions run: the CI test legs stay red until it is fixed.
 - Continuous integration is `.github/workflows/ci.yml`, Windows only, with the
   test matrix over the two supported hosts instead of over operating systems.

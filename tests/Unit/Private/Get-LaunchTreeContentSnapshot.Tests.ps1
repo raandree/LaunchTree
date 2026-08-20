@@ -224,16 +224,30 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
             @('[InternetShortcut]', 'URL=https://readable.example') |
                 Set-Content -LiteralPath (Join-Path $entry.FullName 'Readable.url') -Encoding ASCII
             $denied = New-Item -Path (Join-Path $entry.FullName 'Denied') -ItemType Directory
-            'Denied description' |
-                Set-Content -LiteralPath (Join-Path $denied.FullName 'description.txt') -Encoding UTF8
+            $deniedDescription = Join-Path $denied.FullName 'description.txt'
+            'Denied description' | Set-Content -LiteralPath $deniedDescription -Encoding UTF8
 
+            $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent().User
             $denyRule = [Security.AccessControl.FileSystemAccessRule]::new(
-                [Security.Principal.WindowsIdentity]::GetCurrent().User,
+                $currentUser,
                 [Security.AccessControl.FileSystemRights] 'ListDirectory, ReadAttributes, Traverse',
                 [Security.AccessControl.InheritanceFlags] 'ContainerInherit, ObjectInherit',
                 [Security.AccessControl.PropagationFlags]::None,
                 [Security.AccessControl.AccessControlType]::Deny
             )
+            # The existing file carries its own explicit Allow ACEs, which the access
+            # check grants before it ever reaches the inherited Deny above, so the
+            # description needs an explicit Deny of its own. ReadPermissions stays
+            # granted so the restore below can still read the file's ACL.
+            $descriptionDenyRule = [Security.AccessControl.FileSystemAccessRule]::new(
+                $currentUser,
+                [Security.AccessControl.FileSystemRights] 'ReadData, ReadAttributes',
+                [Security.AccessControl.AccessControlType]::Deny
+            )
+            $descriptionAcl = Get-Acl -LiteralPath $deniedDescription
+            $descriptionAcl.SetAccessRule($descriptionDenyRule)
+            Set-Acl -LiteralPath $deniedDescription -AclObject $descriptionAcl
+
             $denyAcl = Get-Acl -LiteralPath $denied.FullName
             $denyAcl.SetAccessRule($denyRule)
             Set-Acl -LiteralPath $denied.FullName -AclObject $denyAcl
@@ -245,9 +259,14 @@ Describe 'Get-LaunchTreeContentSnapshot' -Tag 'Unit' {
                     Get-LaunchTreeContentSnapshot -Configuration $TestConfiguration
                 } 2>&1
             } finally {
+                # The folder Deny blocks every handle below it, so it has to go first.
                 $restoreAcl = Get-Acl -LiteralPath $denied.FullName
                 $restoreAcl.RemoveAccessRuleAll($denyRule)
                 Set-Acl -LiteralPath $denied.FullName -AclObject $restoreAcl
+
+                $restoreDescriptionAcl = Get-Acl -LiteralPath $deniedDescription
+                $restoreDescriptionAcl.RemoveAccessRuleAll($descriptionDenyRule)
+                Set-Acl -LiteralPath $deniedDescription -AclObject $restoreDescriptionAcl
             }
 
             $errorRecords = @($streams |

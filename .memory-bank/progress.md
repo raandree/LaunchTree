@@ -15,6 +15,19 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
+- 2026-08-20: Turned the continuous integration test legs green. Both legs
+  failed on the same single test, the deny-ACL Health Finding regression test,
+  which expected `DescriptionUnavailable` beside `ContentPathInaccessible` and
+  saw only the latter. The module was right and the fixture was wrong: it denied
+  the Menu Folder with an inheritable ACE, but `description.txt` already existed
+  and carried explicit `Allow` entries copied from the parent, which an access
+  check grants before it ever reaches the inherited `Deny`. Measured the ordered
+  DACL on both objects to prove it, then denied the description file explicitly
+  and confirmed the probe now throws on both editions. `CHANGELOG.md` carries
+  the entry the Sampler changelog gate requires. Verified with the CI sequence
+  locally: one build, then the test workflow under PowerShell 7 and Windows
+  PowerShell 5.1, 261 passed, 0 failed, 2 intentional non-STA skips each.
+
 - 2026-08-20: Added GitHub Actions continuous integration in
   `.github/workflows/ci.yml`, modelled on the ShellPilot pipeline but Windows
   only: a build job packs on `windows-latest`, two test legs replay the Sampler
@@ -132,14 +145,10 @@ release remains gated by external environment evidence.
   threading reference assemblies when present. The icon cache key moved to `v2`
   because the fallback icon had already been persisted. Suite: 190 passed.
 - 2026-08-18: Moved the selected description out of the title bar into its own
-  field between the title bar and the navigation strip on customer request, who
-  supplied three in-house apps as the reference pattern. A first pass sized the
-  field to its content; the customer rejected that because the tab strip moved
-  whenever a tab carried a different description, so the field now reserves
-  exactly two lines at a 16 DIU line height, truncates a longer text with an
-  ellipsis, and keeps the full text in the tooltip. It is collapsed in `Grid`.
-  Captures of one line, two full lines, an overflowing text, and no
-  `description.txt` all place the tab strip at the same position.
+  field on customer request. Sizing it to its content moved the tab strip, so it
+  reserves exactly two lines at a 16 DIU line height, truncates with an ellipsis
+  into the tooltip, and collapses in `Grid`. Four captures place the tab strip
+  at the same position.
 - 2026-08-18: Fixed a customer report that a Managed Root on a DFS namespace
   found no Entry Roots. A DFS link is a directory reparse point, and traversal
   skipped every reparse point. Traversal now reads the reparse tag through
@@ -150,24 +159,17 @@ release remains gated by external environment evidence.
   read through the referral, DFSR mount point still ignored. Suite: 197 passed.
 - 2026-08-19: Fixed a customer report that a folder holding three `.url` files
   showed only two. `Get-LaunchTreeLaunchItemDetail` read the whole shortcut with
-  a strict UTF-8 decoder, so one byte of the system ANSI code page anywhere in
-  the file threw and the shortcut was dropped as `LaunchItemInvalid` — here in
-  `IconFile`, a field the menu never reads. The read now falls back to
-  `TextInfo.ANSICodePage` on `DecoderFallbackException`. Every existing fixture
-  was ASCII, which is why the suite never caught it. Suite: 198 passed, 1 skip.
-- 2026-08-19: Investigated a follow-up report that the same folder still showed
-  blank icons. No defect: all three `IconFile` targets were absent. Treat a
-  blank Launch Item icon as a missing target until a byte dump says otherwise.
+  a strict UTF-8 decoder, so one ANSI byte anywhere in the file threw and the
+  shortcut was dropped as `LaunchItemInvalid` — here in `IconFile`, a field the
+  menu never reads. The read now falls back to `TextInfo.ANSICodePage`. Every
+  existing fixture was ASCII, which is why the suite never caught it.
+- 2026-08-19: Investigated blank icons in the same folder. No defect: all three
+  `IconFile` targets were absent. Treat a blank icon as a missing target first.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
-  event registration. It resolves the namespace through
-  `Get-LaunchTreeConfiguration`, accepts a `-CachePath` override, supports
-  `ShouldProcess`, removes only `*.png`, keeps the namespace directory, and
-  returns the entry count and bytes reclaimed. `ADR-0007` fixed the public
-  surface at seven commands, so it carries a dated amendment; added `FR-034` and
-  wired `ClearCache` into both single-file deliveries after the customer asked
-  for it in `LaunchTree.Minimal.ps1` too, which cost one function and about 4 KB.
-  Verified against the real cache: 159 entries discarded. Suite: 210 passed.
+  event registration. `ADR-0007` carries a dated amendment for the eighth
+  command, `FR-034` specifies it, and both single-file deliveries reach it as
+  `-Command ClearCache`. Verified against the real cache: 159 entries discarded.
 - 2026-08-19: Removed Content Source subtitles from compact Launcher rows.
 - 2026-08-19: Fixed the Launcher taskbar button showing the PowerShell host
   icon even though the window and Alt+Tab used the embedded LaunchTree icon.
@@ -178,11 +180,9 @@ release remains gated by external environment evidence.
   controls on customer request and moved the shortcut wizard to
   `New-LaunchTreeShortcut`, reachable as `-Command CreateShortcut` in both
   single-file deliveries; `ADR-0007` carries a second dated amendment and the
-  theme moved into `Get-LaunchTreeTheme` so a standalone wizard renders
-  identically. Maximize needed no chrome workaround: measured on a 150% display,
-  `WindowChrome` clips the window region to exactly the work area, so only the
-  remembered geometry (`RestoreBounds`) and the tab width fit needed a
-  maximized-state guard. Suite: 244 passed, 2 skips.
+  theme moved into `Get-LaunchTreeTheme`. Maximize needed no chrome workaround:
+  `WindowChrome` clips the window region to the work area, so only the
+  remembered geometry (`RestoreBounds`) and the tab width fit needed a guard.
 
 ## Stable capabilities
 

@@ -174,6 +174,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix the denied-Menu-Folder regression test failing in continuous integration
+  on both PowerShell 7 and Windows PowerShell 5.1. The fixture denied the Menu
+  Folder with an inheritable ACE, but `description.txt` already existed and
+  carried its own explicit `Allow` entries, which the access check grants before
+  it ever reaches the inherited `Deny`. The description therefore stayed
+  readable, only `ContentPathInaccessible` was raised, and the expected
+  `DescriptionUnavailable` finding never appeared. The fixture now denies the
+  description file explicitly, so it exercises the behavior it guards
 - Fix a red error appearing under the Launcher after an item started
   successfully. The invocation asked `Start-Process` for a process object it
   never used, and Windows Shell returns none when it hands the request to a

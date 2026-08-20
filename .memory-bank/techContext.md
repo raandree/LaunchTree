@@ -42,10 +42,10 @@ source: repository evidence
 - Compiled executable: generated during `build` from each single-file script,
   smoke-run by the generator, and verified by an isolated Reconciliation whose
   Start Entry targets the executable directly.
-- Full detached Sampler workflow under Pester 6.1.0: 243 pass, 2 intentional
-  non-STA skips, and 1 known failure on both PowerShell 7 and Windows
-  PowerShell 5.1. The failure is the `Get-LaunchTreeContentSnapshot` deny-ACL
-  Health Finding test and predates the Pester upgrade.
+- Full detached Sampler workflow under Pester 6.1.0: 261 pass, 2 intentional
+  non-STA skips, and no failure on either PowerShell 7 or Windows PowerShell
+  5.1. GitHub Actions replays the same workflow on both editions from one build
+  artifact.
 - Recursive PSScriptAnalyzer: zero production-source findings.
 - `tools/New-LauncherScreenshot.ps1`: nonblank default `TabbedList` frame at
   `1204x1060` with 33 sampled colors and `Grid` frame at `1120x866` with 120
