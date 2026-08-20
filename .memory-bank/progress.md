@@ -15,19 +15,28 @@ release remains gated by external environment evidence.
 
 ## Recent milestones
 
+- 2026-08-20: Added GitHub Actions continuous integration in
+  `.github/workflows/ci.yml`, modelled on the ShellPilot pipeline but Windows
+  only: a build job packs on `windows-latest`, two test legs replay the Sampler
+  test workflow from that artifact under PowerShell 7 and Windows PowerShell
+  5.1, and a deploy job publishes from the upstream repository on `main` or a
+  `v*` tag. `build.yaml` gained `Publish_Release_To_GitHub` and the
+  `GitHubConfig` identity `Create_ChangeLog_GitHub_PR` commits with. Verified by
+  parsing both YAML files and running `build.ps1 -Tasks publish` with no tokens,
+  which skipped both publish tasks and proved the task references resolve. The
+  test legs stay red until the known deny-ACL failure is fixed.
 - 2026-08-19: Added a compiled executable delivery for both single-file scripts.
-  `tools/Build-LaunchTreeExecutable.ps1` embeds the generated script and a
-  bootstrap as managed resources in the C# host under `tools/StandaloneHost`,
-  compiles it with the in-box .NET Framework `csc.exe`, and smoke-runs the
-  result; two Sampler tasks emit `LaunchTree.exe` (console, hides a console it
-  owns) and `LaunchTree.Minimal.exe` (windows subsystem). Two findings shaped it:
-  splatting an argument array binds by position only, so the bootstrap resolves
-  parameter names against the embedded script's own `ParamBlock`; and a custom
-  `PSHost` is what makes `exit` observable, because `SetShouldExit` is never
-  called under the default host. A compiled delivery is its own Launcher Host, so
+  `tools/Build-LaunchTreeExecutable.ps1` embeds script and bootstrap as managed
+  resources in the C# host under `tools/StandaloneHost`, compiles it with the
+  in-box `csc.exe`, and smoke-runs the result; two Sampler tasks emit
+  `LaunchTree.exe` (console, hides a console it owns) and
+  `LaunchTree.Minimal.exe` (windows subsystem). Two findings shaped it:
+  splatting binds by position only, so the bootstrap resolves parameter names
+  against the embedded script's own `ParamBlock`; and a custom `PSHost` is what
+  makes `exit` observable. A compiled delivery is its own Launcher Host, so
   `Get-LaunchTreeRuntimeContext` gained `LauncherIsExecutable` and the Start
-  Entry, wizard, and probe drop the PowerShell prefix. Verified by an isolated
-  Reconciliation: the Start Entry targets `LaunchTree.exe -Command "Show"`.- 2026-08-19: Moved the Pester build dependency from the pinned `5.7.1` to
+  Entry, wizard, and probe drop the PowerShell prefix.
+- 2026-08-19: Moved the Pester build dependency from the pinned `5.7.1` to
   `latest`, which resolves Pester 6.1.0. No test needed converting: the suite
   uses only the classic `Should` assertions and `Should -Invoke`, which Pester 6
   keeps, and it contains none of the removed constructs (`Assert-MockCalled`,
@@ -39,7 +48,6 @@ release remains gated by external environment evidence.
   `DescriptionUnavailable` and `ContentPathInaccessible` but sees only
   `ContentPathInaccessible`, and it fails identically when Pester 5.7.1 is
   imported explicitly.
-
 - 2026-08-19: Fixed a customer report that the Launcher showed a red error after
   an item had started fine. `Invoke-LaunchTreeLaunchItem` asked `Start-Process`
   for a process object it discarded, and Windows Shell returns none when it hands
@@ -48,7 +56,6 @@ release remains gated by external environment evidence.
   application was reported as failed. Reproduced all three, removed `-PassThru`,
   and confirmed a broken shortcut target still reports failure. The status line
   now wraps so the Windows reason stays readable. 232 tests pass.
-
 - 2026-08-19: Added a customer-requested shortcut wizard and flipped the
   close-after-launch default. The three-step dialog takes one Entry Root folder
   such as `\\contoso.com\Data\Files\programs`, derives the Managed Root from its
@@ -62,7 +69,6 @@ release remains gated by external environment evidence.
   window helper failed to compile under Windows PowerShell 5.1, the default
   `LauncherHost`, because `Window` implements `IQueryAmbient` and the reference
   to `System.Xaml` was implicit. Both editions pass 231 tests with one skip.
-
 - 2026-08-19: Fixed the access-denied error a customer saw before the Launcher
   opened on a DFS Managed Root. `Test-Path` writes a non-terminating
   `UnauthorizedAccessException` when the containing directory denies list or
@@ -73,7 +79,6 @@ release remains gated by external environment evidence.
   beside their existing findings. A Deny-ACE regression test asserts an empty
   error stream and both findings, and fails without the fix. Both editions pass
   212 tests with one skip.
-
 - 2026-08-17: Answered a customer complaint that `output/LaunchTree.ps1` is too
   large by adding a second generated artifact instead of shrinking the first.
   `tools/Build-LaunchTreeScript.ps1` gained `-Variant Full|Minimal`; Minimal
@@ -92,14 +97,12 @@ release remains gated by external environment evidence.
   the virtual screen. Durable live-UI lessons: a themed `ComboBox` needs a full
   XAML `Style`; a fixed-height tab strip starves its labels once a scrollbar
   appears; tab-strip owner and selected tab must be tracked separately so only a
-  list row descends; and `TabItem.DesiredSize` under-measures the strip, so the
-  width fit grows by reported overflow until scrolling stops. Menu Folders with
-  no Launch Item beneath them are hidden. Added `AS-018` and `AS-020`.
+  list row descends; and `TabItem.DesiredSize` under-measures the strip. Menu
+  Folders with no Launch Item beneath them are hidden. Added `AS-018`, `AS-020`.
 - 2026-08-06: Prepared the repository for a public release. A disclosure audit
-  of every tracked file, commit, and historical screenshot blob found no
-  personally identifiable information, secrets, or customer reference. Added the
-  MIT `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, `CODEOWNERS`, and replaced
-  the contradictory manifest copyright with `LicenseUri` and `ProjectUri`.
+  of every tracked file, commit, and historical screenshot blob found nothing
+  sensitive. Added the MIT `LICENSE`, `SECURITY.md`, `CONTRIBUTING.md`, and
+  `CODEOWNERS`, and replaced the contradictory manifest copyright.
 - 2026-08-17: Made `.memory-bank/promptHistory.md` local-only by rewriting all
   38 commits on `main` with `git filter-branch --index-filter`. Every SHA
   changed; `origin/main` and `refs/original/refs/heads/main` still carry the old
@@ -113,21 +116,18 @@ release remains gated by external environment evidence.
   side while the DWM visible frame started 8 pixels in at the sides and 0 at the
   top, so only the top border showed; a `WindowChrome` with zero caption height,
   glass frame, and corner radius plus a 4 DIU resize border makes the live window
-  measure inset 0 on all four sides. Also fixed `Grid` folder activation, which
-  assigned to a breadcrumb control removed on 2026-07-29 and therefore threw.
+  measure inset 0 on all four sides.
 - 2026-08-18: Fixed internet shortcut (`.url`) Launch Items rendering the
   generic file icon. `IShellItemImageFactory` returned the correct browser icon
   synchronously on the Launcher's STA thread but the generic document icon from
   `Task.Run`, because the internet shortcut icon handler answers only in an STA
   and the shell substitutes a fallback instead of failing. `NativeIcon.GetAsync`
   now dispatches to one background STA thread running a WPF `Dispatcher`, which
-  keeps the existing `Task<BitmapSource>` contract, supplies the queue, and
-  bounds thread count at the 1,000-object scale. Supplying
-  `-ReferencedAssemblies` replaces the PowerShell 7 default reference set, so
-  `Initialize-LaunchTreeWpf` adds `$PSHOME\ref\System.Threading.Thread.dll` and
-  `System.Threading.dll` when present; Windows PowerShell needs neither. The
-  icon cache key moved to `v2` because the fallback icon had already been
-  persisted. Suite green: 190 passed, 0 failed, 1 intentional skip.
+  keeps the existing `Task<BitmapSource>` contract and bounds thread count at
+  the 1,000-object scale. Supplying `-ReferencedAssemblies` replaces the
+  PowerShell 7 default reference set, so `Initialize-LaunchTreeWpf` adds the
+  threading reference assemblies when present. The icon cache key moved to `v2`
+  because the fallback icon had already been persisted. Suite: 190 passed.
 - 2026-08-18: Moved the selected description out of the title bar into its own
   field between the title bar and the navigation strip on customer request, who
   supplied three in-house apps as the reference pattern. A first pass sized the
@@ -149,14 +149,12 @@ release remains gated by external environment evidence.
   showed only two. `Get-LaunchTreeLaunchItemDetail` read the whole shortcut with
   a strict UTF-8 decoder, so one byte of the system ANSI code page anywhere in
   the file threw and the shortcut was dropped as `LaunchItemInvalid` — here in
-  `IconFile`, a field the menu never reads. Windows writes `.url` files in the
-  ANSI code page, so the read now falls back to `TextInfo.ANSICodePage` on
-  `DecoderFallbackException`. Every existing fixture was ASCII, which is why the
-  suite never caught it. Suite: 198 passed, 1 skip.
+  `IconFile`, a field the menu never reads. The read now falls back to
+  `TextInfo.ANSICodePage` on `DecoderFallbackException`. Every existing fixture
+  was ASCII, which is why the suite never caught it. Suite: 198 passed, 1 skip.
 - 2026-08-19: Investigated a follow-up report that the same folder still showed
-  blank icons. No defect: the internet shortcut handler resolves `IconFile`
-  itself and all three targets were absent. Treat a blank Launch Item icon as a
-  missing `IconFile` target until a byte dump says otherwise.
+  blank icons. No defect: all three `IconFile` targets were absent. Treat a
+  blank Launch Item icon as a missing target until a byte dump says otherwise.
 - 2026-08-19: Added `Clear-LaunchTreeCache` so an operator can discard cached
   icons without `Remove-LaunchTree`, which also deletes Start Entries and the
   event registration. It resolves the namespace through
@@ -178,11 +176,10 @@ release remains gated by external environment evidence.
   `New-LaunchTreeShortcut`, reachable as `-Command CreateShortcut` in both
   single-file deliveries; `ADR-0007` carries a second dated amendment and the
   theme moved into `Get-LaunchTreeTheme` so a standalone wizard renders
-  identically. Maximize needed no chrome workaround: measured on a 150%
-  display, `WindowChrome` clips the window region to exactly the work area, so
-  only the remembered geometry (`RestoreBounds`) and the tab width fit needed a
-  maximized-state guard. Verified live on both deliveries with `PrintWindow`
-  captures. Suite: 244 passed, 2 skips.
+  identically. Maximize needed no chrome workaround: measured on a 150% display,
+  `WindowChrome` clips the window region to exactly the work area, so only the
+  remembered geometry (`RestoreBounds`) and the tab width fit needed a
+  maximized-state guard. Suite: 244 passed, 2 skips.
 
 ## Stable capabilities
 

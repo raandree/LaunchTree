@@ -95,11 +95,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   omission of Menu Folders whose subtree holds no Launch Item
 - Add read-only effective configuration with validated machine settings, user
   preferences, defaults, and structured Health Findings
+- Add the GitHub Actions pipeline `.github/workflows/ci.yml`, which packages
+  the module on a Windows worker, runs the Sampler test workflow on both
+  supported hosts (PowerShell 7 and Windows PowerShell 5.1), and on the
+  upstream repository publishes the release and raises the changelog pull
+  request. Every job runs on Windows, because the build compiles the
+  single-file executables with the C# compiler that ships with Windows and the
+  tests exercise WPF, the Windows Shell and the Windows Event Log
 - Add the initial Sampler module structure, signed specifications, accepted
   decisions, canonical glossary, and managed issue register
 
 ### Changed
 
+- Create a GitHub release as part of the `publish` build workflow, before the
+  PowerShell Gallery publication, and record the release identity that
+  `Create_ChangeLog_GitHub_PR` commits with. Both tasks are token-gated, so a
+  build without `GitHubToken` or `GalleryApiToken` skips them
 - Recognise a compiled executable as its own Launcher Host. A Start Entry, a
   wizard-created shortcut, and the standard-user Event Log probe now target the
   executable directly instead of prefixing a PowerShell host and `-File`, so

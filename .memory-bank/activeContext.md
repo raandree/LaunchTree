@@ -135,7 +135,14 @@ while preserving the approved behavior and security boundaries.
   `DescriptionUnavailable` and `ContentPathInaccessible` but the snapshot reports
   only `ContentPathInaccessible`. The failure predates the Pester upgrade and
   reproduces with Pester 5.7.1, so it belongs to the denied-Menu-Folder work,
-  not to the dependency change.
+  not to the dependency change. It also decides the color of the first GitHub
+  Actions run: the CI test legs stay red until it is fixed.
+- Continuous integration is `.github/workflows/ci.yml`, Windows only, with the
+  test matrix over the two supported hosts instead of over operating systems.
+  Releasing is token-gated in `build.yaml`, so nothing publishes until
+  `GitHubToken` and `GalleryApiToken` exist in the repository. Adding them makes
+  every push to `main` a stable release, because `GitVersion.yml` declares
+  `main` a release branch with no prerelease tag.
 Run the outstanding external matrix and policy validations before declaring a
 production-ready release. `OI-009` still needs a real standard-user Event Log
 verification path (unelevated shell or Task Scheduler) now that the inline

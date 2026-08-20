@@ -130,6 +130,13 @@ was verified. Confirm in the description that the build passed under both
 supported editions, that the documentation task passed, and that the changelog
 was updated. Keep a pull request focused on one concern so it stays reviewable.
 
+The `CI` workflow in `.github/workflows/ci.yml` repeats the build and the test
+suite on a Windows worker for every pull request, once under PowerShell 7 and
+once under Windows PowerShell 5.1. It runs on Windows only, because the build
+compiles the single-file executables with the C# compiler that ships with
+Windows and the tests exercise WPF, the Windows Shell, and the Windows Event
+Log.
+
 ## Reporting problems
 
 Open an issue for a defect or a feature request. For a suspected security

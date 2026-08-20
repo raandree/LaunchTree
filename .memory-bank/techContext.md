@@ -53,5 +53,12 @@ source: repository evidence
   a tall `Grid` frame.
 - `tools/Test-OfflineLifecycle.ps1`: copied module version `0.2.0`, health
   `Healthy`, WPF capture, successful removal, and zero runtime dependencies.
+- `.github/workflows/ci.yml` repeats build and test on `windows-latest` for
+  every push to `main`, every pull request, and every `v*` tag: one build job
+  runs `build.ps1 -ResolveDependency -Tasks pack` and uploads `output/`, and two
+  test legs rerun the Sampler test workflow from that artifact under PowerShell
+  7 (`pwsh`) and Windows PowerShell 5.1 (`powershell`). There is no Linux or
+  macOS leg. The artifact is about 300 MB, almost all of it the resolved
+  PSScriptAnalyzer dependency.
 - External visual-scale/theme, Windows Server, ARM64, AppLocker/WDAC, and live
   elevated Event Log matrix evidence remains tracked in `docs/open-issues.md`.

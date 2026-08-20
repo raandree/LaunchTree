@@ -81,16 +81,16 @@ recommended form. `tools/Build-LaunchTreeScript.ps1` also emits a parse-checked
 `tools/MinimalVariant` files replace same-named module functions to drop the
 Event Log and every JSON reader, an AST call-graph traversal selects what to
 embed, and a token comparison proves the comment strip changed nothing.
-`tools/Build-LaunchTreeExecutable.ps1` then compiles each script into
-`output/LaunchTree.exe` and `output/LaunchTree.Minimal.exe` with the in-box
+`tools/Build-LaunchTreeExecutable.ps1` then compiles each script with the in-box
 .NET Framework compiler, embedding script and bootstrap as resources. That host
 must implement a `PSHost`, because `exit` reaches a caller only through
 `SetShouldExit`, and must bind argument names against the embedded script's
 `ParamBlock`, because splatting an argument array binds by position only. A
-compiled delivery reports `LauncherIsExecutable` from
-`Get-LaunchTreeRuntimeContext`, so its Start Entries, wizard shortcuts, and probe
-target the executable itself instead of a Launcher Host; a binary asset stays
-base64 in the private function that decodes it.
+compiled delivery reports `LauncherIsExecutable`, so its Start Entries, wizard
+shortcuts, and probe target the executable itself; a binary asset stays base64
+in the private function that decodes it. Continuous integration mirrors that
+boundary: `.github/workflows/ci.yml` runs every job on Windows and matrixes the
+two supported hosts, not two operating systems; publication stays token-gated.
 
 ## Decisions
 

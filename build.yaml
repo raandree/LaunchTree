@@ -79,8 +79,7 @@ BuildWorkflow:
     #- Merge_CodeCoverage_Files
 
   publish:
-
-
+    - Publish_Release_To_GitHub # Runs first so an expired token fails early
     - publish_module_to_gallery
 
 ####################################################
@@ -130,6 +129,8 @@ Pester:
 ModuleBuildTasks:
   Sampler:
     - '*.build.Sampler.ib.tasks'
+  # Provides Publish_Release_To_GitHub and Create_ChangeLog_GitHub_PR, used by
+  # the publish workflow and the deploy job in .github/workflows/ci.yml.
   Sampler.GitHubTasks:
     - '*.ib.tasks'
 
@@ -144,3 +145,16 @@ TaskHeader: |
   Write-Build DarkGray "  $Path"
   Write-Build DarkGray "  $($Task.InvocationInfo.ScriptName):$($Task.InvocationInfo.ScriptLineNumber)"
   ""
+
+####################################################
+#                GitHub Configuration              #
+####################################################
+# Read by Sampler.GitHubTasks through $BuildInfo.GitHubConfig.<key>. The key
+# names are fixed - the tasks look up GitHubFilesToAdd, GitHubConfigUserName
+# and GitHubConfigUserEmail exactly. Without the identity, the commit that
+# Create_ChangeLog_GitHub_PR builds has no author and the task gives up.
+GitHubConfig:
+  GitHubFilesToAdd:
+    - 'CHANGELOG.md'
+  GitHubConfigUserName: Raimund Andree
+  GitHubConfigUserEmail: r.andree@live.com
