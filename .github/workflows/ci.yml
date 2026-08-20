@@ -108,6 +108,11 @@ jobs:
     name: Test ${{ needs.build.outputs.fullSemVer }} (${{ matrix.edition }})
     needs: build
     runs-on: windows-latest
+    # The step-level 'shell' key cannot read the matrix context, so the host is
+    # selected through the job default instead.
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     strategy:
       fail-fast: false
       matrix:
@@ -132,7 +137,6 @@ jobs:
           path: output/
 
       - name: Run Tests
-        shell: ${{ matrix.shell }}
         run: ./build.ps1 -Tasks test
 
       - name: Publish Test Results

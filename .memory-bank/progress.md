@@ -23,8 +23,11 @@ release remains gated by external environment evidence.
   `v*` tag. `build.yaml` gained `Publish_Release_To_GitHub` and the
   `GitHubConfig` identity `Create_ChangeLog_GitHub_PR` commits with. Verified by
   parsing both YAML files and running `build.ps1 -Tasks publish` with no tokens,
-  which skipped both publish tasks and proved the task references resolve. The
-  test legs stay red until the known deny-ACL failure is fixed.
+  which skipped both publish tasks and proved the task references resolve.
+  GitHub rejected the first push: a step-level `shell` key cannot read the
+  `matrix` context, so the host selection moved to the job's `defaults.run`,
+  which the context-availability table does allow. The test legs stay red until
+  the known deny-ACL failure is fixed.
 - 2026-08-19: Added a compiled executable delivery for both single-file scripts.
   `tools/Build-LaunchTreeExecutable.ps1` embeds script and bootstrap as managed
   resources in the C# host under `tools/StandaloneHost`, compiles it with the
